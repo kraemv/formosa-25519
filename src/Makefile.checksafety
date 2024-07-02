@@ -1,0 +1,44 @@
+# -----------------------------------------------------------------------------
+
+ifneq ($(OP),)
+
+SAFETY_FLAGS   ?=
+SAFETY_TIMEOUT ?= 10m
+
+CHECK_SAFETY_SLICE         = (time timeout -v $(SAFETY_TIMEOUT) $(JASMIN) $(JINCLUDE) -slice $* -checksafety $(SAFETY_FLAGS) $< 2> $@) $(CI_CMD)
+CHECK_SAFETY_SLICE_STDOUT  = (time timeout -v $(SAFETY_TIMEOUT) $(JASMIN) $(JINCLUDE) -slice $* -checksafety $(SAFETY_FLAGS) $<      ) $(CI_CMD)
+
+CHECK_SAFETY               = (time timeout -v $(SAFETY_TIMEOUT) $(JASMIN) $(JINCLUDE)           -checksafety $(SAFETY_FLAGS) $< 2> $@) $(CI_CMD)
+CHECK_SAFETY_STDOUT        = (time timeout -v $(SAFETY_TIMEOUT) $(JASMIN) $(JINCLUDE)           -checksafety $(SAFETY_FLAGS) $<      ) $(CI_CMD)
+
+SAFETY_TARGETS             = $(addsuffix .safety, $(FUNCTIONS))
+SAFETY_TARGETS_STDOUT      = $(addsuffix .stdout, $(SAFETY_TARGETS))
+
+# -----------------------------------------------------------------------------
+
+check-safety: $(SAFETY_TARGETS)
+
+$(OP).safety: $(OP).jazz $(DEPS_DIR)/$(OP).safety.d | $(DEPS_DIR) $(CI_DIR)
+	$(DEPS)
+	$(CHECK_SAFETY)
+
+$(OP).safety.stdout: $(OP).jazz $(DEPS_DIR)/$(OP).safety.d | $(CI_DIR)
+	$(DEPS)
+	$(CHECK_SAFETY_STDOUT)
+
+# --
+
+$(SAFETY_TARGETS):
+%.safety: $(OP).jazz $(DEPS_DIR)/%.safety.d | $(DEPS_DIR) $(CI_DIR)
+	$(DEPS)
+	$(CHECK_SAFETY_SLICE)
+
+%.safety.stdout: $(OP).jazz | $(DEPS_DIR) $(CI_DIR)
+	$(DEPS)
+	$(CHECK_SAFETY_SLICE_STDOUT)
+
+DEPFILES := \
+ $(DEPFILES) \
+ $(addprefix $(DEPS_DIR)/, $(addsuffix .safety.d, $(FUNCTIONS) $(OP)))
+
+endif
