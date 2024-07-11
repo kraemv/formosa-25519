@@ -1,0 +1,38 @@
+name: amd64-linux
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+
+  src:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: check and compile
+        run: make -C src/
+
+  test:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: run tests
+        run: make -C test/
+
+  bench:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: run benchmarks
+        run: make -C bench/
+
