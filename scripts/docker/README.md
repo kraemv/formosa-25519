@@ -13,7 +13,7 @@ $ cd src/
 $ make -j$(nproc)
 ```
 
-The last command, `make`, can take up to 5 minutes to execute (depending on the machine, and if 8 cores are available).
+The last command, `make`, can take up to 10 minutes to execute (depending on the machine, and if 8 cores are available).
 It does the following (search for the `all` rule in `src/Makefile` for more details):
 
 * `make distclean`: cleans everything

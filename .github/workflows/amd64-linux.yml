@@ -32,6 +32,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+        with:
+        submodules: recursive
 
       - name: run benchmarks
         run: make -j$JOBS -C bench/
