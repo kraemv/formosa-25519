@@ -76,7 +76,7 @@ INCLUDES     = -I$(REL_IMPLEMENTATION_DIR)/include/ -I$(COMMON)/ -Iinclude/
 RANDOMBYTES ?= $(EXT)/randombytes/librandombytes.a
 RANDOMBYTES_INCLUDE ?= -I$(EXT)/randombytes/
 
-BENCH_COMPILE = ($(CC) $(CFLAGS) -o $@ $(DEFINE) $(DEFINE_NS) $(INCLUDES) $(COMMON)/crypto_$(OP_LOWERCASE).c $(ASSEMBLY_FILE) $(RANDOMBYTES) -lgsl) $(CI_CMD)
+BENCH_COMPILE = ($(CC) $(CFLAGS) -o $@ $(DEFINE) $(DEFINE_NS) $(INCLUDES) $(RANDOMBYTES_INCLUDE) $(COMMON)/crypto_$(OP_LOWERCASE).c $(ASSEMBLY_FILE) $(RANDOMBYTES) -lgsl) $(CI_CMD)
 
 
 # -----------------------------------------------------------------------------
