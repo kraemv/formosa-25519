@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: check and compile
-        run: make -C -j$JOBS src/
+        run: make -j$JOBS -C src/
 
   test:
     runs-on: [self-hosted, linux, X64, amd64-main]
@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: run tests
-        run: make -C -j$JOBS test/
+        run: make -j$JOBS -C test/
 
   bench:
     runs-on: [self-hosted, linux, X64, amd64-main]
@@ -34,5 +34,5 @@ jobs:
         uses: actions/checkout@v4
 
       - name: run benchmarks
-        run: make -C -j$JOBS bench/
+        run: make -j$JOBS -C bench/
 
