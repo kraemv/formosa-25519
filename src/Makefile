@@ -211,7 +211,7 @@ distclean: clean
 
 # -----------------------------------------------------------------------------
 # printing section
-.PHONHY: print-available-implementations
+.PHONY: print-available-implementations
 
 print-available-implementations:
 	@for i in $(IMPLEMENTATIONS_DIRECTORIES); do (cd $$i && pwd); done
