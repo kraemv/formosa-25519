@@ -115,7 +115,7 @@ $(TESTS_STDOUT):
 # -----------------------------------------------------------------------------
 # reporter
 
-LOGS ?= libx25519-logs-test.tar.gz
+LOGS ?= formosa25519-logs-test.tar.gz
 JLOG := ./../scripts/reporter/jlog
 JCHK := ./../scripts/reporter/checksumsok
 

@@ -35,27 +35,27 @@ CI_REMOVE_OK_LOGS ?= "1"
 export CI
 
 # -----------------------------------------------------------------------------
-# setting the default rule as 'all': compiles, and checks safety and sct for 
+# setting the default rule as 'all': compiles, and checks safety and sct for
 # all implementations
 
 default: all
 
 # -----------------------------------------------------------------------------
-# compile Jasmin implementations to assembly and create libx25519.a 
+# compile Jasmin implementations to assembly and create libformosa25519.a
 
-.PHONY: libx25519.a libx25519.h $(JASMIN_IMPLEMENTATIONS)
+.PHONY: libformosa25519.a libformosa25519.h $(JASMIN_IMPLEMENTATIONS)
 
 .INTERMEDIATE: $(OBJECT_FILES)
 
 just_compile_jasmin_implementations: $(JASMIN_IMPLEMENTATIONS)
 
-libx25519.a: $(JASMIN_IMPLEMENTATIONS)
-	$(MAKE) __libx25519
+libformosa25519.a: $(JASMIN_IMPLEMENTATIONS)
+	$(MAKE) __libformosa25519
 
-__libx25519: $(OBJECT_FILES)
-	$(AR) -rc libx25519.a $(OBJECT_FILES)
-	$(RANLIB) libx25519.a
-	echo "" | cat - $(C_HEADER_FILES) > libx25519.h
+__libformosa25519: $(OBJECT_FILES)
+	$(AR) -rc libformosa25519.a $(OBJECT_FILES)
+	$(RANLIB) libformosa25519.a
+	echo "" | cat - $(C_HEADER_FILES) > libformosa25519.h
 
 $(JASMIN_IMPLEMENTATIONS):
 	$(MAKE) -C $@
@@ -103,7 +103,7 @@ $(EXTRACT_TO_EASYCRYPT):
 # reporter: this section defines rules for reporting the current implementation
 # status
 
-LOGS ?= libx25519-logs-src.tar.gz
+LOGS ?= formosa25519-logs-src.tar.gz
 JLOG := ./../scripts/reporter/jlog
 
 CI_ERROR_FILES := $(shell find $(SRC) -name '*.error')
@@ -144,8 +144,8 @@ all:
 	$(MAKE) check-safety
 	$(MAKE) check-sct
 	$(MAKE) extract-to-easycrypt
-	$(MAKE) libx25519.a
-	$(MAKE) libx25519.h
+	$(MAKE) libformosa25519.a
+	$(MAKE) libformosa25519.h
 	$(MAKE) reporter
 	$(MAKE) err
 
@@ -155,7 +155,7 @@ all:
 .PHONY: clean distclean
 
 clean:
-	rm -f libx25519.a libx25519.h
+	rm -f libformosa25519.a libformosa25519.h
 	rm -f $(LOGS)
 	for i in $(JASMIN_IMPLEMENTATIONS); do $(MAKE) -C $$i clean; done
 	rm -f $(PROOF)/arrays/*Array*.ec

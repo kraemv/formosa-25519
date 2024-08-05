@@ -20,8 +20,8 @@ It does the following (search for the `all` rule in `src/Makefile` for more deta
 * `make check-safety`: runs the safety checker on the implementations
 * `make check-sct`: checks if implementations are speculative constant-time
 * `make extract-to-easycrypt`: extracts Jasmin code to EasyCrypt and populates the `proof/` folder
-* `make lib25519.a`: compiles the Jasmin code into assembly; then object files and packs everything into lib25519.a
-* `make libx25519.h`: builds the header file
+* `make libformosa25519.a`: compiles the Jasmin code into assembly; then object files and packs everything into libformosa25519.a
+* `make libformosa25519.h`: builds the header file
 * `make reporter`: prints the current status (below, the expected output for this step)
 * `make err`: returns an error if there was any error in the previous steps
 

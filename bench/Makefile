@@ -146,7 +146,7 @@ $(BENCHS_SSBD_STDOUT):
 # -----------------------------------------------------------------------------
 # reporter
 
-LOGS ?= libx25519-logs-bench.tar.gz
+LOGS ?= libformosa25519-logs-bench.tar.gz
 JLOG := ./../scripts/reporter/jlog
 
 CI_ERROR_FILES := $(shell test -d $(BIN) && find $(BIN) -name '*.error')
