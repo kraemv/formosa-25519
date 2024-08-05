@@ -8,11 +8,11 @@ ifneq ($(OP),)
 
 SCT_FLAGS ?= --infer
 
-CHECK_SCT_SLICE        = (JASMINPATH="Jade=$(SRC)" $(JASMIN_CT) --slice $* --sct $(SCT_FLAGS) $< > $@ 2>&1) $(CI_CMD)
-CHECK_SCT_SLICE_STDOUT = (JASMINPATH="Jade=$(SRC)" $(JASMIN_CT) --slice $* --sct $(SCT_FLAGS) $<          ) $(CI_CMD)
+CHECK_SCT_SLICE        = (JASMINPATH="formosa25519=$(SRC)" $(JASMIN_CT) --slice $* --sct $(SCT_FLAGS) $< > $@ 2>&1) $(CI_CMD)
+CHECK_SCT_SLICE_STDOUT = (JASMINPATH="formosa25519=$(SRC)" $(JASMIN_CT) --slice $* --sct $(SCT_FLAGS) $<          ) $(CI_CMD)
 
-CHECK_SCT              = (JASMINPATH="Jade=$(SRC)" $(JASMIN_CT)            --sct $(SCT_FLAGS) $< > $@ 2>&1) $(CI_CMD)
-CHECK_SCT_STDOUT       = (JASMINPATH="Jade=$(SRC)" $(JASMIN_CT)            --sct $(SCT_FLAGS) $<          ) $(CI_CMD)
+CHECK_SCT              = (JASMINPATH="formosa25519=$(SRC)" $(JASMIN_CT)            --sct $(SCT_FLAGS) $< > $@ 2>&1) $(CI_CMD)
+CHECK_SCT_STDOUT       = (JASMINPATH="formosa25519=$(SRC)" $(JASMIN_CT)            --sct $(SCT_FLAGS) $<          ) $(CI_CMD)
 
 SCT_TARGETS         = $(addsuffix .sct, $(FUNCTIONS))
 SCT_TARGETS_STDOUT  = $(addsuffix .stdout, $(SCT_TARGETS))

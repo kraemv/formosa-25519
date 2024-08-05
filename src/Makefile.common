@@ -45,7 +45,7 @@ JASMIN  ?= jasminc
 
 JEXT ?= jazz
 override JFLAGS += -noinsertarraycopy
-JINCLUDE ?= -I Jade:$(SRC)
+JINCLUDE ?= -I formosa25519:$(SRC)
 
 JASMIN_COMPILE = ($(JASMIN) $(JFLAGS) $(JINCLUDE) -o $@ $<) $(CI_CMD)
 

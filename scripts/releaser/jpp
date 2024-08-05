@@ -70,7 +70,7 @@ sub jpp_main()
   }
   else
   { # return variables description:
-    # include_hr :     hash (reference) from 'require identifier' -> 'real path'; for instance 'Jade' -> '/(some real path here)/libjade/src/'
+    # include_hr :     hash (reference) from 'require identifier' -> 'real path'; for instance 'formosa25519' -> '/(some real path here)/libjade/src/'
     #                   it is built from @include_a (procedure parse_includes)
     # visited_hr:      hash (reference) intuitively, 'children' -> '[parents]'
     #                   for each file (canonical path) that was visited, visited_hr contains the list of files that have it required (in the context of preprocessing in)
