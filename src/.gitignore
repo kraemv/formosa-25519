@@ -13,3 +13,4 @@ libjade.h
 .log
 .error
 .jflags
+.ci/
