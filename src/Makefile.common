@@ -51,6 +51,14 @@ JASMIN_COMPILE = ($(JASMIN) $(JFLAGS) $(JINCLUDE) -o $@ $<) $(CI_CMD)
 
 ASSEMBLY_FILES = $(SRCS:%.$(JEXT)=%.s)
 
+
+# preprocessing vars
+
+JPP ?= $(PROJECT_DIR)/scripts/releaser/jpp
+PREPROCESSED_FILES := $(SRCS:%.$(JEXT)=%.jpp)
+JASMIN_PREPROCESS = ($(JPP) $(JINCLUDE) -b $(PROJECT_DIR) -out $@ -in $<) $(CI_CMD)
+
+
 # -----------------------------------------------------------------------------
 # extraction vars
 
@@ -62,6 +70,7 @@ JASMIN_EXTRACT = (cd $(EXTRACT_DIR) && $(JASMIN) $(JINCLUDE) $(EFLAGS) -oecarray
 
 EASYCRYPT_FILES = $(SRCS:%.$(JEXT)=$(EXTRACT_DIR)/%_s.ec)
 
+
 # -----------------------------------------------------------------------------
 # dependencies vars
 
@@ -69,11 +78,29 @@ DEPS_DIR ?= .deps
 DEPS = ((printf "$@: "; printf "$< "; $(JASMIN) $(JINCLUDE) -print-dependencies $<) > $(DEPS_DIR)/$(@F).d) $(CI_CMD)
 DEPFILES ?=
 
+
 # -----------------------------------------------------------------------------
 # default rule
 
 default: compile
 
+
+# -----------------------------------------------------------------------------
+# preprocess rules
+
+preprocess: $(PREPROCESSED_FILES)
+	@true
+
+$(PREPROCESSED_FILES):
+%.jpp: %.$(JEXT) $(DEPS_DIR)/%.s.d | $(DEPS_DIR) $(CI_DIR)
+	$(DEPS)
+	$(JASMIN_PREPROCESS)
+
+preprocess-inplace: preprocess
+	for file in $(SRCS); do mv $${file%.$(JEXT)}.jpp $$file; done
+
+revert-preprocess-inplace:
+	for file in $(SRCS); do git checkout $$file; done
 
 # -----------------------------------------------------------------------------
 # compilation rules
@@ -130,16 +157,18 @@ include $(wildcard $(DEPFILES))
 # the following rule records the flags used to compile the implementation
 # these are used by the release script
 
-.PHONY: .jflags
-.jflags:
-	@echo -n "$(JFLAGS)" > .jflags
+.PHONY: .JFLAGS
+.JFLAGS:
+	@echo -n "$(JFLAGS)" > .JFLAGS
 
 
 # --------------------------------------------------------------------
 .PHONY: clean distclean
 
 clean:
-	rm -fr $(CI_DIR) $(DEPS_DIR) *.s *.safety* *.sct* *.o .jflags
+	rm -fr $(CI_DIR) $(DEPS_DIR) *.jpp *.s *.safety* *.sct* *.o .JFLAGS
+
+distclean: clean
 	rm -fr $(EASYCRYPT_FILES)
 
 # --------------------------------------------------------------------
@@ -170,6 +199,11 @@ debug-print-variables:
 	@echo "  SRCS: $(SRCS)"
 	@echo "  ASSEMBLY_FILES: $(ASSEMBLY_FILES)"
 	@echo "  JASMIN_COMPILE: not printed, it is rule dependent."
+	@echo ""
+	@echo "Preprocess variables:"
+	@echo "  JPP: $(JPP)"
+	@echo "  PREPROCESSED_FILES: $(PREPROCESSED_FILES)"
+	@echo "  JASMIN_PREPROCESS: not printed, it is rule dependent."
 	@echo ""
 	@echo "Extraction variables:"
 	@echo "  EXTRACT_DIR: $(EXTRACT_DIR)"

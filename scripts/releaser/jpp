@@ -41,6 +41,8 @@ sub jpp_main()
   my $dry_run = 0;               # if 1, do not write to any file
   my $safe_reverse = 1;          # if reverse, ask the user if the changes are ok
 
+  my $bor_prefix = undef;        # path to be removed from the full path in REQUIRE_ENTRY_TAG
+
   # get the command-line arguments
   GetOptions(
     'in=s' => \$in,
@@ -51,7 +53,8 @@ sub jpp_main()
     'reverse' => \$reverse,
     'help|h' => \$help,
     'dry-run' => \$dry_run,
-    'check-diff!' => \$safe_reverse
+    'check-diff!' => \$safe_reverse,
+    'bor-prefix|b=s' => \$bor_prefix
   );
 
   # check -help or -h
@@ -66,7 +69,7 @@ sub jpp_main()
 
   if($reverse)
   {
-    my ($reverse_hr) = jpp_reverse($in, $out, $dry_run, $safe_reverse, $verbose);
+    my ($reverse_hr) = jpp_reverse($in, $out, $dry_run, $safe_reverse, $verbose, $bor_prefix);
   }
   else
   { # return variables description:
@@ -75,7 +78,7 @@ sub jpp_main()
     # visited_hr:      hash (reference) intuitively, 'children' -> '[parents]'
     #                   for each file (canonical path) that was visited, visited_hr contains the list of files that have it required (in the context of preprocessing in)
     # preprocessed_ar: array (reference) with the contents of the preprocessed file (if out is defined, then contents for preprocessed_ar were printed to the output file)
-    my ($preprocessed_ar, $visited_hr, $include_hr) = jpp($in, $out, \@include_a, $with_reverse_info, $dry_run, $verbose);
+    my ($preprocessed_ar, $visited_hr, $include_hr) = jpp($in, $out, \@include_a, $with_reverse_info, $dry_run, $verbose, $bor_prefix);
   }
 }
 
@@ -89,6 +92,7 @@ sub jpp()
   my $with_reverse_info = shift; # with_reverse_info (-with_reverse_info)
   my $dry_run = shift;           # do not write to files (-dry-run)
   my $verbose = shift;           # verbose (-v)
+  my $bor_prefix = shift;
 
   my %visited_h = ();            # 'children' -> '[parents]'
 
@@ -110,7 +114,7 @@ sub jpp()
   #  - it receives as arguments:
   #  -- $in (first file); $include_hr (hash ref. to "-I"'s); \%visited_h (hash ref to visited files, initially empty);
   #  -- verbose (to print some debug info); level (to keep track of current search depth and do indentation, initially 0);
-  my ($preprocessed_ar, $visited_hr) = preprocess($in, "entry", $include_hr, \%visited_h, $with_reverse_info, $verbose, 0);
+  my ($preprocessed_ar, $visited_hr) = preprocess($in, "entry", $include_hr, \%visited_h, $with_reverse_info, $verbose, 0, $bor_prefix);
 
   store($out, $preprocessed_ar, $dry_run);
   print_visited($visited_hr) if($verbose);
@@ -127,6 +131,8 @@ sub jpp_reverse()
   my $dry_run = shift;      # do not write to files (-dry-run), print to stdout instead
   my $safe_reverse = shift; # ask the user about changes in files
   my $verbose = shift;      # verbose (-v)
+  my $bor_prefix = shift;
+
   my %reverse_h = ();       # 'files' -> '[code]' (final step is to update files with the code)
 
   # get the absolute path and load the contents of the file
@@ -136,7 +142,7 @@ sub jpp_reverse()
   # if out is not defined, update inplace (write the output in $in)
   $out = (defined $out) ? realpath($out) : $in;
 
-  my ($line_position, $reverse_hr) = preprocess_reverse($in_lines_ar, 0, \%reverse_h, $out, $verbose);
+  my ($line_position, $reverse_hr) = preprocess_reverse($in_lines_ar, 0, \%reverse_h, $out, $verbose, $bor_prefix);
 
   if( check_changes_reverse($in, $out, $reverse_hr, $safe_reverse) == 1 )
   { store_reverse($reverse_hr, $dry_run); }
@@ -193,6 +199,7 @@ sub preprocess
   my $with_reverse_info = shift; # include information to undo preprocessing
   my $verbose = shift;           # print some internal information
   my $level = shift;             # current level of recursion
+  my $bor_prefix = shift;
 
   # if file was already visited, then return an empty list
   if (defined $visited_hr->{$in})
@@ -225,12 +232,18 @@ sub preprocess
                                                                                                   # otherwise concat with base from in
       $file = realpath($file);
 
+      my $file_path_to_print = $file;
+
+      # remove from file some prefix
+      if(defined $bor_prefix)
+      { $file_path_to_print =~ s/^\Q$bor_prefix\E//; }
+
       ###
       if ($with_reverse_info)
       { my $r_string = $REQUIRE_ENTRY_TAG .
                        $line .
                        $REQUIRE_SEPARATOR_TAG .
-                       $file;
+                       $file_path_to_print;
         push (@preprocessed, $r_string);
       } # NOTE: this includes repetead files (it is not a problem; in the event that one would like to remove these from the code, some quick patch might be able to do it;)
       ###
@@ -239,7 +252,7 @@ sub preprocess
 
       # avoid calling preprocess for a file that was already required
       if (not defined $visited_hr->{$file})
-      {  my ($sublines_ar, $visited_hr) = preprocess($file, $in, $include_hr, $visited_hr, $with_reverse_info, $verbose, $level+1); # fetch contents of other files
+      {  my ($sublines_ar, $visited_hr) = preprocess($file, $in, $include_hr, $visited_hr, $with_reverse_info, $verbose, $level+1, $bor_prefix); # fetch contents of other files
          push @preprocessed, @$sublines_ar; # add to the array the lines from the requires
       }
 
@@ -359,7 +372,7 @@ sub store_reverse
 
 sub preprocess_reverse
 {
-  my ($lines_ar, $line_position, $reverse_hr, $current_file_name, $verbose) = @_;
+  my ($lines_ar, $line_position, $reverse_hr, $current_file_name, $verbose, $bor_prefix) = @_;
 
   # initialize array for code (if not defined)
   if (not defined $reverse_hr->{$current_file_name})
@@ -375,8 +388,13 @@ sub preprocess_reverse
     # if ENTRY_tag, call preprocess_reverse
     if($line =~ /^$REQUIRE_ENTRY_TAG/)
     { my ($tag, $require_statement, $file_name) = split($REQUIRE_SEPARATOR_TAG, $line);
+
+      # add to file some prefix
+      if(defined $bor_prefix)
+      { $file_name = $bor_prefix . $file_name; }
+
       push @{$reverse_hr->{$current_file_name}}, $require_statement;
-      ($line_position, $reverse_hr) = preprocess_reverse($lines_ar, ($line_position+1), $reverse_hr, $file_name, $verbose);
+      ($line_position, $reverse_hr) = preprocess_reverse($lines_ar, ($line_position+1), $reverse_hr, $file_name, $verbose, $bor_prefix);
       next;
     }
 
