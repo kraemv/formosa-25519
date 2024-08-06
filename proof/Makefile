@@ -26,8 +26,6 @@ ALL_OUT := $(addsuffix .out, $(ALL))
 CI ?= 0
 CI_REMOVE_OK_LOGS ?= "1"
 
-export CI
-
 CI_DIR =
 CI_CMD =
 ifeq ($(CI),1)
@@ -39,6 +37,9 @@ CI_CMD = 2> $(@D)/$(CI_DIR)/$(@F).log && rm -f $(@D)/$(CI_DIR)/$(@F).error || \
              )
 endif
 
+export CI
+
+FAIL_ON_ERROR ?= 0
 
 # -----------------------------------------------------------------------------
 # setting the default rule as 'all'
@@ -67,7 +68,7 @@ $(ALL_OUT):
 ifeq ($(CI),1)
 	mkdir -p $(@D)/$(CI_DIR)
 endif
-	($(EASYCRYPT) -R arrays/ $(ECARGS) $(subst .out,,$@) > $@) $(CI_CMD)
+	($(EASYCRYPT) -R arrays/ $(ECARGS) $(subst .out,,$@) > $@) $(CI_CMD) || !(($(FAIL_ON_ERROR)))
 
 
 # -----------------------------------------------------------------------------
@@ -142,10 +143,8 @@ debug-print-variables:
 	@echo "  PROOF: $(PROOF)\n"
 	@echo "  FILTER: $(FILTER)\n"
 	@echo "  EXCLUDE: $(EXCLUDE)\n"
-	
 	@echo "  EXTRACTED: $(EXTRACTED)\n"
 	@echo "  EXTRACTED_OUT: $(EXTRACTED_OUT)\n"
-	
 	@echo "  ALL: $(ALL)\n"
 	@echo "  ALL_OUT: $(ALL_OUT)\n"
 

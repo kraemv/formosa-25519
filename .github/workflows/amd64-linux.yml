@@ -9,15 +9,60 @@ on:
 
 jobs:
 
-  src:
+  # src
+  check-safety:
     runs-on: [self-hosted, linux, X64, amd64-main]
     steps:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: check and compile
-        run: make -j$JOBS -C src/
+      - name: check safety
+        run: make -j$JOBS -C src/ CI=1 check-safety
+      - name: print report
+        run: make -C src/ CI=1 reporter
+      - name: return error
+        run: make -C src/ CI=1 err
 
+  check-sct:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: check speculative constant-time (v1)
+        run: make -j$JOBS -C src/ CI=1 check-sct
+      - name: print report
+        run: make -C src/ CI=1 reporter
+      - name: return error
+        run: make -C src/ CI=1 err
+
+  extract-to-easycrypt:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: check extraction from Jasmin to EasyCrypt
+        run: make -j$JOBS -C src/ CI=1 extract-to-easycrypt
+      - name: print report
+        run: make -C src/ CI=1 reporter
+      - name: return error
+        run: make -C src/ CI=1 err
+
+  compile-src:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: check compilation of libformosa25519.a
+        run: make -j$JOBS -C src/ CI=1 libformosa25519.a
+      - name: print report
+        run: make -C src/ CI=1 reporter
+      - name: return error
+        run: make -C src/ CI=1 err
+
+  # test
   test:
     runs-on: [self-hosted, linux, X64, amd64-main]
     steps:
@@ -27,15 +72,7 @@ jobs:
       - name: run tests
         run: make -j$JOBS -C test/
 
-  proof:
-    runs-on: [self-hosted, linux, X64, amd64-main]
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: run proof
-        run: make -j$JOBS -C proof/
-
+  # bench
   bench:
     runs-on: [self-hosted, linux, X64, amd64-main]
     steps:
@@ -46,5 +83,15 @@ jobs:
 
       - name: run benchmarks
         run: make -j$JOBS -C bench/
+
+  # proof
+  proof:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: run proof
+        run: make -j$JOBS -C proof/
 
 
