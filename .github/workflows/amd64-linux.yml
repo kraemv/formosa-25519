@@ -27,6 +27,15 @@ jobs:
       - name: run tests
         run: make -j$JOBS -C test/
 
+  proof:
+    runs-on: [self-hosted, linux, X64, amd64-main]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: run proof
+        run: make -j$JOBS -C proof/
+
   bench:
     runs-on: [self-hosted, linux, X64, amd64-main]
     steps:
@@ -37,4 +46,5 @@ jobs:
 
       - name: run benchmarks
         run: make -j$JOBS -C bench/
+
 
