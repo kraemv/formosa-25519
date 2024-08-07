@@ -2,7 +2,7 @@
 
 # pro user tip (because this repository shares the same structure as in libjade); assumes libjade is next to formosa-25519
 #
-# ./extract-libjade.sh --list-implementations | while read implementation; do ./extract-libjade.sh --gen-implementation $implementation ../libjade/$(realpath --relative-to="$(pwd)" $implementation); done
+# ./extract-libjade.sh --list-implementations | while read implementation; do ./extract-libjade.sh --gen-implementation $implementation ../libjade/src/$implementation; done
 #
 
 call=$0
@@ -33,8 +33,8 @@ if [ "$1" == "--gen-implementation" ]; then
  if [ $# -eq 3 ]; then
 
    # start by realpath them (useful to run make)
-   implementation=$(realpath $2)
-   directory=$(realpath $3)
+   implementation=$top_dir/src/$2
+   directory=$3
 
    # test if IMPLEMENTATION directory exists
    if [ ! -d "$implementation" ]; then

@@ -214,7 +214,7 @@ distclean: clean
 .PHONY: print-available-implementations
 
 print-available-implementations:
-	@for i in $(IMPLEMENTATIONS_DIRECTORIES); do (cd $$i && pwd); done
+	@for i in $(IMPLEMENTATIONS_DIRECTORIES:./%=%); do echo $$i; done
 
 
 # -----------------------------------------------------------------------------
