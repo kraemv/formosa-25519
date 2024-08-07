@@ -3,12 +3,15 @@
 # pro user tip (because this repository shares the same structure as in libjade); assumes libjade is next to formosa-25519
 #
 # ./extract-libjade.sh --list-implementations | while read implementation; do ./extract-libjade.sh --gen-implementation $implementation ../libjade/src/$implementation; done
-#
+
+stderr() {
+  echo >&2 "$@"
+}
 
 print_usage() {
-  echo "usage:"
-  echo " $ $call --list-implementations"
-  echo " $ $call --gen-implementation IMPLEMENTATION DIRECTORY"
+  stderr "usage:"
+  stderr " $ $call --list-implementations"
+  stderr " $ $call --gen-implementation IMPLEMENTATION DIRECTORY"
 }
 
 main() {
@@ -38,13 +41,13 @@ main() {
 
      # test if IMPLEMENTATION directory exists
      if [ ! -d "$implementation" ]; then
-       echo " IMPLEMENTATION: $implementation does not exist."
+       stderr " IMPLEMENTATION: $implementation does not exist."
        exit 1;
      fi
 
     # test if libjade DIRECTORY exists
     if [ ! -d "$directory" ]; then
-       echo " DIRECTORY: $directory does not exist."
+       stderr " DIRECTORY: $directory does not exist."
        exit 1;
     fi
 
@@ -81,7 +84,7 @@ main() {
     exit 1;
 
    else
-    echo "error: --gen-implementation : number of required arguments 3 : provided $#"
+    stderr "error: --gen-implementation : number of required arguments 3 : provided $#"
     print_usage
     exit 1
    fi
