@@ -8,6 +8,15 @@ stderr() {
   echo >&2 "${@}"
 }
 
+fatal() {
+  if (( "$#" == 0 )); then
+    fatal "Some error ocurred"
+  else
+    stderr "error:" "$@"
+    exit 1
+  fi
+}
+
 print_usage() {
   stderr "usage:"
   stderr " \$ ${script} --list-implementations"
@@ -47,14 +56,12 @@ main() {
 
      # test if IMPLEMENTATION directory exists
      if [ ! -d "${implementation}" ]; then
-       stderr " IMPLEMENTATION: ${implementation} does not exist."
-       exit 1;
+       fatal "implementation does not exist: ${implementation}"
      fi
 
     # test if libjade DIRECTORY exists
     if [ ! -d "${directory}" ]; then
-       stderr " DIRECTORY: ${directory} does not exist."
-       exit 1;
+       fatal "target directory does not exist: ${directory} "
     fi
 
     relative_implementation="$(realpath --relative-to="${project_dir}/src" "${implementation}")"
@@ -94,7 +101,7 @@ main() {
   fi
 
   # with 'good' options this should be unreachable, hence, print usage
-  fatal_usage "Invalid command \`${1}\`"
+  fatal_usage "Invalid command: ${1}"
 }
 
 init() {
