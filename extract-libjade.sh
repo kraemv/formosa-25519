@@ -51,31 +51,39 @@ gen_implementation() {
 
   local relative_implementation
   relative_implementation="$(realpath --relative-to="${project_dir}/src" "${implementation}")"
+
+  # Apply preprocessing
   make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/preprocess-inplace"
 
-  #############################################################################
-  # copy the preprocessed files
+  # TODO: This is not robust against newlines in file names
+  local jasmine_files
+  mapfile -t jasmine_files < <(find "${implementation}" -type f -name '*.jazz')
 
-  jazz_files="$(find "${implementation}" -name '*.jazz')"
-  for file in $jazz_files; do
-    cp "$file" "$directory"/
+  # Copy jasmine files to output directory
+  local file
+  for file in "${jasmine_files[@]}"; do
+    echo >&2 "JASMINE FILE ${file}"
+    cp "${file}" -t "${directory}"
   done
 
   # setup the Makefile
-  echo -n "SRCS := " > "${directory}/Makefile"
-  for file in $jazz_files; do
-    echo -n "$(basename "${file}")" >> "${directory}/Makefile"
-  done
-  echo "" >> "${directory}/Makefile"
+  {
+    # TODO: This will fail to properly deal with spaces for lack of quoting
+    # https://stackoverflow.com/questions/23330243/gnu-makefile-how-to-and-when-to-quote-strings
 
-  # NOTE: the following line will need change (or be deleted) once multi-repo libjade is stable
-  echo "include ../../../../Makefile.common" >> "${directory}/Makefile"
+    echo -n "SRCS := "
+    for file in "${jasmine_files[@]}"; do
+      echo -n "$(basename "${file}")"
+    done
+    echo ""
+
+    # NOTE: the following line will need change (or be deleted) once multi-repo libjade is stable
+    echo "include ../../../../Makefile.common"
+  } > "${directory}/Makefile"
 
   # NOTE: the following command will change once there is a PR in libjade to move api.h files out of include/ directories
+  mkdir -p "${directory}/include"
   cp "${implementation}/include/api.h" "${directory}/include/api.h"
-
-  #
-  #############################################################################
 
   # restore implementation state
   make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/revert-preprocess-inplace"
