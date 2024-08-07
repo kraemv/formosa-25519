@@ -14,14 +14,21 @@ print_usage() {
   stderr " $ $call --gen-implementation IMPLEMENTATION DIRECTORY"
 }
 
+fatal_usage() {
+  if (( "$#" != 0 )); then
+    stderr "error:" "$@"
+  fi
+  print_usage
+  exit 1
+}
+
 main() {
   call=$0
   top_dir=$(cd "$(dirname "$0")" ; pwd -P) || exit 1
 
   # if there are no arguments, print usage
   if [ $# -eq 0 ]; then
-    print_usage
-    exit 1
+    fatal_usage
   fi
 
   # check if --list-implementations
@@ -84,9 +91,7 @@ main() {
     exit 1;
 
    else
-    stderr "error: --gen-implementation : number of required arguments 3 : provided $#"
-    print_usage
-    exit 1
+    fatal_usage "$0 --gen-implementation: number of required arguments 3 : provided $#"
    fi
   fi
 
