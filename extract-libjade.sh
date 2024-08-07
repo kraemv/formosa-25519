@@ -6,7 +6,7 @@
 #
 
 call=$0
-top_dir=$(cd "$(dirname "$0")" ; pwd -P)
+top_dir=$(cd "$(dirname "$0")" ; pwd -P) || exit 1
 
 print_usage()
 {
@@ -23,7 +23,7 @@ fi
 
 # check if --list-implementations
 if [ "$1" == "--list-implementations" ]; then
-  make --no-print-directory -C $top_dir/src print-available-implementations
+  make --no-print-directory -C "$top_dir"/src print-available-implementations
   exit 1
 fi
 
@@ -33,7 +33,7 @@ if [ "$1" == "--gen-implementation" ]; then
  if [ $# -eq 3 ]; then
 
    # start by realpath them (useful to run make)
-   implementation=$top_dir/src/$2
+   implementation="$top_dir"/src/$2
    directory=$3
 
    # test if IMPLEMENTATION directory exists
@@ -49,34 +49,34 @@ if [ "$1" == "--gen-implementation" ]; then
   fi
 
   relative_implementation=$(realpath --relative-to="$top_dir/src" "$implementation")
-  make --no-print-directory -C $top_dir/src/ $relative_implementation/preprocess-inplace
+  make --no-print-directory -C "$top_dir"/src/ "$relative_implementation"/preprocess-inplace
 
   #############################################################################
   # copy the preprocessed files
 
-  jazz_files=$(find $implementation -name '*.jazz')
+  jazz_files=$(find "$implementation" -name '*.jazz')
   for file in $jazz_files; do
-    cp $file $directory/
+    cp "$file" "$directory"/
   done
 
   # setup the Makefile
-  echo -n "SRCS := " > $directory/Makefile
+  echo -n "SRCS := " > "$directory"/Makefile
   for file in $jazz_files; do
-    echo -n $(basename $file) >> $directory/Makefile
+    echo -n "$(basename "$file")" >> "$directory"/Makefile
   done
-  echo "" >> $directory/Makefile
+  echo "" >> "$directory"/Makefile
 
   # NOTE: the following line will need change (or be deleted) once multi-repo libjade is stable
-  echo "include ../../../../Makefile.common" >> $directory/Makefile
+  echo "include ../../../../Makefile.common" >> "$directory"/Makefile
 
   # NOTE: the following command will change once there is a PR in libjade to move api.h files out of include/ directories
-  cp $implementation/include/api.h $directory/include/api.h
+  cp "$implementation"/include/api.h "$directory"/include/api.h
 
   #
   #############################################################################
 
   # restore implementation state
-  make --no-print-directory -C $top_dir/src/ $relative_implementation/revert-preprocess-inplace
+  make --no-print-directory -C "$top_dir"/src/ "$relative_implementation"/revert-preprocess-inplace
 
   exit 1;
 
