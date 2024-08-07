@@ -6,9 +6,6 @@
 #include "namespace.h"
 #include <stdlib.h>
 
-
-
-
 // iter by 1
 static size_t inc_1(size_t len)
 {
@@ -19,8 +16,6 @@ static size_t size_inc_1(size_t start, size_t end)
 {
   return end - start + 1;
 }
-
-
 
 // iter by <<1
 static size_t inc_2(size_t len)
@@ -37,8 +32,6 @@ static size_t size_inc_2(size_t start, size_t end)
   { r += 1; }
   return r;
 }
-
-
 
 // iter 32 values in between each 2^n (plots)
 static size_t inc_3(size_t len)
@@ -63,8 +56,6 @@ static size_t size_inc_3(size_t start, size_t end)
   { r += 1; }
   return r;
 }
-
-
 
 #define inc_in EVALUATOR(inc,INC_INBYTES)
 #define size_inc_in EVALUATOR(size_inc,INC_INBYTES)

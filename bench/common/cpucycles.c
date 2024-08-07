@@ -34,5 +34,4 @@ static uint64_t cpucycles_median(uint64_t *cycles, size_t timings)
   return median(cycles, timings-1);
 }
 
-
 #endif
