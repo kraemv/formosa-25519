@@ -2,12 +2,11 @@
 
 # pro user tip (because this repository shares the same structure as in libjade); assumes libjade is next to formosa-25519
 #
-# ./scripts/releaser/extract-libjade --list-implementations | while read implementation; do ./scripts/releaser/extract-libjade --gen-implementation $implementation ../libjade/$(realpath --relative-to="$(pwd)" $implementation); done
+# ./extract-libjade.sh --list-implementations | while read implementation; do ./extract-libjade.sh --gen-implementation $implementation ../libjade/$(realpath --relative-to="$(pwd)" $implementation); done
 #
 
 call=$0
-script_dir=$(cd "$(dirname "$0")" ; pwd -P)
-top_dir=$(cd "$(dirname "$0")/../../" ; pwd -P)
+top_dir=$(cd "$(dirname "$0")" ; pwd -P)
 
 print_usage()
 {
