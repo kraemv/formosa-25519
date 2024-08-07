@@ -17,6 +17,10 @@ fatal() {
   fi
 }
 
+fatal_abspath_usage() {
+  fatal "abspath() usage: abspath <FILE>" 
+}
+
 print_usage() {
   stderr "usage:"
   stderr " \$ ${script} --list-implementations"
@@ -31,8 +35,11 @@ fatal_usage() {
   exit 1
 }
 
+
 main() {
-  project_dir="$(cd "$(dirname "${0}")" ; pwd -P)" || exit 1
+  cd "$(dirname "${0}")"
+  project_dir="$(pwd -P)"
+  cd "${project_dir}"
 
   # if there are no arguments, print usage
   if (( "${#}" == 0 )); then
