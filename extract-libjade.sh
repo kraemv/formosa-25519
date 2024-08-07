@@ -36,7 +36,7 @@ fatal_usage() {
 }
 
 list_implementations() {
-  make --no-print-directory -C "$project_dir"/src print-available-implementations
+  make --no-print-directory -C "${project_dir}/src" print-available-implementations
 }
 
 gen_implementation() {
