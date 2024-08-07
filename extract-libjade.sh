@@ -40,56 +40,45 @@ list_implementations() {
 }
 
 gen_implementation() {
-   if [ "${#}" -eq 2 ]; then
+  local implementation directory
 
-     # start by realpath them (useful to run make)
-     implementation="$project_dir"/src/"${1}"
-     directory="${2}"
+  implementation="$project_dir"/src/"${1}"; shift || fatal_usage "Please specify an implementation!"
+  directory="${1}"; shift || fatal_usage "Please specify a target directory"
+  (( "$#" == 0 )) || fatal_usage "Spurious arguments"
 
-     # test if IMPLEMENTATION directory exists
-     if [ ! -d "${implementation}" ]; then
-       fatal "implementation does not exist: ${implementation}"
-     fi
+  [ -d "${implementation}" ] || fatal_usage "Implementation does not exist: ${implementation}"
+  [ -d "${directory}" ] || fatal_usage "target directory does not exist: ${directory}"
 
-    # test if libjade DIRECTORY exists
-    if [ ! -d "${directory}" ]; then
-       fatal "target directory does not exist: ${directory} "
-    fi
+  local relative_implementation
+  relative_implementation="$(realpath --relative-to="${project_dir}/src" "${implementation}")"
+  make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/preprocess-inplace"
 
-    relative_implementation="$(realpath --relative-to="${project_dir}/src" "${implementation}")"
-    make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/preprocess-inplace"
+  #############################################################################
+  # copy the preprocessed files
 
-    #############################################################################
-    # copy the preprocessed files
+  jazz_files="$(find "${implementation}" -name '*.jazz')"
+  for file in $jazz_files; do
+    cp "$file" "$directory"/
+  done
 
-    jazz_files="$(find "${implementation}" -name '*.jazz')"
-    for file in $jazz_files; do
-      cp "$file" "$directory"/
-    done
+  # setup the Makefile
+  echo -n "SRCS := " > "${directory}/Makefile"
+  for file in $jazz_files; do
+    echo -n "$(basename "${file}")" >> "${directory}/Makefile"
+  done
+  echo "" >> "${directory}/Makefile"
 
-    # setup the Makefile
-    echo -n "SRCS := " > "${directory}/Makefile"
-    for file in $jazz_files; do
-      echo -n "$(basename "${file}")" >> "${directory}/Makefile"
-    done
-    echo "" >> "${directory}/Makefile"
+  # NOTE: the following line will need change (or be deleted) once multi-repo libjade is stable
+  echo "include ../../../../Makefile.common" >> "${directory}/Makefile"
 
-    # NOTE: the following line will need change (or be deleted) once multi-repo libjade is stable
-    echo "include ../../../../Makefile.common" >> "${directory}/Makefile"
+  # NOTE: the following command will change once there is a PR in libjade to move api.h files out of include/ directories
+  cp "${implementation}/include/api.h" "${directory}/include/api.h"
 
-    # NOTE: the following command will change once there is a PR in libjade to move api.h files out of include/ directories
-    cp "${implementation}/include/api.h" "${directory}/include/api.h"
+  #
+  #############################################################################
 
-    #
-    #############################################################################
-
-    # restore implementation state
-    make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/revert-preprocess-inplace"
-
-    return 0
-   else
-    fatal_usage "$0 --gen-implementation: number of required arguments 3 : provided $#"
-   fi
+  # restore implementation state
+  make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/revert-preprocess-inplace"
 }
 
 main() {
