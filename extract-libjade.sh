@@ -40,30 +40,30 @@ list_implementations() {
 }
 
 gen_implementation() {
-  local implementation directory
+  local source target
 
-  implementation="$project_dir"/src/"${1}"; shift || fatal_usage "Please specify an implementation!"
-  directory="${1}"; shift || fatal_usage "Please specify a target directory"
+  source="$project_dir"/src/"${1}"; shift || fatal_usage "Please specify an implementation!"
+  target="${1}"; shift || fatal_usage "Please specify a target directory"
   (( "$#" == 0 )) || fatal_usage "Spurious arguments"
 
-  [ -d "${implementation}" ] || fatal_usage "Implementation does not exist: ${implementation}"
-  [ -d "${directory}" ] || fatal_usage "target directory does not exist: ${directory}"
+  [ -d "${source}" ] || fatal_usage "Implementation does not exist: ${source}"
+  [ -d "${target}" ] || fatal_usage "target directory does not exist: ${target}"
 
-  local relative_implementation
-  relative_implementation="$(realpath --relative-to="${project_dir}/src" "${implementation}")"
+  local relative_source
+  relative_source="$(realpath --relative-to="${project_dir}/src" "${source}")"
 
   # Apply preprocessing
-  make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/preprocess-inplace"
+  make --no-print-directory -C "${project_dir}/src/" "${relative_source}/preprocess-inplace"
 
   # TODO: This is not robust against newlines in file names
   local jasmine_files
-  mapfile -t jasmine_files < <(find "${implementation}" -type f -name '*.jazz')
+  mapfile -t jasmine_files < <(find "${source}" -type f -name '*.jazz')
 
   # Copy jasmine files to output directory
   local file
   for file in "${jasmine_files[@]}"; do
     echo >&2 "JASMINE FILE ${file}"
-    cp "${file}" -t "${directory}"
+    cp "${file}" -t "${target}"
   done
 
   # setup the Makefile
@@ -79,14 +79,14 @@ gen_implementation() {
 
     # NOTE: the following line will need change (or be deleted) once multi-repo libjade is stable
     echo "include ../../../../Makefile.common"
-  } > "${directory}/Makefile"
+  } > "${target}/Makefile"
 
   # NOTE: the following command will change once there is a PR in libjade to move api.h files out of include/ directories
-  mkdir -p "${directory}/include"
-  cp "${implementation}/include/api.h" "${directory}/include/api.h"
+  mkdir -p "${target}/include"
+  cp "${source}/include/api.h" "${target}/include/api.h"
 
-  # restore implementation state
-  make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/revert-preprocess-inplace"
+  # restore source state
+  make --no-print-directory -C "${project_dir}/src/" "${relative_source}/revert-preprocess-inplace"
 }
 
 main() {
