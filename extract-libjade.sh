@@ -10,8 +10,8 @@ stderr() {
 
 print_usage() {
   stderr "usage:"
-  stderr " \$ ${call} --list-implementations"
-  stderr " \$ ${call} --gen-implementation IMPLEMENTATION DIRECTORY"
+  stderr " \$ ${script} --list-implementations"
+  stderr " \$ ${script} --gen-implementation IMPLEMENTATION DIRECTORY"
 }
 
 fatal_usage() {
@@ -23,8 +23,7 @@ fatal_usage() {
 }
 
 main() {
-  call="${0}"
-  top_dir="$(cd "$(dirname "${0}")" ; pwd -P)" || exit 1
+  project_dir="$(cd "$(dirname "${0}")" ; pwd -P)" || exit 1
 
   # if there are no arguments, print usage
   if (( "${#}" == 0 )); then
@@ -33,7 +32,7 @@ main() {
 
   # check if --list-implementations
   if [ "${1}" == "--list-implementations" ]; then
-    make --no-print-directory -C "$top_dir"/src print-available-implementations
+    make --no-print-directory -C "$project_dir"/src print-available-implementations
     exit 1
   fi
 
@@ -43,7 +42,7 @@ main() {
    if [ "${#}" -eq 3 ]; then
 
      # start by realpath them (useful to run make)
-     implementation="$top_dir"/src/$2
+     implementation="$project_dir"/src/$2
      directory=$3
 
      # test if IMPLEMENTATION directory exists
@@ -58,8 +57,8 @@ main() {
        exit 1;
     fi
 
-    relative_implementation="$(realpath --relative-to="${top_dir}/src" "${implementation}")"
-    make --no-print-directory -C "${top_dir}/src/" "${relative_implementation}/preprocess-inplace"
+    relative_implementation="$(realpath --relative-to="${project_dir}/src" "${implementation}")"
+    make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/preprocess-inplace"
 
     #############################################################################
     # copy the preprocessed files
@@ -86,7 +85,7 @@ main() {
     #############################################################################
 
     # restore implementation state
-    make --no-print-directory -C "${top_dir}/src/" "${relative_implementation}/revert-preprocess-inplace"
+    make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/revert-preprocess-inplace"
 
     exit 1;
 
@@ -102,6 +101,7 @@ main() {
 
 init() {
   set -e
+  script="${0}"
   main "${@}"
 }
 
