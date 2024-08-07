@@ -35,31 +35,16 @@ fatal_usage() {
   exit 1
 }
 
+list_implementations() {
+  make --no-print-directory -C "$project_dir"/src print-available-implementations
+}
 
-main() {
-  cd "$(dirname "${0}")"
-  project_dir="$(pwd -P)"
-  cd "${project_dir}"
-
-  # if there are no arguments, print usage
-  if (( "${#}" == 0 )); then
-    fatal_usage
-  fi
-
-  # check if --list-implementations
-  if [ "${1}" == "--list-implementations" ]; then
-    make --no-print-directory -C "$project_dir"/src print-available-implementations
-    return 0
-  fi
-
-  # check if --gen-implementation
-  if [ "${1}" == "--gen-implementation" ]; then
-   # if we are generating an implementation then there should be 3 args
-   if [ "${#}" -eq 3 ]; then
+gen_implementation() {
+   if [ "${#}" -eq 2 ]; then
 
      # start by realpath them (useful to run make)
-     implementation="$project_dir"/src/$2
-     directory=$3
+     implementation="$project_dir"/src/"${1}"
+     directory="${2}"
 
      # test if IMPLEMENTATION directory exists
      if [ ! -d "${implementation}" ]; then
@@ -105,10 +90,22 @@ main() {
    else
     fatal_usage "$0 --gen-implementation: number of required arguments 3 : provided $#"
    fi
-  fi
+}
 
-  # with 'good' options this should be unreachable, hence, print usage
-  fatal_usage "Invalid command: ${1}"
+main() {
+  cd "$(dirname "${0}")"
+  project_dir="$(pwd -P)"
+  cd "${project_dir}"
+
+  local cmd; cmd="$1"; shift || fatal_usage "Please specify a command"
+  case "${cmd}" in
+    "--list-implementations")
+      list_implementations "$@" ;;
+    "--gen-implementation")
+      gen_implementation "$@" ;;
+    *)
+      fatal_usage "Invalid command: ${cmd}" ;;
+  esac
 }
 
 init() {
