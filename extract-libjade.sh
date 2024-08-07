@@ -33,7 +33,7 @@ main() {
   # check if --list-implementations
   if [ "${1}" == "--list-implementations" ]; then
     make --no-print-directory -C "$project_dir"/src print-available-implementations
-    exit 1
+    return 0
   fi
 
   # check if --gen-implementation
@@ -87,16 +87,14 @@ main() {
     # restore implementation state
     make --no-print-directory -C "${project_dir}/src/" "${relative_implementation}/revert-preprocess-inplace"
 
-    exit 1;
-
+    return 0
    else
     fatal_usage "$0 --gen-implementation: number of required arguments 3 : provided $#"
    fi
   fi
 
   # with 'good' options this should be unreachable, hence, print usage
-  print_usage
-  exit 1
+  fatal_usage "Invalid command \`${1}\`"
 }
 
 init() {
