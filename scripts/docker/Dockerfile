@@ -94,6 +94,6 @@ RUN cd easycrypt_$EASYCRYPT_COMMIT/ && \
 # formosa-25519 ###############################################################
 
 RUN mkdir formosa-25519
-COPY . /home/$USER/formosa-25519
+COPY --chown=$USER:root . /home/$USER/formosa-25519
 WORKDIR /home/$USER/formosa-25519
 
