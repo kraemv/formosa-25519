@@ -3,18 +3,6 @@ from Jasmin require import JModel.
 require import Curve25519_Spec.
 import Zp ZModpRing.
 
-(** generic stuff **)
-
-search ZModpRing.exp.
-
-(* exp exp *)
-lemma expE (z : zp) (e1 e2 : int) : 0 <= e1 /\ 0 <= e2 =>
-  ZModpRing.exp (ZModpRing.exp z e1) e2 =
-  ZModpRing.exp z (e1*e2).
-proof.
-admit. (**TODO**)
-qed.
-
 (* returns the first 2 elements of the input triple *)
 op select_tuple_12 (t : ('a * 'a) * ('a * 'a) * 'c) = (t.`1, t.`2).
 
@@ -26,7 +14,7 @@ op reconstruct_tuple (t : ('a * 'a) * ('a * 'a) * bool) =
   else select_tuple_12 t.
 
 lemma eq_reconstruct_select_tuple (t : (('a * 'a) * ('a * 'a) * bool)) :
-  t.`3 = false => 
+  t.`3 = false =>
   select_tuple_12 t = reconstruct_tuple t.
 proof.
   rewrite /reconstruct_tuple /select_tuple_12.
@@ -58,7 +46,7 @@ op add_and_double1 (qx : zp) (nqs : (zp * zp) * (zp * zp)) =
   let (x2, z2) = nqs.`1 in
   let (x3, z3) = nqs.`2 in
   let t0 = x2 + (- z2) in
-  let x2 = x2 + z2 in 
+  let x2 = x2 + z2 in
   let t1 = x3 + (- z3) in
   let z2 = x3 + z3 in
   let z3 = x2 * t1 in
@@ -86,7 +74,7 @@ qed.
 
 op montgomery_ladder1(init : zp, k : W256.t) =
   let nqs0 = ((Zp.one,Zp.zero),(init,Zp.one)) in
-  foldl (fun (nqs : (zp * zp) * (zp * zp)) ctr => 
+  foldl (fun (nqs : (zp * zp) * (zp * zp)) ctr =>
          if ith_bit k ctr
          then swap_tuple (add_and_double1 init (swap_tuple(nqs)))
          else add_and_double1 init nqs) nqs0 (rev (iota_ 0 255)).
@@ -123,7 +111,7 @@ proof.
 qed.
 
 (** step 3: extend the state to contain an additional bit stating if the state is swapped **)
-op cswap( t : ('a * 'a) * ('a * 'a), b : bool ) = 
+op cswap( t : ('a * 'a) * ('a * 'a), b : bool ) =
   if b
   then swap_tuple t
   else t.
@@ -185,7 +173,7 @@ op invert_p_p1(z1 : zp) : (zp*zp) =
   let z_5_0 = z9 * z22 in
   (z_5_0, z11).
 
-op invert_p_p2(z_5_0 : zp) : zp = 
+op invert_p_p2(z_5_0 : zp) : zp =
   let z_10_5 = ZModpRing.exp z_5_0 (2^5) in
   let z_10_0 = z_10_5 * z_5_0 in
   let z_20_10 = ZModpRing.exp z_10_0 (2^10) in
@@ -219,14 +207,14 @@ proof.
 rewrite invert_pE.
 (*invert_p1*)
 rewrite /invert_p_p1 /= expE //=.
-  cut -> : invert_p_p3 (invert_p_p2 (z1 * exp z1 8 * 
+  cut -> : invert_p_p3 (invert_p_p2 (z1 * exp z1 8 *
                 exp (exp z1 2 * (z1 * exp z1 8)) 2))
                     (exp z1 2 * (z1 * exp z1 8)) =
            invert_p_p3 (invert_p_p2 (exp z1 (2^5 - 2^0))) (exp z1 11).
            smt(expE exprS exprD).
 (*invert_p2*)
 rewrite /invert_p_p2 //=.
-  cut -> : invert_p_p3 (exp (exp (exp 
+  cut -> : invert_p_p3 (exp (exp (exp
                      (exp (exp z1 31) 32 * exp z1 31) 1024 *
                      (exp (exp z1 31) 32 * exp z1 31)) 1048576 *
                 (exp (exp (exp z1 31) 32 * exp z1 31) 1024 *
@@ -306,7 +294,7 @@ op invert1(z1 : zp) : zp =
   let t0 = t0 * t1 in        (* z1^11 *)
   let t2 = sqr t0  in        (* z1^22 *)
   let t1 = t1 * t2 in        (* z_5_0  *)
-  let t2 = sqr t1  in        (* z_10_5 *) 
+  let t2 = sqr t1  in        (* z_10_5 *)
   let t2 = it_sqr 4 t2  in
   let t1 = t1 * t2 in        (* z_10_0 *)
   let t2 = it_sqr 10 t1 in   (* z_20_10 *)
@@ -321,7 +309,7 @@ op invert1(z1 : zp) : zp =
   let t2 = t2 * t3 in        (* z_200_0 *)
   let t2 = it_sqr 50 t2 in   (* z_250_50 *)
   let t1 = t1 * t2 in        (* z_250_0 *)
-  let t1 = it_sqr 4 t1 in    (* z_255_5 *) 
+  let t1 = it_sqr 4 t1 in    (* z_255_5 *)
   let t1 = sqr t1 in
   let t1 = t0 * t1 in
   t1 axiomatized by invert1E.
@@ -343,7 +331,7 @@ op invert2(z1 : zp) : zp =
   let t0 = t0 * t1 in        (* z1^11 *)
   let t2 = sqr t0  in        (* z1^22 *)
   let t1 = t1 * t2 in        (* z_5_0  *)
-  let t2 = sqr t1  in        (* z_10_5 *) 
+  let t2 = sqr t1  in        (* z_10_5 *)
   let t2 = it_sqr1 4 t2  in
   let t1 = t1 * t2 in        (* z_10_0 *)
   let t2 = it_sqr1 10 t1 in  (* z_20_10 *)
@@ -358,7 +346,7 @@ op invert2(z1 : zp) : zp =
   let t2 = t2 * t3 in        (* z_200_0 *)
   let t2 = it_sqr1 50 t2 in  (* z_250_50 *)
   let t1 = t1 * t2 in        (* z_250_0 *)
-  let t1 = it_sqr1 4 t1 in   (* z_255_5 *) 
+  let t1 = it_sqr1 4 t1 in   (* z_255_5 *)
   let t1 = sqr t1 in
   let t1 = t0 * t1 in
   t1 axiomatized by invert2E.
