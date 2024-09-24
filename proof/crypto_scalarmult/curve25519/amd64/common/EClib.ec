@@ -1,6 +1,3 @@
-(* TODO: same file as proof/crypto_onetimeauth/poly1305/EClib.ec *)
-(*       merge these files: find a common place for these *)
-
 require import List Int IntDiv IntExtra CoreMap.
 
 from Jasmin require import JModel.
@@ -94,7 +91,7 @@ have [? /= ?]:= W128.to_uint_cmp w.
 rewrite /val_digits /=.
 do 2! (rewrite bits64_div 1:// /=).
 rewrite !of_uintK /=.
-have P: forall x,
+have P: forall x
          x = x %% 18446744073709551616 + 18446744073709551616 * (x %/ 18446744073709551616).
  by move=> x; rewrite {1}(divz_eq x 18446744073709551616) /=; ring.
 rewrite {1}(P (to_uint w)) {1}(P (to_uint w %/ 18446744073709551616)) divz_div 1..2:/# /=.
@@ -182,7 +179,7 @@ lemma WArray16_init64K (f:int -> W8.t):
   WArray16.init64 ("_.[_]" (Array2.init (WArray16.get64 (WArray16.init f)))) = WArray16.init f.
 proof.
 rewrite /WArray16.init64.
-apply WArray16.init_ext => * /=. 
+apply WArray16.init_ext => * /=.
 rewrite Array2.initE /=.
 have ->/=:  0 <= x %/ 8 < 2 by smt().
 rewrite WArray16.get64E /= pack8bE /=; first smt().
