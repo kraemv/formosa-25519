@@ -3,7 +3,7 @@ require import Zp_25519 EClib W64limbs Array4 Array32.
 
 from Jasmin require import JModel JWord.
 
-import Zp Ring.IntID Array4 Array32 IntOrder JWord.W8 JWord.W64.
+import Zp EClib Ring.IntID Array4 Array32 IntOrder JWord.W8 JWord.W64.
 
 
 op inzp_limbs base l = inzp (val_limbs base l).
