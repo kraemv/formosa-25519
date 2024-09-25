@@ -1,9 +1,9 @@
-require import AllCore Bool List Int IntDiv StdOrder CoreMap Real Ring Distr Zp.
+require import AllCore Bool List Int IntDiv StdOrder CoreMap Real Ring Distr.
 from Jasmin require import JModel JMemory JWord JWord_array JUtils.
 require import Curve25519_Procedures.
 require import Curve25519_Operations.
 require import Scalarmult_s.
-import Zp Zp_25519 Zp_limbs.
+import Zp_25519 Zp_limbs Zp.
 import Curve25519_Procedures Curve25519_Operations StdOrder.IntOrder EClib.
 import Scalarmult_s.
 
@@ -215,16 +215,6 @@ proof.
     call eq_spec_impl_add_rrs_mulx. skip. auto => />.
 qed.
 
-equiv eq_spec_impl_sub_ssr_mulx : CurveProcedures.sub ~ M.__sub4_ssr:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 g{2}
-    ==>
-   res{1} = inzpRep4 res{2}.
-proof.
-    proc *. inline M.__sub4_ssr. wp. sp.
-    call eq_spec_impl_sub_rsr_mulx. skip. auto => />.
-qed.
-
 equiv eq_spec_impl_sub_sss_mulx : CurveProcedures.sub ~ M.__sub4_sss:
    f{1} = inzpRep4 fs{2} /\
    g{1} = inzpRep4 gs{2}
@@ -347,6 +337,17 @@ proof.
     by skip => />.
     proc *; call eq_spec_impl_sub_rrs_rsr_mulx.
     by done.
+qed.
+
+
+equiv eq_spec_impl_sub_ssr_mulx : CurveProcedures.sub ~ M.__sub4_ssr:
+   f{1} = inzpRep4 fs{2} /\
+   g{1} = inzpRep4 g{2}
+    ==>
+   res{1} = inzpRep4 res{2}.
+proof.
+    proc *. inline M.__sub4_ssr. wp. sp.
+    call eq_spec_impl_sub_rsr_mulx. skip. auto => />.
 qed.
 
 equiv eq_spec_impl_mul_rpr_mulx : CurveProcedures.mul ~ M._mul4_rpr:
@@ -697,7 +698,7 @@ do 4! unroll for{2} ^while.
 case: (toswap{1}).
   rcondt {1} 1 => //. wp => /=. skip.
     move => &1 &2 [#] 4!->> ??.
-    have mask_set :  (set0_64.`6 - toswap{2}) = W64.onew. rewrite /set0_64_ /=. smt().
+    have mask_set :  (set0_64.`6 - toswap{2}) = W64.onew. rewrite /set0_64_ /=. smt(W64.to_uint_cmp).
     rewrite !mask_set /=.
     have lxor1 : forall (x1 x2:W64.t),  x1 `^` (x2 `^` x1) = x2.
       move=> *. rewrite xorwC -xorwA xorwK xorw0 //.
@@ -948,15 +949,6 @@ proof.
     call eq_spec_impl_it_sqr_aux_mulx. skip => />. smt(W32.to_uint_cmp).
 
     proc; inline *; simplify.
-    seq 7 6 : (ii{1} = l{1} - 1 /\
-        h{2} = (zexp a{1} 2) /\
-        0 <= ii{2} /\
-        0 <= ii{1} /\
-        ii{1} = ii{2} /\
-        1 <= counter{2} <= i1 /\
-        counter{2} = i1 - ii{2} /\
-        f{1} = zexp h{2} (exp 2 counter{2})).
-        wp; skip. auto => />. move => *.  smt().
 
     while(
         0 <= ii{1} /\
@@ -968,8 +960,11 @@ proof.
     wp; skip. auto => />.
     move => &1 &2 H H0 H1.
     smt( ZModpRing.exprM IntID.exprN IntID.exprN1 IntID.exprD_nneg).
-    skip => />. move => &1 &2 H H1 H2 H3 H4 H5 H6 H7 H8 H9.
-    have H10: H4 = 0. smt(). rewrite H10 => />.
+    wp.
+    skip => />. move => &1 &2.
+    do split. smt(). smt(). smt().
+    move => H H1 H2 H3 H4 H5 H6.
+    congr. smt().
 qed.
 
 lemma eq_spec_impl__it_sqr_mulx_x2 (i1: int) (i2: int):
@@ -1007,17 +1002,6 @@ proof.
     proc *.
     call eq_spec_impl_it_sqr_aux_mulx. skip => />. smt(W32.to_uint_cmp).
      proc; simplify. inline *.
-     seq 7 6 : (
-        i2 = 2*l{1} /\
-        ii{1} = l{1} - counter{2} /\
-        ii{2} = i2 - counter{2} /\
-        h{2} = (zexp a{1} 2) /\
-        0 <= ii{2} /\
-        0 <= ii{1} /\
-        1 <= counter{2} <= i1 /\
-        f{1} = zexp h{2} (exp 2 counter{2})).
-    wp; skip. auto => />.
-    move => *. smt().
       async while
       [ (fun r => 0%r < ii%r), (ii{1} - 1)%r ]
       [ (fun r => 0%r < ii%r), (ii{1} - 1)%r ]
@@ -1050,7 +1034,7 @@ proof.
     while true (ii) => //.
     move => H; auto => />. skip => />; move => &hr H0 H1 H2 H3 H4 H5 /#.
     while true (ii) => //. move => H; auto => /> /#. skip => /> /#.
-    skip => />. move => &1 &2 H H0 H1 H2 H3 H4 H5 H6 H7 H8 H9 H10 H11 H12 H13 /#.
+    wp. skip => />. move => &1 &2 H H0 H1 H2 H3 H4 H5 H6 H7 H8 H9. smt().
 qed.
 
 
