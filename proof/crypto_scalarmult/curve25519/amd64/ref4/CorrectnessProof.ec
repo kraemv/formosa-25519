@@ -436,6 +436,37 @@ proof.
     proc *. inline{2} (1). wp. sp.
     call eq_spec_impl_sqr_p_ref4. skip. auto => />.
  qed.
+
+(** setting last bit to 0 **)
+lemma eq_set_last_bit_to_zero64_ref4 x :
+  hoare [
+      M.__decode_u_coordinate4 :
+      u = x
+      ==>
+      res = Curve25519_Operations.last_bit_to_zero64 x
+  ].
+proof.
+    proc; wp; skip => />.
+    rewrite /last_bit_to_zero64 => />; congr.
+    pose X := x.[3].
+    rewrite /of_int /int2bs  /mkseq /to_list -iotaredE => />.
+    rewrite andE  wordP => /> k K0 K1.
+    rewrite  map2iE //  get_bits2w //.
+    smt(W64.initE).
+qed.
+
+lemma ill_set_last_bit_to_zero64: islossless M.__decode_u_coordinate4 by islossless.
+
+lemma eq_ph_set_last_bit_to_zero64 x:
+  phoare [
+    M.__decode_u_coordinate4 :
+    u = x
+    ==>
+    res = Curve25519_Operations.last_bit_to_zero64 x
+  ] = 1%r.
+proof.
+    by conseq ill_set_last_bit_to_zero64 (eq_set_last_bit_to_zero64_ref4 x).
+qed.
  
 (** to bytes **)
 lemma h_to_bytes_ref4 r:
@@ -461,12 +492,91 @@ proof.
     by conseq ill_to_bytes_ref4 (h_to_bytes_ref4 r).
 qed.
 
-(** step 1 : decode_scalar_25519 **)
-equiv eq_h4_decode_scalar_25519 :
-  MHop2.decode_scalar_25519 ~ M.decode_scalar_25519:
-  true ==> true.
+(** step 1 : decode_scalar **)
+equiv eq_spec_impl_decode_scalar_25519_ref4 : CurveProcedures.decode_scalar ~ M.__decode_scalar:
+    k'{1}  = pack4 (to_list k{2})
+    ==>
+    res{1} = pack32 (to_list res{2}).
 proof.
-admit.
+    proc; wp; auto => />.
+    unroll for{2} ^while => />; wp; skip => /> &2.
+    rewrite !/set64_direct !/get8 !/init8 => />.
+    rewrite pack4E pack32E.
+    rewrite !/to_list /mkseq -!iotaredE => /> .
+    rewrite !of_intE modz_small. by apply bound_abs. rewrite !bits2wE /int2bs /mkseq -!iotaredE => />.
+    rewrite wordP => i rgi />.
+    rewrite !of_listE !bits8E //= => />.
+    rewrite !get_setE //= !orE !andE !map2E //=.
+    rewrite !initiE => />.
+    rewrite !initiE => />. smt(). smt().
+    + case(i = 0) => /> *; case(i = 1) => /> *; case(i = 2) => /> *; case(i = 254) => /> *; case(i = 255) => /> *.
+    + case(i %/ 8 = 0) => /> *.
+    + rewrite initiE => /> . smt(). rewrite initiE => />. smt(). rewrite initiE => />. smt(). smt().
+    + case(i %/ 8 - 1 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 2 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 3 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 4 = 0) => /> *.
+    rewrite initiE => /> /#.
+    + case(i %/ 8 - 5 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 6 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 7 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 8 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 9 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 10 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 11 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 12 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 13 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 14 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 15 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 16 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 17 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 18 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 19 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 20 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 21 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 22 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 23 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 24 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 25 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 26 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 27 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 28 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 29 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 30 = 0) => /> *.
+    + rewrite initiE => /> /#.
+    + case(i %/ 8 - 31 = 0) => /> *.
+    + rewrite !initiE => />. smt().
+    + rewrite !initiE => />. smt().
+    case(i %/ 64 = 0) => /> *. smt(). smt().
+    + rewrite !initiE => /> /#. smt().
 qed.
 
 (** step 2 : decode_u_coordinate **)
@@ -478,11 +588,65 @@ admit.
 qed.
 
 (** step 3 : ith_bit **)
-equiv eq_h4_ith_bit :
-  MHop2.ith_bit ~ M.ith_bit:
-  true ==> true.
+equiv eq_spec_impl_ith_bit_ref4 : CurveProcedures.ith_bit ~ M.__ith_bit :
+    k'{1}                    = pack32 (to_list k{2}) /\
+    ctr{1}                   = to_uint ctr{2} /\
+    0 <= ctr{1} < 256
+    ==>
+    b2i res{1}                = to_uint res{2}.
 proof.
-admit.
+    proc; wp; skip => /> &2 H H0.
+    rewrite (W64.and_mod 3 ctr{2}) //=  (W64.and_mod 6 (of_int (to_uint ctr{2} %% 8))%W64) //= !to_uint_shr //= !shr_shrw.
+    smt(W64.to_uint_cmp  W64.of_uintK W64.to_uintK).
+    rewrite /zeroextu64 /truncateu8 //=  !of_uintK => />.
+    + rewrite  of_intE modz_small.  apply bound_abs. smt(W8.to_uint_cmp JUtils.powS_minus JUtils.pow2_0).
+    rewrite bits2wE /int2bs /mkseq -iotaredE => />.
+    auto => />.
+    rewrite (modz_small (to_uint ctr{2} %% 8) W64.modulus). apply bound_abs. smt(W64.to_uint_cmp).
+    rewrite (modz_small (to_uint ctr{2} %% 8) 64). apply bound_abs. smt(W64.to_uint_cmp).
+    rewrite (modz_small (to_uint ctr{2} %% 8) W64.modulus). apply bound_abs. smt(W64.to_uint_cmp).
+    pose ctr := to_uint ctr{2}.
+    rewrite pack32E of_listE /to_list !/mkseq !initiE // -!iotaredE => />.
+    rewrite !initiE //=. auto => />. smt().
+    rewrite !/b2i !of_intE !bits2wE !/int2bs !/mkseq //=.
+    rewrite -!iotaredE => />.
+    rewrite !to_uintE !/bs2int !/w2bits !/mkseq /big /range !/predT -!iotaredE => />.
+    rewrite !b2i0 => />.
+    rewrite !initiE => />. smt(). auto => />.
+    + case(ctr %/ 8 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 1 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 2 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 3 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 4 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 5 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 6 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 7 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 8 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 9 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 10 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 11 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 12 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 13 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 14 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 15 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 16 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 17 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 18 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 19 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 20 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 21 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 22 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 23 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 24 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 25 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 26 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 27 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 28 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 29 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 30 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 31 = 0) => /> *. smt().
+    + case(ctr %/ 8 - 32 = 0) => /> *. smt().
+    smt().
 qed.
 
 (** step 4 : cswap **)
