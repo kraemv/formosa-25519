@@ -2,7 +2,7 @@ require import AllCore Bool List Int IntDiv StdOrder CoreMap Ring Distr BitEncod
 from Jasmin require import JModel JMemory JWord JWord_array JUtils.
 require import Curve25519_Procedures.
 require import Scalarmult_s.
-import Zp Zp_25519 Zp_limbs EClib.
+import Zp_25519 Zp_limbs EClib Zp.
 import Curve25519_Procedures StdOrder.IntOrder EClib StdOrder.IntOrder BitEncoding.BS2Int Ring.IntID StdBigop.Bigint.
 import Scalarmult_s.
 
@@ -282,16 +282,6 @@ proof.
     call eq_spec_impl_add_rrs_ref4. skip. auto => />.
 qed.
 
-equiv eq_spec_impl_sub_ssr_ref4 : CurveProcedures.sub ~ M.__sub4_ssr:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 g{2}
-    ==>
-   res{1} = inzpRep4 res{2}.
-proof.
-    proc *. inline{2} (1). wp. sp.
-    call eq_spec_impl_sub_rsr_ref4. skip. auto => />.
-qed.
-
 equiv eq_spec_impl_sub_sss_ref4 : CurveProcedures.sub ~ M.__sub4_sss:
    f{1} = inzpRep4 fs{2} /\
    g{1} = inzpRep4 gs{2}
@@ -331,6 +321,16 @@ proof.
     by skip => />.
     proc *; call eq_spec_impl_sub_rrs_rsr_ref4.
     by done.
+qed.
+
+equiv eq_spec_impl_sub_ssr_ref4 : CurveProcedures.sub ~ M.__sub4_ssr:
+   f{1} = inzpRep4 fs{2} /\
+   g{1} = inzpRep4 g{2}
+    ==>
+   res{1} = inzpRep4 res{2}.
+proof.
+    proc *. inline{2} (1). wp. sp.
+    call eq_spec_impl_sub_rsr_ref4. skip. auto => />.
 qed.
 
 equiv eq_spec_impl_mul_a24_ss_ref4 : CurveProcedures.mul_a24 ~ M.__mul4_a24_ss:
@@ -580,12 +580,73 @@ proof.
 qed.
 
 (** step 2 : decode_u_coordinate **)
-equiv eq_h4_decode_u_coordinate :
-  MHop2.decode_u_coordinate ~ M.decode_u_coordinate:
-  true ==> true.
+equiv eq_spec_impl_decode_u_coordinate_ref4 : CurveProcedures.decode_u_coordinate ~ M.__decode_u_coordinate4:
+    u'{1}                      =     pack4 (to_list u{2})
+    ==>
+    res{1}                     =     inzpRep4 res{2}.
 proof.
-admit.
+    proc *.
+    ecall {2} (eq_ph_set_last_bit_to_zero64 u{2}).
+    inline *; wp; skip => /> &2.
+    rewrite inzpRep4E. congr.
+    rewrite to_uint_unpack4u64  valRep4E; congr; congr.
+    rewrite /last_bit_to_zero64 => />.
+    rewrite /to_list /mkseq /to_list -iotaredE => />.
+    do split.
+    + rewrite !wordP => /> i I I0. rewrite !bits64iE => />.
+    + rewrite set_neqiE. smt().
+    + rewrite pack4E => />. rewrite of_listE => />.
+    + rewrite initE => />.
+    + have ->: (0 <= i && i < 256) by smt(). auto => />.
+    + rewrite initE => />. have ->: 0 <= i %/ 64 by smt(). auto => />.
+    + case(i %/ 64 < 4) => /> *. smt(). smt().
+
+    + rewrite !wordP => /> i I I0. rewrite !bits64iE => />.
+    + rewrite set_neqiE. smt().
+    + rewrite pack4E => />. rewrite of_listE => />.
+    + rewrite initE => />.
+    + have ->: (0 <= 64 + i && 64 + i < 256) by smt(). auto => />.
+    + rewrite initE => />. have ->: 0 <= (64 + i) %/ 64 by smt(). auto => />.
+    + case((64 + i) %/ 64 < 4) => /> *. smt(). smt().
+
+    + rewrite !wordP => /> i I I0. rewrite !bits64iE => />.
+    + rewrite set_neqiE. smt().
+    + rewrite pack4E => />. rewrite of_listE => />.
+    + rewrite initE => />.
+    + have ->: (0 <= 128 + i && 128 + i < 256) by smt(). auto => />.
+    + rewrite initE => />. have ->: 0 <= (128 + i) %/ 64 by smt(). auto => />.
+    + case((128 + i) %/ 64 < 4) => /> *. smt(). smt().
+    + rewrite !wordP => /> i I I0. rewrite !bits64iE => />.
+
+    rewrite pack4E => />. rewrite of_listE => />.
+    rewrite !setE => />. rewrite initE => />.
+    have ->: (0 <= 192 + i && 192 + i < 256) by smt(). auto => />.
+    rewrite !initE => />.
+    have ->: (0 <= i && i < 64) by smt().
+    have ->: (0 <= 192 + i && 192 + i < 256) by smt().
+    auto => />.
+    case (i <> 63) => /> C.
+    have ->: 192 + i <> 255 by smt().
+    auto => />. rewrite !initE. smt().
 qed.
+
+equiv eq_spec_impl_decode_u_coordinate_base_ref4 :
+    CurveProcedures.decode_u_coordinate_base ~ M.__decode_u_coordinate_base4:
+        true
+        ==>
+        res{1} = inzpRep4 res{2}.
+proof.
+            proc *.
+    inline *; wp; skip => />.
+    rewrite inzpRep4E. congr.
+    rewrite to_uint_unpack4u64  valRep4E; congr; congr.
+    rewrite /last_bit_to_zero64 => />.
+    have !->: ((of_int 9))%W256.[255 <- false] = ((of_int 9))%W256.
+    rewrite !of_intE !bits2wE !/int2bs !/mkseq -iotaredE => />.
+    apply W256.ext_eq => />. move => X X0 X1.
+    rewrite get_setE //. case (X = 255) => /> C.
+    rewrite /to_list /mkseq /to_list -iotaredE => />.
+ qed.
 
 (** step 3 : ith_bit **)
 equiv eq_spec_impl_ith_bit_ref4 : CurveProcedures.ith_bit ~ M.__ith_bit :
@@ -686,7 +747,7 @@ do 4! unroll for{2} ^while.
 case: (toswap{1}).
   rcondt {1} 1 => //. wp => /=. skip.
     move => &1 &2 [#] 4!->> ??.
-    have mask_set :  (set0_64.`6 - toswap{2}) = W64.onew. rewrite /set0_64_ /=. smt().
+    have mask_set :  (set0_64.`6 - toswap{2}) = W64.onew. rewrite /set0_64_ /=. smt(W64.to_uint_cmp).
     rewrite !mask_set /=.
    have lxor1 : forall (x1 x2:W64.t),  x1 `^` (x2 `^` x1) = x2.
       move=> *. rewrite xorwC -xorwA xorwK xorw0 //.
