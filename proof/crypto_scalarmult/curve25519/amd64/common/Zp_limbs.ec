@@ -76,7 +76,7 @@ op load_array32(m : global_mem_t, p : address) : W8.t Array32.t =
 lemma valRep4ToPack x:  valRep4 x = W256.to_uint (W4u64.pack4 (Array4.to_list x)).
 proof.
     rewrite valRep4E. rewrite to_uint_unpack4u64.
-    congr. congr. auto => />.
+     auto => />.
     have E: forall k, 0 <= k < 4 => nth W64.zero (to_list x) k = x.[k].
     + move => H H0. rewrite /to_list /mkseq -iotaredE => />. smt().
     rewrite !E; trivial. rewrite /to_list /mkseq -iotaredE => />.
