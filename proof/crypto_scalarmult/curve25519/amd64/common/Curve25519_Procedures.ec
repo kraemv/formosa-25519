@@ -1,8 +1,8 @@
-require import Bool List Int IntDiv CoreMap Real Zp_25519 Ring Distr StdOrder BitEncoding Zp_25519 W64limbs.
+require import Bool List Int IntDiv CoreMap Real Zp_25519 Ring Distr StdOrder BitEncoding Zp_25519 W64limbs StdBigop.
 from Jasmin require import JModel JWord JModel_x86.
 require import Curve25519_Spec.
 require import Curve25519_Operations.
-import Zp Ring.IntID StdOrder.IntOrder BitEncoding.BS2Int.
+import Zp Zp_25519 Ring.IntID StdOrder.IntOrder BitEncoding.BS2Int StdBigop.Bigint.
 
 module CurveProcedures = {
 
@@ -43,12 +43,12 @@ module CurveProcedures = {
   {
     var h : zp;
     (*h <- f * f;*)
-    h <- exp f 2;
+    h <- ZModpRing.exp f 2;
     return h;
   }
 
   (* iterated sqr *)
-  proc it_sqr (i : int, f : zp) : zp =
+  proc it_sqr (f : zp, i : int) : zp =
   {
     var h, g: zp;
     var ii, counter: int;
@@ -187,10 +187,9 @@ proc invert_helper (fs : zp) : zp =
 
   proc decode_u_coordinate (u' : W256.t) : zp =
   {
-    var u'' : zp;
     (* last bit of u is cleared but that can be introduced at the same time as arrays *)
-    u'' <- inzp ( to_uint u' );
-    return u'';
+    u'.[255] <- false;
+    return inzp ( to_uint u' );
   }
 
   proc init_points (init : zp) : zp * zp * zp * zp = 
@@ -249,10 +248,7 @@ proc decode_u_coordinate_base () : zp =
     return (x2, z2, x3, z3);
   }
 
-  proc montgomery_ladder_step (k' : W256.t
-                               init' x2 z2 x3 z3 : zp
-                               swapped : bool
-                               ctr' : int) : zp * zp * zp * zp * bool =
+  proc montgomery_ladder_step (k' : W256.t, init' x2 z2 x3 z3 : zp,  swapped : bool,  ctr' : int) : zp * zp * zp * zp * bool =
   {
     var bit : bool;
     var toswap : bool;
@@ -265,25 +261,30 @@ proc decode_u_coordinate_base () : zp =
     return (x2, z2, x3, z3, swapped);
   }
 
-  proc montgomery_ladder (init' : zp, k' : W256.t) : zp * zp * zp * zp =
+   proc montgomery_ladder (init' : zp, k' : W256.t) : zp * zp * zp * zp =
   {
     var x2 : zp;
     var z2 : zp;
     var x3 : zp;
     var z3 : zp;
     var ctr : int;
+    var c : int;
     var swapped : bool;
+
+
     x2 <- witness;
     x3 <- witness;
     z2 <- witness;
     z3 <- witness;
     (x2, z2, x3, z3) <@ init_points (init');
-    ctr <- 254;
+    ctr <- 255;
     swapped <- false;
+
     while (0 < ctr)
-    { (x2, z2, x3, z3, swapped) <@
-        montgomery_ladder_step (k', init', x2, z2, x3, z3, swapped, ctr);
-      ctr <- ctr - 1;
+    {
+     ctr <- ctr - 1;
+     (x2, z2, x3, z3, swapped) <@ montgomery_ladder_step (k', init', x2, z2, x3, z3, swapped, ctr);
+
     }
     return (x2, z2, x3, z3);
   }
@@ -350,7 +351,7 @@ lemma eq_proc_op_decode_scalar k:
           ==> res = spec_decode_scalar_25519 k].
 proof.
   proc; wp; rewrite /spec_decode_scalar_25519 /=; skip.
-  move => _ hk; rewrite hk //.
+  move => &hr hk; rewrite hk //.
 qed.
 
 (** step 2 : decode_u_coordinate **)
@@ -359,7 +360,7 @@ lemma eq_proc_op_decode_u_coordinate u:
           ==> res = inzp (to_uint (spec_decode_u_coordinate u))].
 proof.
   proc; wp. rewrite /spec_decode_u_coordinate /=; skip.
-  move => _ hu; rewrite hu //.
+  move => &mu hu; rewrite hu //.
 qed.
 
 lemma eq_proc_op_decode_u_coordinate_base:
@@ -457,7 +458,6 @@ proof.
 proc.
   inline CurveProcedures.init_points. sp. simplify.
   rewrite /op_montgomery_ladder3.
-
   while (foldl (op_montgomery_ladder3_step k' init')
                ((Zp.one, Zp.zero), (init, Zp.one), false)
                (rev (iota_ 0 255))
@@ -472,7 +472,7 @@ proc.
   move => &hr [?] ? ? ?. smt(unroll_ml3s).
   skip. move => &hr [?] [?] [?] [?] [?] [?] [?] [?] [?] [?] [?] [?] [?] ?. subst.
   split; first by done.
-  move => H ? ? ? ? ? ? ?.
+  move => H H0 H1 H2 H3 H4 H5 H6.
   have _ : rev (iota_ 0 (H)) = []; smt(iota0).
 qed.
 
@@ -511,20 +511,21 @@ proof.
   split. assumption. move => H8.
   split. assumption. move => H9.
   rewrite H3 /H5 => />. smt(op_it_sqr1_m2_exp1). skip.
-move => &hr [H] [H0] [H1] [H2] [H3] [H4] [H5] [H6] H7.
+move => &hr [H] [H0] [H1] [H2] [H3] [H4] [H5] [H6] [H7] H8.
   do! split.
-  + smt(). move => H8.
-  split. rewrite H3; first smt(). move => H9.
-  split. rewrite -H4. auto => />. smt(). move => H10.
-  split. rewrite eq_op_it_sqr1_x2. rewrite -H4. smt().
+  + smt(). move => H9.
+  split. smt(). move => H10.
+  split. smt(). move => H11.
+  split. rewrite eq_op_it_sqr1_x2. smt().
   rewrite eq_op_it_sqr1. smt().
-  rewrite /op_it_sqr_x2 /op_it_sqr H7 -H10. congr.
-  rewrite exprM => />. move => H11.
+  rewrite /op_it_sqr_x2 /op_it_sqr H8 -H11. congr.
+  rewrite exprM => />. move => H12.
   rewrite !eq_op_it_sqr1; first smt(). smt().
-  rewrite !/op_it_sqr. rewrite H3 H2 H1 -H7 H10. rewrite -ZModpRing.exprM => />.
-  congr. have ->: 2 * 2 ^ (i{hr} - 1) = 2^1 * 2 ^ (i{hr} - 1). rewrite expr1 //.
+  rewrite !/op_it_sqr. rewrite H3 H2 H1 -H8 H11. rewrite -ZModpRing.exprM => />.
+  congr. rewrite H4.
+  have ->: 2 * 2 ^ (i{hr} - 1) = 2^1 * 2 ^ (i{hr} - 1). rewrite expr1 //.
   rewrite -exprD_nneg //. smt().
-  move => h II H8 [H9] [H10] [H11] [H12] H13. rewrite H12 -H11 H7 H13.
+  move => h II H9 [H10] [H11] [H12] [H13] H14. rewrite H13 -H12 H8 H14.
   smt(op_it_sqr1_0).
  qed.
 
@@ -551,6 +552,12 @@ proof.
   rewrite op_invert2E /sqr /= H /#.
 qed.
 
+equiv eq_sqr:
+    CurveProcedures.it_sqr ~ CurveProcedures.it_sqr:
+    f{1} = f{2} /\ i{1} = i{2} ==> ={res}.
+proof.
+    sim.
+qed.
 
 equiv eq_proc_proc_invert:
   CurveProcedures.invert_helper ~ CurveProcedures.invert:
@@ -600,7 +607,7 @@ proof.
   ecall (eq_proc_op_decode_u_coordinate u').
   ecall (eq_proc_op_decode_scalar k'). 
   simplify. sp. skip.
-  move => &hr [H] [H0] H1 H2 H3 H4 H5. split.rewrite H3 H0. apply kb0f.
+  move => &hr [H] [H0] H1 H2 H3 H4 H5. split. rewrite H3 H0. apply kb0f.
   move=> H6 H7 ->. rewrite !op_encode_pointE. auto => />. congr. congr. congr. congr. congr.
   rewrite H5 H3 H1 H0 => />.
 rewrite H5 H1 H3 H0 => />.
