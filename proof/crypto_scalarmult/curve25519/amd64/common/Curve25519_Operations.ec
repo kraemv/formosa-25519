@@ -1,4 +1,4 @@
-require import Bool List Int IntDiv CoreMap Real Ring StdOrder Zp_25519 Zp_limbs Eclib.
+require import Bool List Int IntDiv CoreMap Real Ring StdOrder Zp_25519 Zp_limbs EClib.
 from Jasmin require import JModel.
 require import Curve25519_Spec.
 import Zp StdOrder.IntOrder Ring.IntID Array4 EClib.
