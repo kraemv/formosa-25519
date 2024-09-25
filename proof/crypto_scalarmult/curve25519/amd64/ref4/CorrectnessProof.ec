@@ -1,8 +1,8 @@
-require import AllCore Bool List Int IntDiv StdOrder CoreMap Ring Distr BitEncoding StdRing Pervasive Logic StdBigop.
+require import AllCore Bool List Int IntDiv StdOrder CoreMap Ring Distr BitEncoding StdRing Pervasive Logic StdBigop Zp_limbs.
 from Jasmin require import JModel JMemory JWord JWord_array JUtils.
 require import Curve25519_Procedures.
 require import Scalarmult_s.
-import Zp Zp_25519 EClib.
+import Zp Zp_25519 Zp_limbs EClib.
 import Curve25519_Procedures StdOrder.IntOrder EClib StdOrder.IntOrder BitEncoding.BS2Int Ring.IntID StdBigop.Bigint.
 import Scalarmult_s.
 
@@ -647,6 +647,24 @@ proof.
     + case(ctr %/ 8 - 31 = 0) => /> *. smt().
     + case(ctr %/ 8 - 32 = 0) => /> *. smt().
     smt().
+qed.
+
+equiv eq_spec_impl_init_points_ref4 :
+    CurveProcedures.init_points ~ M.__init_points4 :
+        init{1} = inzpRep4 initr{2}
+        ==>
+        res{1}.`1 = inzpRep4 res{2}.`1 /\
+        res{1}.`2 = inzpRep4 res{2}.`2 /\
+        res{1}.`3 = inzpRep4 res{2}.`3 /\
+        res{1}.`4 = inzpRep4 res{2}.`4.
+proof.
+    proc.
+    wp. unroll for{2} ^while. wp. skip. move => &1 &2 H H0 H1 H2 H3 H4 H5 H6.
+    split; auto => />. rewrite /H4 /H0 /H2 /H3 /Zp.one /set0_64_ /inzpRep4 => />.
+        rewrite /valRep4 /to_list /mkseq -iotaredE => />.
+    split; auto => />. rewrite /H5  /H0 /H3 /H2 /Zp.zero /set0_64_ /inzpRep4 => />.
+        rewrite /valRep4 /to_list /mkseq -iotaredE  => />.
+    rewrite /H6  /H0 /H3 /H2 /Zp.zero /set0_64_ /inzpRep4 // /valRep4 /to_list /mkseq -iotaredE  => />.
 qed.
 
 (** step 4 : cswap **)
