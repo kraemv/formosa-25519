@@ -89,17 +89,6 @@ proof.
     admit.
 qed.
 
-lemma h_to_bytes_ref4 r:
-  hoare [M.__tobytes4 :
-      r = f
-      ==>
-      pack4 (to_list res) = (W256.of_int (asint (inzpRep4 r)))
-  ].
-proof.
-    proc.
-    admit.
-qed.
-
 lemma ill_add_rrs_ref4 : islossless M.__add4_rrs.
     by proc; do 2! unroll for ^while; islossless.
 qed.
@@ -447,6 +436,30 @@ proof.
     proc *. inline{2} (1). wp. sp.
     call eq_spec_impl_sqr_p_ref4. skip. auto => />.
  qed.
+ 
+(** to bytes **)
+lemma h_to_bytes_ref4 r:
+  hoare [M.__tobytes4 :
+      r = f
+      ==>
+      pack4 (to_list res) = (W256.of_int (asint (inzpRep4 r)))
+  ].
+proof.
+    proc.
+    admit.
+qed.
+
+lemma ill_to_bytes_ref4 : islossless M.__tobytes4 by islossless.
+
+lemma ph_to_bytes_ref4 r:
+  phoare [M.__tobytes4 :
+      r = f
+      ==>
+      pack4 (to_list res) = (W256.of_int (asint (inzpRep4 r)))
+  ] = 1%r.
+proof.
+    by conseq ill_to_bytes_ref4 (h_to_bytes_ref4 r).
+qed.
 
 (** step 1 : decode_scalar_25519 **)
 equiv eq_h4_decode_scalar_25519 :
