@@ -143,6 +143,20 @@ rewrite /mkseq /= /loadW64 -iotaredE; congr => />.
  rewrite W8u8.Pack.init_of_list -iotaredE. by congr => />.
  qed.
 
+lemma to_uint_unpack4u64 w:
+    W256.to_uint w = val_digits W64.modulus (map W64.to_uint (W4u64.to_list w)).
+proof.
+    have [? /= ?]:= W256.to_uint_cmp w.
+    rewrite /val_digits /=.
+    do 4! (rewrite bits64_div 1:// /=).
+    rewrite !of_uintK /=.
+    have P: forall x, x = x %% 18446744073709551616 + 18446744073709551616 * (x %/ 18446744073709551616).
+        by move=> x; rewrite {1}(divz_eq x 18446744073709551616) /=; ring.
+    rewrite {1}(P (to_uint w)) {1}(P (to_uint w %/ 18446744073709551616)) divz_div 1..2:/# /=
+            {1}(P (to_uint w)) {1}(P (to_uint w %/  340282366920938463463374607431768211456)) divz_div 1..2:/# /=
+            {1}(P (to_uint w)) {1}(P (to_uint w %/ 6277101735386680763835789423207666416102355444464034512896)) divz_div 1..2:/# /=.
+     by ring; smt().
+qed.
 
 lemma to_uint_unpack32u8 w:
   W256.to_uint w = val_digits W8.modulus (map W8.to_uint (W32u8.to_list w)).
