@@ -650,8 +650,8 @@ proof.
 qed.
 
 (** step 4 : cswap **)
-equiv eq_h4_cswap :
-  MHop2.cswap ~ M._fe64_cswap:
+equiv eq_spec_impl_cswap_ref4 :
+  CurveProcedures.cswap ~ M.__cswap4:
   x2{1}         = inzpRep4 x2{2}  /\
   z2{1}         = inzpRep4 z2r{2} /\
   x3{1}         = inzpRep4 x3{2}  /\
@@ -666,29 +666,33 @@ proof.
 proc.
 do 4! unroll for{2} ^while.
 case: (toswap{1}).
-  rcondt {1} 1 => //. wp => /=; skip.
+  rcondt {1} 1 => //. wp => /=. skip.
     move => &1 &2 [#] 4!->> ??.
-    have mask_set :  (set0_64.`6 - toswap{2}) = W64.onew. rewrite /set0_64 /=. smt(@W64).
+    have mask_set :  (set0_64.`6 - toswap{2}) = W64.onew. rewrite /set0_64_ /=. smt().
     rewrite !mask_set /=.
-    have lxor1 : forall (x1 x2:W64.t),  x1 `^` (x2 `^` x1) = x2.
+   have lxor1 : forall (x1 x2:W64.t),  x1 `^` (x2 `^` x1) = x2.
       move=> *. rewrite xorwC -xorwA xorwK xorw0 //.
     have lxor2 : forall (x1 x2:W64.t),  x1 `^` (x1 `^` x2) = x2.
       move=> *. rewrite xorwA xorwK xor0w //.
   rewrite !lxor1 !lxor2.
-      split. congr. apply Array4.ext_eq. smt(@Array4).
-      split. congr. apply Array4.ext_eq. smt(@Array4).
-      split. congr. apply Array4.ext_eq. smt(@Array4).
-             congr. apply Array4.ext_eq. smt(@Array4).
+      split. congr. apply Array4.ext_eq. smt(Array4.get_setE).
+      split. congr. apply Array4.ext_eq. smt(Array4.get_setE).
+      split. congr. apply Array4.ext_eq. smt(Array4.get_setE).
+             congr. apply Array4.ext_eq. rewrite /copy_64 => />. smt(Array4.get_setE).
   rcondf {1} 1 => //. wp => /=; skip.
     move => &1 &2 [#] 4!->> ??.
-    have mask_not_set :  (set0_64.`6 - toswap{2}) = W64.zero. smt(@W64).
-    rewrite !mask_not_set !andw0 !xorw0.
-    smt(@Array4).
+    have mask_not_set :  (set0_64.`6 - toswap{2}) = W64.zero. rewrite /set0_64_ => />. smt().
+    rewrite !mask_not_set !andw0 !xorw0 !/copy_64 => />.
+    do split.
+    congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
+    congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
+    congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
+    congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
 qed.
 
 (** step 5 : add_and_double **)
-equiv eq_h4_add_and_double :
-  MHop2.add_and_double ~ M.add_and_double:
+equiv eq_spec_impl_add_and_double_ref4 :
+  CurveProcedures.add_and_double ~ M.__add_and_double4:
   init{1} = inzpRep4 init{2} /\
   x2{1}   = inzpRep4 x2{2}   /\
   z2{1}   = inzpRep4 z2r{2}  /\
@@ -700,123 +704,369 @@ equiv eq_h4_add_and_double :
   res{1}.`3 = inzpRep4 res{2}.`3 /\
   res{1}.`4 = inzpRep4 res{2}.`4.
 proof.
-proc => /=.
-  call eq_h4_mul_rss.
-  call eq_h4_mul_sss.
-  call eq_h4_add_sss.
-  call eq_h4_sqr_ss.
-  call eq_h4_mul_a24_ss.
-  call eq_h4_sqr_ss.
-  call eq_h4_sub_ssr.
-  call eq_h4_mul_ssr.
-  call eq_h4_sub_sss.
-  call eq_h4_add_sss.
-  call eq_h4_sqr_rs.
-  call eq_h4_sqr_ss.
-  call eq_h4_mul_sss.
-  call eq_h4_mul_sss.
-  call eq_h4_add_sss.
-  call eq_h4_sub_sss.
-  call eq_h4_add_ssr.
-  call eq_h4_sub_ssr.
-  wp. done.
+proc => /=;  wp.
+  call eq_spec_impl_mul_rss_ref4; wp.
+  call eq_spec_impl_mul_sss_ref4; wp.
+  call eq_spec_impl_add_sss_ref4; wp.
+  call eq_spec_impl_sqr__ss_ref4; wp.
+  call eq_spec_impl_mul_a24_ss_ref4; wp.
+  call eq_spec_impl_sqr__ss_ref4; wp.
+  call eq_spec_impl_sub_sss_ref4; wp.
+  call eq_spec_impl_mul_sss_ref4; wp.
+  call eq_spec_impl_sub_sss_ref4; wp.
+  call eq_spec_impl_add_sss_ref4; wp.
+  call eq_spec_impl_sqr__ss_ref4; wp.
+  call eq_spec_impl_sqr__ss_ref4; wp.
+  call eq_spec_impl_mul_sss_ref4; wp.
+  call eq_spec_impl_mul_sss_ref4; wp.
+  call eq_spec_impl_add_sss_ref4; wp.
+  call eq_spec_impl_sub_sss_ref4; wp.
+  call eq_spec_impl_add_ssr_ref4; wp.
+  call eq_spec_impl_sub_ssr_ref4; wp.
+ done.
 qed.
 
 (** step 6 : montgomery_ladder_step **)
-equiv eq_h4_montgomery_ladder_step :
- MHop2.montgomery_ladder_step ~ M.montgomery_ladder_step:
- true ==> true.
+equiv eq_spec_impl_montgomery_ladder_step_ref4 :
+ CurveProcedures.montgomery_ladder_step ~ M.__montgomery_ladder_step4:
+        k'{1} =   pack32 (to_list k{2}) /\
+        init'{1} = inzpRep4 init{2}             /\
+        x2{1} = inzpRep4 x2{2}                  /\
+        z2{1} = inzpRep4 z2r{2}                 /\
+        x3{1} = inzpRep4 x3{2}                  /\
+        z3{1} = inzpRep4 z3{2}                  /\
+        b2i swapped{1} = to_uint swapped{2}     /\
+        ctr'{1} = to_uint ctr{2}                /\
+        0 <= ctr'{1} < 256
+        ==>
+        res{1}.`1 = inzpRep4 res{2}.`1          /\
+        res{1}.`2 = inzpRep4 res{2}.`2          /\
+        res{1}.`3 = inzpRep4 res{2}.`3          /\
+        res{1}.`4 = inzpRep4 res{2}.`4          /\
+        b2i res{1}.`5 = to_uint res{2}.`5.
 proof.
-admit.
+    proc => /=; wp.
+    call eq_spec_impl_add_and_double_ref4. wp.
+    call eq_spec_impl_cswap_ref4. wp.
+    call eq_spec_impl_ith_bit_ref4. wp; skip.
+    move => &1 &2 [H0] [H1] [H2] [H3] [H4] [H5] [H6] H7. split.
+    auto => />. rewrite H0.
+    move => [H8 H9] H10 H11 H12 H13 H14.
+    split;  auto => />. rewrite /H14 /H13.
+    rewrite /b2i.
+    case: (swapped{1} ^^ H10).
+    move => *. smt(W64.to_uintK W64.xorw0 W64.xorwC).
+    move => *. smt(W64.ge2_modulus W64.to_uintK W64.of_uintK W64.xorwK).
 qed.
 
 (** step 7 : montgomery_ladder **)
-equiv eq_h4_montgomery_ladder :
-  MHop2.montgomery_ladder ~ M.montgomery_ladder :
-  true ==> true.
+equiv eq_spec_impl_montgomery_ladder_ref4 :
+  CurveProcedures.montgomery_ladder ~ M.__montgomery_ladder4 :
+        init'{1} = inzpRep4 u{2}                     /\
+        k'{1} =  pack32 (to_list k{2})
+        ==>
+        res{1}.`1 = inzpRep4 res{2}.`1               /\
+        res{1}.`2 = inzpRep4 res{2}.`2.
 proof.
-admit.
+    proc. wp. sp.
+    unroll {1} 4.
+    rcondt {1} 4. auto => />. inline CurveProcedures.init_points.
+        wp. sp. skip. auto => />.
+    while(
+          k'{1} = pack32 (to_list  k{2})                   /\
+          ctr{1} = to_uint ctr{2}                          /\
+          -1 <= ctr{1} < 256                                /\
+          init'{1} = inzpRep4 us{2}                        /\
+          x2{1} = inzpRep4 x2{2}                           /\
+          x3{1} = inzpRep4 x3{2}                           /\
+          z2{1} = inzpRep4 z2r{2}                          /\
+          z3{1} = inzpRep4 z3{2}                           /\
+          b2i swapped{1} = to_uint swapped{2}).
+        wp. sp. call eq_spec_impl_montgomery_ladder_step_ref4. skip. auto => />.
+        move => &1 &2 ctrR H H0 H1 H2 E3. split.
+        rewrite to_uintB. rewrite uleE to_uint1 => />. smt(). rewrite to_uint1 => />.
+        smt(W64.to_uint_cmp).
+        move => H3 H4 H5 H6 H7 H8 H9 H10 H11 H12. split. smt(W64.to_uint_cmp).
+        rewrite ultE to_uintB. rewrite uleE to_uint1. smt().
+        rewrite to_uint1 to_uint0 //=. wp.
+        call eq_spec_impl_montgomery_ladder_step_ref4. wp. call eq_spec_impl_init_points_ref4. skip. done.
 qed.
 
 (** step 8 : iterated square **)
-equiv eq_h4_it_sqr :
- MHop2.it_sqr ~ M._fe64_it_sqr:
-   f{1}            =    inzpRep4 f{2} /\
+equiv eq_spec_impl_it_sqr_ref4 :
+ CurveProcedures.it_sqr ~ M._it_sqr4_p:
+   f{1}            =    inzpRep4 x{2} /\
    i{1}            =    to_uint i{2}  /\
-   i{1}            <=   W64.modulus   /\
-    2              <=   i{1}          /\
-   i{1} %% 2        =   0
+   i{1}            <=   W32.modulus   /\
+    2              <=   to_uint i{2}  /\
+    2             <=   i{1}
    ==>
-   res{1} = inzpRep4 res{2}.`2.
+   res{1} = inzpRep4 res{2}.
 proof.
-proc.
-  while (f{1}            =    inzpRep4 f{2}            /\
-         i{1}            =    to_uint i{2}             /\
-         i{1}            <=   W64.modulus              /\
-         0               <=   i{1}                     /\
-         i{1}            %%   2 = 0 /\
-         zf{2} = (i{2} = W64.zero)).
-  swap 2 3 3. wp. conseq(_: _ ==> f{1} = inzpRep4 f{2}).
-  move=> &1 &2 [#] ????? ->> ?? ??? /=.
-    rewrite /DEC_64 /rflags_of_aluop_nocf64 /ZF_of_w64 => /=.
-    progress.
-    smt(@W64). move : H1; smt(). smt(). smt(). smt(@W64). smt(@W64).
-  by do 2! call eq_h4_sqr; skip; done.
-  swap 3 4 4. wp. conseq(_: _ ==> f{1} = inzpRep4 f{2}).
-  move=> &1 &2 [#] /= ->> ->> ??? ?? ->> /=.
-    rewrite /DEC_64 /rflags_of_aluop_nocf64 /ZF_of_w64 => /=.
-    progress.
-    smt(@W64). move : H1; smt(). smt(). smt(). smt(@W64). smt(@W64).
-  by do 2! call eq_h4_sqr; wp; skip; done.
+proc. simplify. wp. sp.
+  while (h{1}            =    inzpRep4 x{2}            /\
+         ii{1}            =    to_uint i{2}              /\
+         ii{1}            <=   W32.modulus               /\
+         0                 <=   ii{1}
+    ).
+   wp. call eq_spec_impl_sqr_p_ref4. conseq(_: _ ==> h{1} = inzpRep4 x{2}).
+    move => &1 &2 [[H][ H0] [H1] H2 [H3] H4 H5]. split. apply H5.
+    rewrite /DEC_32 /rflags_of_aluop_nocf_w /ZF_of => /=.
+    move => H6 H7 H8 H9. split. split. apply H9. split.
+    rewrite to_uintB. rewrite  uleE => />. by smt(). rewrite to_uint1 H0 //.
+    split. move: H1. smt(). move: H2. smt(). split. rewrite H0. move => H10.
+    smt(W32.of_uintK W32.to_uintK W32.of_intN W32.to_uintN W32.of_intD).
+    smt(W32.of_uintK W32.to_uintK W32.of_intN W32.to_uintN W32.of_intD).
+    skip. auto => />. wp.
+    rewrite /DEC_32 /rflags_of_aluop_nocf_w /ZF_of => /=.
+    call eq_spec_impl_sqr_p_ref4.
+    skip. auto => />. move => &2 H H0. split. split.
+    rewrite to_uintB. rewrite uleE => />. move: H. smt().
+    rewrite to_uint1 //. split. move: H0. smt(). move: H. smt().
+    split. move => H1.
+    smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
+    move => H1. move: H. smt().
 qed.
 
+equiv eq_spec_impl_it_sqr_s_ref4 :
+    CurveProcedures.it_sqr ~ M._it_sqr4_s_:
+        f{1}            =    inzpRep4 x{2} /\
+        i{1}            =    to_uint i{2}  /\
+        2               <=   to_uint i{2}  /\
+        i{1}            <=   W32.modulus   /\
+        2              <=   i{1}   ==>
+        res{1} = inzpRep4 res{2}.
+ proof.
+    proc *. inline M._it_sqr4_s_. wp. sp.
+    call eq_spec_impl_it_sqr_ref4. skip. auto => />.
+qed.
+
+equiv eq_spec_impl_it_sqr_ss_ref4 :
+        CurveProcedures.it_sqr ~ M._it_sqr4_ss_:
+        f{1}            =    inzpRep4 x{2} /\
+        i{1}            =    to_uint i{2}  /\
+        2               <=   to_uint i{2}  /\
+        i{1}            <=   W32.modulus   /\
+        2               <=   i{1}
+        ==>
+        res{1} = inzpRep4 res{2}.
+proof.
+    proc *. inline M._it_sqr4_ss_.
+    unroll for{2} ^while. wp. sp.
+    call eq_spec_impl_it_sqr_ref4. skip. auto => />. move => &2 H H0. congr.
+    apply Array4.ext_eq. move => H1 [H2] H3. smt(Array4.get_setE).
+qed.
+
+
 (** step 9 : invert **)
-equiv eq_h4_invert :
-  MHop2.invert ~ M._fe64_invert :
-     z1'{1} = inzpRep4 f{2}
+equiv eq_spec_impl_invert_ref4 :
+  CurveProcedures.invert ~ M.__invert4 :
+     fs{1} = inzpRep4 fs{2}
   ==> res{1} = inzpRep4 res{2}.
 proof.
-proc.
-  call eq_h4_mul.
-  call eq_h4_sqr.
-  call eq_h4_it_sqr. wp.
-  call eq_h4_mul.
-  call eq_h4_it_sqr. wp.
-  call eq_h4_mul.
-  call eq_h4_it_sqr. wp.
-  call eq_h4_mul.
-  call eq_h4_it_sqr. wp.
-  call eq_h4_mul.
-  call eq_h4_it_sqr. wp.
-  call eq_h4_mul.
-  call eq_h4_it_sqr. wp.
-  call eq_h4_mul.
-  call eq_h4_it_sqr. wp.
-  call eq_h4_mul. wp.
-  call eq_h4_it_sqr. wp.
-  call eq_h4_sqr. wp.
-  call eq_h4_mul.
-  call eq_h4_sqr. wp.
-  call eq_h4_mul. wp.
-  call eq_h4_mul.
-  call eq_h4_sqr.
-  call eq_h4_sqr. wp.
-  call eq_h4_sqr. wp.
+  transitivity
+  CurveProcedures.invert_helper
+  ( fs{1} = fs{2}          ==> res{1} = res{2})
+  ( fs{1} = inzpRep4 fs{2} ==> res{1} = inzpRep4 res{2}).
+  move => &1 &2 H; exists(fs{1}) => />.
+  move => &1 &m &2 => />.
+  proc *. symmetry; call eq_proc_proc_invert; skip => />.
+  proc => /=; wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_sqr_s_ref4; wp.
+  call (eq_spec_impl_it_sqr_s_ref4). wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_it_sqr_s_ref4; wp.
+  call eq_spec_impl_mul_ss_ref4. wp.
+  call eq_spec_impl_it_sqr_ss_ref4. wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_it_sqr_ss_ref4. wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_it_sqr_s_ref4. wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_it_sqr_ss_ref4. wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_it_sqr_ss_ref4. wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_it_sqr_s_ref4. wp.
+  call eq_spec_impl_sqr_ss_ref4; wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_sqr_ss_ref4; wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_mul_ss_ref4; wp.
+  call eq_spec_impl_sqr_s_ref4; wp.
+  call eq_spec_impl_sqr_ss_ref4; wp.
+  call eq_spec_impl_sqr_ss_ref4. wp. skip.
   done.
 qed.
 
 (** step 10 : encode point **)
-equiv eq_h4_encode_point :
-  MHop2.encode_point ~ M.encode_point:
-  true ==> true.
+equiv eq_spec_impl_encode_point_ref4 : CurveProcedures.encode_point ~ M.__encode_point4:
+    x2{1}                 = inzpRep4 x2{2} /\
+    z2{1}                 = inzpRep4 z2r{2}
+    ==>
+    res{1} = pack4 (to_list  res{2}).
 proof.
-admit.
+    proc => /=; wp.
+    ecall {2} (ph_to_bytes_ref4 (r{2})). wp.
+    call eq_spec_impl_mul_rss_ref4. wp.
+    call eq_spec_impl_invert_ref4.
+    wp; skip => /> &2 H H0 H1 H2.
+    by rewrite -H2.
+qed.
+equiv eq_spec_impl_scalarmult_internal_ref4 :
+    CurveProcedures.scalarmult_internal ~ M.__curve25519_internal_ref4:
+        k'{1} = pack32 (to_list  k{2}) /\
+        u''{1} = inzpRep4 u{2}
+        ==>
+        res{1} = pack4 (to_list res{2}).
+proof.
+    proc => /=; wp.
+    call eq_spec_impl_encode_point_ref4; wp.
+    call eq_spec_impl_montgomery_ladder_ref4. wp. skip.
+    done.
 qed.
 
 (** step 11 : scalarmult **)
-equiv eq_h4_scalarmult :
-  MHop2.scalarmult ~ M._x25519_scalarmult:
-  true ==> true.
+equiv eq_spec_impl_scalarmult_ref4 :
+  CurveProcedures.scalarmult ~ M._curve25519_ref4:
+        k'{1} = pack4 (to_list  _k{2}) /\
+        u'{1} = pack4 (to_list _u{2})
+        ==>
+        res{1} = pack4 (to_list res{2}).
 proof.
-admit.
+    proc => /=; wp.
+    call eq_spec_impl_scalarmult_internal_ref4 => />; wp.
+    call eq_spec_impl_decode_u_coordinate_ref4 => />; wp.
+    call eq_spec_impl_decode_scalar_25519_ref4 => />.
+    wp; skip => />.
 qed.
+
+equiv eq_spec_impl_scalarmult_base_ref4 :
+    CurveProcedures.scalarmult_base ~ M._curve25519_ref4_base:
+        k'{1} = pack4 (to_list _k{2})
+        ==>
+        res{1} = pack4 (to_list res{2}).
+proof.
+    proc => /=; wp.
+    call eq_spec_impl_scalarmult_internal_ref4; wp.
+    call eq_spec_impl_decode_u_coordinate_base_ref4; wp.
+    call eq_spec_impl_decode_scalar_25519_ref4.
+    wp. skip. move => *. smt(Zp_limbs.valRep4ToPack_xy).
+qed.
+
+lemma eq_spec_impl_scalarmult_jade_ref4 _qp _np _pp:
+    equiv [CurveProcedures.scalarmult ~ M.jade_scalarmult_curve25519_amd64_ref4:
+        qp{2} = _qp                                                                              /\
+        np{2} = _np                                                                              /\
+        pp{2} = _pp                                                                              /\
+        k'{1} = pack4 (to_list np{2}) /\
+        u'{1} = pack4 (to_list pp{2})
+        ==>
+        res{1} = pack4 (to_list res{2}.`1) /\
+        res{2}.`2 = W64.zero].
+proof.
+    proc *. inline M.jade_scalarmult_curve25519_amd64_ref4; wp.
+    call (eq_spec_impl_scalarmult_ref4); wp; skip => />.
+qed.
+
+lemma eq_spec_impl_scalarmult_jade_base_ref4 _qp _np:
+    equiv [CurveProcedures.scalarmult_base ~ M.jade_scalarmult_curve25519_amd64_ref4_base:
+        qp{2} = _qp                                                                              /\
+        np{2} = _np                                                                              /\
+        k'{1} = pack4 (to_list np{2})
+        ==>
+        res{1} = pack4 (to_list res{2}.`1)     /\
+        res{2}.`2 = W64.zero].
+proof.
+    proc *. inline M.jade_scalarmult_curve25519_amd64_ref4_base. wp. sp.
+    call (eq_spec_impl_scalarmult_base_ref4). skip. done.
+qed.
+
+
+
+
+(* Below are proofs for an older implementation that utilises ptrs *)
+(*
+lemma eq_spec_impl_scalarmult_ptr_ref4 mem _rp _kp _up :
+    equiv [CurveProcedures.scalarmult ~ M.__curve25519_ref4_ptr:
+        valid_ptr (W64.to_uint _up)  32                                                          /\
+        valid_ptr (W64.to_uint _kp)  32                                                          /\
+        valid_ptr (W64.to_uint _rp)  32                                                          /\
+        Glob.mem{2} = mem                                                                        /\
+        rp{2} = _rp                                                                              /\
+        kp{2} = _kp                                                                              /\
+        up{2} = _up                                                                              /\
+        u'{1} = pack4 (load_array4 (mem) (W64.to_uint _up))           /\
+        k'{1} = pack4 (load_array4 (mem) (W64.to_uint _kp))
+        ==>
+        res{1} = pack4 (load_array4 Glob.mem{2} (W64.to_uint res{2}.`1))    /\
+        res{2}.`2 = tt
+    ].
+proof.
+    proc *.
+    inline M.__curve25519_ref4_ptr. wp. sp.
+    inline M.__load4 M.__store4.
+    do 3! unroll for{2} ^while.
+    sp. wp. auto => />.
+    call eq_spec_impl_scalarmult_ref4. skip. auto => />.
+    move => &2 H H0 H1 H2 H3 H4.
+    do split.
+    congr. congr.
+    rewrite  /load_array4 /to_list /mkseq -iotaredE => />.
+    do split.
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    congr. congr. rewrite /load_array4 /to_list /mkseq -iotaredE => />.
+    do split.
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    move => H5 H6 H7.
+    congr. congr. rewrite /load_array4 /to_list /mkseq -iotaredE => />.
+    do split.
+    apply (load_store_pos Glob.mem{2} rp{2} H7 0).
+    rewrite /valid_ptr; split => />. done.
+    apply (load_store_pos Glob.mem{2} rp{2} H7 8).
+    rewrite /valid_ptr; split => />. done.
+    apply (load_store_pos Glob.mem{2} rp{2} H7 16).
+    rewrite /valid_ptr; split => />. done.
+    apply (load_store_pos Glob.mem{2} rp{2} H7 24).
+    rewrite /valid_ptr; split => />. done.
+qed.
+*)
+
+(*
+lemma eq_spec_impl_scalarmult_base_ptr_ref4 mem _rp _kp :
+ equiv [CurveProcedures.scalarmult_base ~ M.__curve25519_ref4_base_ptr:
+        valid_ptr (W64.to_uint _rp) 32 /\
+        valid_ptr (W64.to_uint _kp) 32 /\
+        Glob.mem{2} = mem /\
+        rp{2} = _rp /\
+        kp{2} = _kp /\
+        k'{1} =  pack4 (load_array4 (Glob.mem{2}) (W64.to_uint _kp))
+        ==>
+        res{1} = pack4 (load_array4 Glob.mem{2} (W64.to_uint res{2}.`1)) /\ res{2}.`2 = tt].
+proof.
+    proc *. inline M.__curve25519_ref4_base_ptr M.__load4 M.__store4.
+    do 2! unroll for{2} ^while.
+    wp; call eq_spec_impl_scalarmult_base_ref4; wp; skip => />.
+    move => H H0 H1 H2.
+    do split.
+    congr; congr.
+    rewrite  /load_array4 /to_list /mkseq -iotaredE => />.
+    do split.
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    congr; rewrite !to_uintD_small !to_uint_small => />. smt().
+    move => H3 H4.
+    congr; congr.
+    rewrite  /load_array4 /to_list /mkseq -iotaredE => />.
+    do split.
+    apply (load_store_pos mem _rp H4 0); rewrite /valid_ptr. smt(). smt().
+    apply (load_store_pos mem _rp H4 8); rewrite /valid_ptr. smt(). smt().
+    apply (load_store_pos mem _rp H4 16); rewrite /valid_ptr. smt(). smt().
+    apply (load_store_pos mem _rp H4 24); rewrite /valid_ptr. smt(). smt().
+qed.
+*)
