@@ -1,171 +1,185 @@
-require import AllCore Bool List Int IntExtra IntDiv CoreMap Real Zp.
-from Jasmin require import JModel.
-require import Curve25519_Spec.
-require import Curve25519_Hop1.
-require import Curve25519_Hop2.
-require import Curve25519_Hop3.
-require import Curve25519_smulx.
-import Zp ZModpRing.
-import Curve25519_Spec Curve25519_Hop1 Curve25519_Hop2 Curve25519_Hop3.
-import Curve25519_smulx.
+require import AllCore Bool List Int IntDiv StdOrder CoreMap Ring Distr.
+from Jasmin require import JModel JMemory JWord.
+require import Curve25519_Procedures.
+require import Curve25519_auto4 
+require import Scalarmult_s.
+import Zp  Zp_25519 EClib.
+import Curve25519_auto4 Curve25519_Procedures StdOrder.IntOrder EClib.
+import Scalarmult_s.
 
-require import Array4 Array8.
+require import Array4 Array8 Array32.
 require import W64limbs.
 
-(** representation : move to another file/use rep3/5 **)
-type Rep4 = W64.t Array4.t.
-op valRep4  (x : Rep4) : int = val_limbs64 (to_list x).
-op inzpRep4 (x : Rep4) : zp  = inzp (valRep4 x) axiomatized by inzpRep4E.
-abbrev zpcgrRep4 (x : Rep4) (z : int) : bool = zpcgr (valRep4 x) z.
-(** ************************************* **)
-
 (** step 0 : add sub mul sqr **)
-equiv eq_h4_add : MHop2.add ~ M._fe64_add_rrs:
+equiv eq_spec_impl_add_rrs_ref4 : CurveProcedures.add ~ M.__add4_rrs:
    f{1} = inzpRep4 f{2} /\
    g{1} = inzpRep4 g{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *.
+    ecall {2} (ph_add_rrs_ref4 (inzpRep4 f{2}) (inzpRep4 g{2})).
+    inline *; wp; skip => />.
+    move => &2 H H0 => />. by rewrite H0.
 qed.
 
-equiv eq_h4_sub : MHop2.sub ~ M._fe64_sub_rrs:
+equiv eq_spec_impl_sub_rrs_ref4 : CurveProcedures.sub ~ M.__sub4_rrs:
    f{1} = inzpRep4 f{2} /\
    g{1} = inzpRep4 gs{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *.
+    ecall {2} (ph_sub_rrs_ref4 (inzpRep4 f{2}) (inzpRep4 gs{2})).
+    inline *; wp; skip => />.
+    move => &2 H H0 => />. by rewrite H0.
 qed.
 
-equiv eq_h4_mul_a24 : MHop2.mul_a24 ~ M._fe64_mul_a24:
-   f{1} = inzpRep4 fs{2} /\
+equiv eq_spec_impl_mul_a24_rs_ref4 : CurveProcedures.mul_a24 ~ M.__mul4_a24_rs:
+   f{1} = inzpRep4 xa{2} /\
    a24{1} = to_uint a24{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *.
+    ecall {2} (ph_mul_a24_ref4 (inzpRep4 xa{2}) (to_uint a24{2})).
+    inline *; wp; skip => />.
+    move => &2 H H0 => />. by rewrite H0.
 qed.
 
-equiv eq_h4_mul : MHop2.mul ~ M._fe64_mul_rsr:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 g{2}
+equiv eq_spec_impl_mul_rss_ref4 : CurveProcedures.mul ~ M.__mul4_rss:
+   f{1} = inzpRep4 xa{2} /\
+   g{1} = inzpRep4 ya{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *.
+    ecall {2} (ph_mul_rss_ref4 (inzpRep4 xa{2}) (inzpRep4 ya{2})).
+    inline *; wp; skip => />.
+    move => &2 H H0 => />. by rewrite H0.
 qed.
 
-equiv eq_h4_sqr : MHop2.sqr ~ M._fe64_sqr_rr:
-    f{1} = inzpRep4 f{2}
+equiv eq_spec_impl_sqr_ref4 : CurveProcedures.sqr ~ M.__sqr4_rs:
+    f{1} = inzpRep4 xa{2}
     ==>
     res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *.
+    ecall {2} (ph_sqr_rs_ref4 (inzpRep4 xa{2})).
+    inline *; wp; skip => />.
+    move => &2 H H0 => />. by rewrite H0.
 qed.
 
 (** step 0.5 : transitivity stuff **)
-equiv eq_h4_add_ssr : MHop2.add ~ M._fe64_add_ssr:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 g{2}
+equiv eq_spec_impl_add_ssr_ref4 : CurveProcedures.add ~ M.__add4_ssr:
+   f{1} = inzpRep4 g{2} /\
+   g{1} = inzpRep4 fs{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *. inline{2} (1). wp. sp.
+    call (eq_spec_impl_add_rrs_ref4). skip. auto => />.
 qed.
 
-equiv eq_h4_add_sss : MHop2.add ~ M._fe64_add_sss:
+equiv eq_spec_impl_add_sss_ref4 : CurveProcedures.add ~ M.__add4_sss:
    f{1} = inzpRep4 fs{2} /\
    g{1} = inzpRep4 gs{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *. inline{2} (1). wp. sp.
+    call eq_spec_impl_add_rrs_ref4. skip. auto => />.
 qed.
 
-equiv eq_h4_sub_ssr : MHop2.sub ~ M._fe64_sub_ssr:
+equiv eq_spec_impl_sub_ssr_ref4 : CurveProcedures.sub ~ M.__sub4_ssr:
    f{1} = inzpRep4 fs{2} /\
    g{1} = inzpRep4 g{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *. inline{2} (1). wp. sp.
+    call eq_spec_impl_sub_rsr_ref4. skip. auto => />.
 qed.
 
-equiv eq_h4_sub_sss : MHop2.sub ~ M._fe64_sub_sss:
+equiv eq_spec_impl_sub_sss_ref4 : CurveProcedures.sub ~ M.__sub4_sss:
    f{1} = inzpRep4 fs{2} /\
    g{1} = inzpRep4 gs{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *. inline{2} (1). wp. sp.
+    call eq_spec_impl_sub_rrs_ref4. skip. auto => />.
 qed.
 
-equiv eq_h4_mul_a24_ss : MHop2.mul_a24 ~ M._fe64_mul_a24_ss:
-   f{1} = inzpRep4 fs{2} /\
+equiv eq_spec_impl_mul_a24_ss_ref4 : CurveProcedures.mul_a24 ~ M.__mul4_a24_ss:
+   f{1} = inzpRep4 xa{2} /\
    a24{1} = to_uint a24{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *. inline{2} (1). wp. sp.
+    call eq_spec_impl_mul_a24_rs_ref4. skip. auto => />.
 qed.
 
-equiv eq_h4_mul_rss : MHop2.mul ~ M._fe64_mul_rss:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 gs{2}
+equiv eq_spec_impl_mul_pp_ref4 : CurveProcedures.mul ~ M._mul4_pp:
+   f{1} = inzpRep4 xa{2} /\
+   g{1} = inzpRep4 ya{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *.
+    ecall {2} (ph_mul_pp_ref4 (inzpRep4 xa{2}) (inzpRep4 ya{2})).
+    inline *; wp; skip => />.
+    move => &2 H H0 => />. by rewrite H0.
 qed.
 
-equiv eq_h4_mul_ssr : MHop2.mul ~ M._fe64_mul_ssr:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 g{2}
+equiv eq_spec_impl_mul_ss_ref4 : CurveProcedures.mul ~ M._mul4_ss_:
+   f{1} = inzpRep4 xa{2} /\
+   g{1} = inzpRep4 ya{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *. inline{2} (1). wp. sp.
+    call eq_spec_impl_mul_pp_ref4. skip. auto => />.
 qed.
 
-equiv eq_h4_mul_sss : MHop2.mul ~ M._fe64_mul_sss:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 gs{2}
+equiv eq_spec_impl_mul_sss_ref4 : CurveProcedures.mul ~ M.__mul4_sss:
+   f{1} = inzpRep4 xa{2} /\
+   g{1} = inzpRep4 ya{2}
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
+    proc *. inline{2} (1). wp. sp.
+    call eq_spec_impl_mul_rss_ref4. skip. auto => />.
 qed.
 
-equiv eq_h4_sqr_rs : MHop2.sqr ~ M._fe64_sqr_rs:
-    f{1} = inzpRep4 fs{2}
+equiv eq_spec_impl_sqr_rs__ss_ref4 : M.__sqr4_ss ~ M.__sqr4_rs:
+    xa{1} = xa{2}
+    ==>
+    res{1} = res{2}.
+proof.
+    proc *. inline {1} 1; sp; wp.
+    conseq (_: r0{1} = r{2}).
+    sim.
+qed.
+
+
+equiv eq_spec_impl_sqr__ss_ref4 : CurveProcedures.sqr ~ M.__sqr4_ss:
+    f{1} = inzpRep4 xa{2}
     ==>
     res{1} = inzpRep4 res{2}.
 proof.
-proc.
-admit.
-qed.
-
-equiv eq_h4_sqr_ss : MHop2.sqr ~ M._fe64_sqr_ss:
-    f{1} = inzpRep4 fs{2}
-    ==>
-    res{1} = inzpRep4 res{2}.
-proof.
-proc.
-admit.
+    transitivity
+    M.__sqr4_rs
+    ( f{1} = inzpRep4 xa{2} ==> res{1} = inzpRep4 res{2})
+    ( xa{1} = xa{2} ==> res{1} = res{2}).
+    move => &1 &2 H.
+    exists(xa{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *; call eq_spec_impl_sqr_ref4.
+    by skip => />. symmetry.
+    proc *; call eq_spec_impl_sqr_rs__ss_ref4.
+    by done.
 qed.
 
 (** step 1 : decode_scalar_25519 **)
