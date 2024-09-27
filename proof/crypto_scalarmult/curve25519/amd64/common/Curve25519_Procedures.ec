@@ -1,4 +1,4 @@
-require import Bool List Int IntDiv CoreMap Real Zp_25519 Ring Distr StdOrder BitEncoding Zp_25519 W64limbs StdBigop.
+require import Bool List Int IntDiv CoreMap Real Zp_25519 Ring Distr StdOrder BitEncoding Zp_25519 StdBigop.
 from Jasmin require import JModel JWord JModel_x86.
 require import Curve25519_Spec.
 require import Curve25519_Operations.
@@ -7,7 +7,7 @@ import Zp Zp_25519 Ring.IntID StdOrder.IntOrder BitEncoding.BS2Int StdBigop.Bigi
 module CurveProcedures = {
 
   (* h = f + g *)
-  proc add(f g : zp) : zp = 
+  proc add(f g : zp) : zp =
   {
     var h: zp;
     h <- f + g;
@@ -22,7 +22,7 @@ module CurveProcedures = {
     return h;
   }
 
-  (* h = f * a24 *)  
+  (* h = f * a24 *)
   proc mul_a24 (f : zp, a24 : int) : zp =
   {
     var h: zp;
@@ -122,7 +122,7 @@ proc it_sqr_aux (a : zp, l : int) : zp = {
     t1s <@ mul (t0s, t1s);
     return t1s;
   }
-  
+
 proc invert_helper (fs : zp) : zp =
 {
     var t1s : zp;
@@ -192,7 +192,7 @@ proc invert_helper (fs : zp) : zp =
     return inzp ( to_uint u' );
   }
 
-  proc init_points (init : zp) : zp * zp * zp * zp = 
+  proc init_points (init : zp) : zp * zp * zp * zp =
   {
     var x2 : zp;
     var z2 : zp;
@@ -211,7 +211,7 @@ proc invert_helper (fs : zp) : zp =
 
     return (x2, z2, x3, z3);
   }
-  
+
 proc decode_u_coordinate_base () : zp =
   {
       var u' : zp;
@@ -388,7 +388,7 @@ lemma eq_proc_op_cswap (t : (zp * zp) * (zp * zp) )  b:
                        z2 = (t.`1).`2 /\
                        x3 = (t.`2).`1 /\
                        z3 = (t.`2).`2 /\
-                       toswap = b 
+                       toswap = b
          ==> ((res.`1, res.`2),(res.`3, res.`4)) = cswap t b].
 proof.
   by proc; wp; skip; simplify => /#.
@@ -396,7 +396,7 @@ qed.
 
 (** step 5 : add_and_double **)
 lemma eq_proc_op_add_and_double (qx : zp) (nqs : (zp * zp) * (zp * zp)):
-  hoare [CurveProcedures.add_and_double : init = qx /\ 
+  hoare [CurveProcedures.add_and_double : init = qx /\
                                 x2 = nqs.`1.`1 /\
                                 z2 = nqs.`1.`2 /\
                                 x3 = nqs.`2.`1 /\
@@ -408,9 +408,9 @@ proof.
 qed.
 
 (** step 6 : montgomery_ladder_step **)
-lemma eq_proc_op_montgomery_ladder_step (k : W256.t) 
+lemma eq_proc_op_montgomery_ladder_step (k : W256.t)
                                    (init : zp)
-                                   (nqs : (zp * zp) * (zp * zp) * bool) 
+                                   (nqs : (zp * zp) * (zp * zp) * bool)
                                    (ctr : int) :
   hoare [CurveProcedures.montgomery_ladder_step : k' = k /\
                                         init' = init /\
@@ -480,8 +480,8 @@ qed.
 
 
 lemma eq_proc_op_it_sqr (e : int) (z : zp) :
-  hoare[CurveProcedures.it_sqr : 
-         i = e && 1 <= i && f =  z 
+  hoare[CurveProcedures.it_sqr :
+         i = e && 1 <= i && f =  z
          ==>
         res = op_it_sqr1 e z].
 proof.
@@ -504,7 +504,7 @@ lemma eq_proc_op_it_sqr_x2 (e : int) (z : zp) :
 proof.
   proc. inline CurveProcedures.sqr. sp. wp. simplify.
   while (0 <= i && 0 <= ii && 2*e = i && op_it_sqr1_x2 e z = op_it_sqr1 i f && op_it_sqr1 (2*e) z = op_it_sqr1 ii h).
-  wp; skip. 
+  wp; skip.
   move => &hr [[H]] [H0] [H1] [H2] H3 H4 H5.
   split. assumption. move => H6.
   split. smt(). move => H7.
@@ -545,7 +545,7 @@ proof.
   ecall (eq_proc_op_it_sqr 4   t2s). wp.
   skip. simplify.
   move => &hr H.
-  move=> ? ->. move=> ? ->. 
+  move=> ? ->. move=> ? ->.
   move=> ? ->. move=> ? ->.
   move=> ? ->. move=> ? ->.
   move=> ? ->. move=> ? ->.
@@ -578,13 +578,13 @@ proof.
   proc. inline CurveProcedures.mul. wp. sp.
   ecall (eq_proc_op_invert z2).
   skip. simplify.
-  move => &hr [H] [H0] H1 H2 H3. 
+  move => &hr [H] [H0] H1 H2 H3.
   rewrite op_encode_pointE.
   auto => />. congr; congr; congr. rewrite -H1. apply H3.
 qed.
 
 (** step 11 : scalarmult **)
-lemma eq_proc_op_scalarmult_internal (u: zp, k: W256.t) : 
+lemma eq_proc_op_scalarmult_internal (u: zp, k: W256.t) :
   hoare[CurveProcedures.scalarmult_internal : k.[0] = false  /\ k' = k /\ u'' = u ==> res = op_scalarmult_internal u k].
 proof.
   proc; sp.
@@ -605,7 +605,7 @@ proof.
     rewrite /dk /spec_decode_scalar_25519 //.
   ecall (eq_proc_op_scalarmult_internal u'' k').
   ecall (eq_proc_op_decode_u_coordinate u').
-  ecall (eq_proc_op_decode_scalar k'). 
+  ecall (eq_proc_op_decode_scalar k').
   simplify. sp. skip.
   move => &hr [H] [H0] H1 H2 H3 H4 H5. split. rewrite H3 H0. apply kb0f.
   move=> H6 H7 ->. rewrite !op_encode_pointE. auto => />. congr. congr. congr. congr. congr.
