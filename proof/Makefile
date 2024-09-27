@@ -86,7 +86,7 @@ CI_ALL_FILES   := $(shell find $(PROOF) -name '*.log') $(CI_ERROR_FILES)
 reporter:
 	$(JLOG) "Extraction from Jasmin to EasyCrypt status" src/ *_s.ec $(CI_REMOVE_OK_LOGS)
 	$(JLOG) "Checking EasyCrypt - extracted files status" proof/ *_s.ec.out $(CI_REMOVE_OK_LOGS)
-	#$(JLOG) "Checking EasyCrypt - all files status" proof/ *.ec.out $(CI_REMOVE_OK_LOGS)
+	$(JLOG) "Checking EasyCrypt - all files status" proof/ *.ec.out $(CI_REMOVE_OK_LOGS)
 
 logs: $(LOGS)
 
@@ -114,7 +114,7 @@ all:
 	$(MAKE) distclean
 	$(MAKE) -C $(SRC) extract-to-easycrypt
 	$(MAKE) check-extracted
-	#$(MAKE) check-all
+	$(MAKE) check-all
 	$(MAKE) reporter
 	$(MAKE) err
 
