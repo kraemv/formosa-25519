@@ -1,12 +1,22 @@
 require import List Int IntDiv Ring CoreMap StdOrder.
-require import Zp_25519 EClib W64limbs Array4 Array32.
+require import Zp_25519 EClib Array4 Array32.
 
 from Jasmin require import JModel JWord.
 
 import Zp EClib Ring.IntID Array4 Array32 IntOrder JWord.W8 JWord.W64.
 
+op val_digits (base: int) (x: int list) =
+ foldr (fun w r => w + base * r) 0 x.
 
-op inzp_limbs base l = inzp (val_limbs base l).
+abbrev digits64 = List.map W64.to_uint.
+abbrev digits8 = List.map W8.to_uint.
+abbrev val_limbs base l = val_digits base (digits64 l).
+
+abbrev val_digits64 = val_digits (2^64).
+abbrev val_limbs64 x = val_digits64 (digits64 x).
+
+abbrev val_digits8 = val_digits (2^8).
+abbrev val_limbs8 x = val_digits8 (digits8 x).
 
 type Rep4 = W64.t Array4.t.
 type Rep32 = W8.t Array32.t.
@@ -21,6 +31,37 @@ op valRep32      (x : Rep32)          : int    = val_limbs8 (Array32.to_list x) 
 op inzpRep32     (x : Rep32)          : zp     = inzp (valRep32 x) axiomatized by inzpRep32E.
 op inzpRep32List (x : W8.t list)      : zp     = inzp (valRep32List x) axiomatized by inzpRep32ListE.
 
+lemma to_uint_unpack4u64 w:
+    W256.to_uint w = val_digits W64.modulus (map W64.to_uint (W4u64.to_list w)).
+proof.
+    have [? /= ?]:= W256.to_uint_cmp w.
+    rewrite /val_digits /=.
+    do 4! (rewrite bits64_div 1:// /=).
+    rewrite !of_uintK /=.
+    have P: forall x, x = x %% 18446744073709551616 + 18446744073709551616 * (x %/ 18446744073709551616).
+        by move=> x; rewrite {1}(divz_eq x 18446744073709551616) /=; ring.
+    rewrite {1}(P (to_uint w)) {1}(P (to_uint w %/ 18446744073709551616)) divz_div 1..2:/# /=
+            {1}(P (to_uint w)) {1}(P (to_uint w %/  340282366920938463463374607431768211456)) divz_div 1..2:/# /=
+            {1}(P (to_uint w)) {1}(P (to_uint w %/ 6277101735386680763835789423207666416102355444464034512896)) divz_div 1..2:/# /=.
+     by ring; smt().
+qed.
+
+lemma valRep4ToPack x:  valRep4 x = W256.to_uint (W4u64.pack4 (Array4.to_list x)).
+proof.
+    rewrite valRep4E. rewrite to_uint_unpack4u64.
+     auto => />.
+    have E: forall k, 0 <= k < 4 => nth W64.zero (to_list x) k = x.[k].
+    + move => H H0. rewrite /to_list /mkseq -iotaredE => />. smt().
+    rewrite !E; trivial. rewrite /to_list /mkseq -iotaredE => />.
+qed.
+
+lemma valRep4ToPack_xy (x: W256.t, y):
+    W256.to_uint x =  valRep4 y => x  = W4u64.pack4 (Array4.to_list y).
+    rewrite valRep4ToPack. move => H.
+    smt(W256.to_uintK).
+qed.
+
+(*
 lemma val_limbs64_div2255 x0 x1 x2 x3:
     val_limbs64 [x0; x1; x2; x3] %/ 2^255 = to_uint x3 %/ 9223372036854775808.
 proof.
@@ -41,8 +82,9 @@ proof.
         by rewrite -divz_eq0 /#.
     by ring.
 qed.
+*)
 
-
+(*
 lemma val_limbs64_div2256 x0 x1 x2 x3:
     val_limbs64 [x0; x1; x2; x3] %/ 2^256 = to_uint x3 %/ 2^64.
 proof.
@@ -63,8 +105,9 @@ proof.
         by rewrite -divz_eq0 /#.
     by ring.
 qed.
+*)
 
-
+(*
 op valid_ptr(p : int, o : int) = 0 <= o => 0 <= p /\ p + o < W64.modulus.
 
 op load_array4 (m : global_mem_t, p : address) : W64.t list =
@@ -72,28 +115,10 @@ op load_array4 (m : global_mem_t, p : address) : W64.t list =
 
 op load_array32(m : global_mem_t, p : address) : W8.t Array32.t =
       Array32.init (fun i => m.[p + i]).
-
-lemma valRep4ToPack x:  valRep4 x = W256.to_uint (W4u64.pack4 (Array4.to_list x)).
-proof.
-    rewrite valRep4E. rewrite to_uint_unpack4u64.
-     auto => />.
-    have E: forall k, 0 <= k < 4 => nth W64.zero (to_list x) k = x.[k].
-    + move => H H0. rewrite /to_list /mkseq -iotaredE => />. smt().
-    rewrite !E; trivial. rewrite /to_list /mkseq -iotaredE => />.
-qed.
-
-lemma inzpRep4ToPack x:  inzpRep4 x = inzp (W256.to_uint (W4u64.pack4 (Array4.to_list x))).
-proof.
-    rewrite inzpRep4E. congr. apply valRep4ToPack.
-qed.
-
-lemma valRep4ToPack_xy (x: W256.t, y):
-    W256.to_uint x =  valRep4 y => x  = W4u64.pack4 (Array4.to_list y).
-    rewrite valRep4ToPack. move => H.
-    smt(W256.to_uintK).
-qed.
+*)
 
 
+(*
 lemma load_store_pos (mem: global_mem_t, p: W64.t, w: Rep4, i: int) :
     valid_ptr (to_uint p) 32 => (i = 0 \/ i = 8 \/ i = 16 \/ i = 24) =>
     w.[i %/ 8] =
@@ -189,3 +214,4 @@ proof.
     move => *. smt(W8.initE).  move => *.
     smt(W8.initE).
 qed.
+*)
