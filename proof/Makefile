@@ -14,10 +14,10 @@ PROOF   := .
 FILTER  ?= $(PROOF)/crypto_%
 EXCLUDE ?=
 
-EXTRACTED ?= $(shell find $(PROOF) -name "*_s.ec")
+EXTRACTED ?= $(shell find $(PROOF) -type f -name "*_s.ec")
 EXTRACTED_OUT := $(addsuffix .out, $(EXTRACTED))
 
-ALL ?= $(shell find $(PROOF) -name "*.ec")
+ALL ?= $(shell find $(PROOF) -type f -name "*.ec")
 ALL_OUT := $(addsuffix .out, $(ALL))
 
 
@@ -147,5 +147,3 @@ debug-print-variables:
 	@echo "  EXTRACTED_OUT: $(EXTRACTED_OUT)\n"
 	@echo "  ALL: $(ALL)\n"
 	@echo "  ALL_OUT: $(ALL_OUT)\n"
-
-
