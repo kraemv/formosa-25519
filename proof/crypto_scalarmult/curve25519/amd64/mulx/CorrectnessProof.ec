@@ -8,7 +8,6 @@ import Curve25519_Procedures Curve25519_Operations StdOrder.IntOrder EClib.
 import Scalarmult_s.
 
 require import Array4 Array8 Array32.
-require import W64limbs.
 
 abbrev zexp = ZModpRing.exp.
 
@@ -703,7 +702,7 @@ case: (toswap{1}).
     have lxor1 : forall (x1 x2:W64.t),  x1 `^` (x2 `^` x1) = x2.
       move=> *. rewrite xorwC -xorwA xorwK xorw0 //.
     have lxor2 : forall (x1 x2:W64.t),  x1 `^` (x1 `^` x2) = x2.
-      move=> *. rewrite xorwA xorwK xor0w //. 
+      move=> *. rewrite xorwA xorwK xor0w //.
   rewrite !lxor1 !lxor2.
       split. congr. apply Array4.ext_eq. smt(Array4.get_setE).
       split. congr. apply Array4.ext_eq. smt(Array4.get_setE).
@@ -752,7 +751,7 @@ proc => /=; wp.
   call eq_spec_impl_add_sss_mulx; wp.
   call eq_spec_impl_sub_sss_mulx; wp.
   call eq_spec_impl_add_ssr_mulx; wp.
-  call eq_spec_impl_sub_ssr_mulx; 
+  call eq_spec_impl_sub_ssr_mulx;
   wp. skip. by done.
 qed.
 
@@ -1143,7 +1142,7 @@ proc. sp. auto => />.
   call eq_spec_impl_mul_rsr__mulx. wp.
   call eq_spec_impl_sqr_rr__mulx. wp.
   call eq_spec_impl_sqr_rr__mulx. wp.
-  call eq_spec_impl_sqr_rr__mulx. wp. skip.  
+  call eq_spec_impl_sqr_rr__mulx. wp. skip.
   done.
 qed.
 
