@@ -147,5 +147,3 @@ debug-print-variables:
 	@echo "  EXTRACTED_OUT: $(EXTRACTED_OUT)\n"
 	@echo "  ALL: $(ALL)\n"
 	@echo "  ALL_OUT: $(ALL_OUT)\n"
-
-
