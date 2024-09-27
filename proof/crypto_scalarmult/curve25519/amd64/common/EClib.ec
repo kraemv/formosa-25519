@@ -19,6 +19,9 @@ lemma foldl_in_eq_r (f1 : 'a1 -> 'b -> 'a1)
     by trivial.
  qed.
 
+lemma divzU a b q r:
+ 0 <= r < `|b|%Int => a = b * q + r => q = a%/b by smt().
+
 lemma modz_minus x d:
  (d <= x < 2 * d)%Int => x %% d = x - d by smt().
 
@@ -33,9 +36,6 @@ qed.
 (*
 lemma ltr_pmul2 x1 x2 y1 y2:
  0 <= x1 => 0 <= x2 => x1 < y1 => x2 < y2 => x1 * x2 < y1 * y2 by smt().
-
-lemma divzU a b q r:
- 0 <= r < `|b|%Int => a = b * q + r => q = a%/b by smt().
 
 
 
