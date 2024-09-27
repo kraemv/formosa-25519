@@ -7,7 +7,6 @@ import Curve25519_Procedures StdOrder.IntOrder EClib StdOrder.IntOrder BitEncodi
 import Scalarmult_s.
 
 require import Array4 Array8 Array32.
-require import W64limbs.
 
 (** hoares, lossless and phoares **)
 lemma h_add_rrs_ref4 (_f _g: zp):
@@ -467,7 +466,7 @@ lemma eq_ph_set_last_bit_to_zero64 x:
 proof.
     by conseq ill_set_last_bit_to_zero64 (eq_set_last_bit_to_zero64_ref4 x).
 qed.
- 
+
 (** to bytes **)
 lemma h_to_bytes_ref4 r:
   hoare [M.__tobytes4 :
