@@ -1,4 +1,4 @@
-require import List Int IntDiv CoreMap Ring StdOrder W64limbs StdBigop BitEncoding.
+require import List Int IntDiv CoreMap Ring StdOrder StdBigop BitEncoding.
 import Ring.IntID IntOrder StdBigop.Bigint.BIA BitEncoding.BS2Int.
 
 from Jasmin require import JModel JWord JWord_array.
@@ -19,11 +19,8 @@ lemma foldl_in_eq_r (f1 : 'a1 -> 'b -> 'a1)
     by trivial.
  qed.
 
-lemma ltr_pmul2 x1 x2 y1 y2:
- 0 <= x1 => 0 <= x2 => x1 < y1 => x2 < y2 => x1 * x2 < y1 * y2 by smt().
-
-lemma divzU a b q r:
- 0 <= r < `|b|%Int => a = b * q + r => q = a%/b by smt().
+lemma modz_minus x d:
+ (d <= x < 2 * d)%Int => x %% d = x - d by smt().
 
 lemma divz_div a b c:
  0 < b => 0 < c => a %/ b %/ c = a %/ (b * c).
@@ -33,8 +30,14 @@ apply (divzU _ _ _ (b * ((a %/ b) %%c) + a %% b)).
   split; smt(). smt().
 qed.
 
-lemma modz_minus x d:
- (d <= x < 2 * d)%Int => x %% d = x - d by smt().
+(*
+lemma ltr_pmul2 x1 x2 y1 y2:
+ 0 <= x1 => 0 <= x2 => x1 < y1 => x2 < y2 => x1 * x2 < y1 * y2 by smt().
+
+lemma divzU a b q r:
+ 0 <= r < `|b|%Int => a = b * q + r => q = a%/b by smt().
+
+
 
 lemma iota_split len2 n len:
  0 <= len2 <= len => iota_ n len = iota_ n len2 ++ iota_ (n+len2) (len-len2).
@@ -67,10 +70,6 @@ have P: forall x, x = x %% 18446744073709551616 + 18446744073709551616 * (x %/ 1
 rewrite {1}(P (to_uint w)) {1}(P (to_uint w %/ 18446744073709551616)) divz_div 1..2:/# /=.
 by ring; smt().
 qed.
-
-lemma to_uint2u64 w0 w1:
- to_uint (W2u64.pack2 [w0; w1]) = to_uint w0 + W64.modulus * to_uint w1.
-proof. by rewrite to_uint_unpack2u64. qed.
 
 lemma to_uint_unpack4u32 w:
  W128.to_uint w = val_digits W32.modulus (map W32.to_uint (W4u32.to_list w)).
@@ -143,22 +142,7 @@ rewrite /mkseq /= /loadW64 -iotaredE; congr => />.
  rewrite W8u8.Pack.init_of_list -iotaredE. by congr => />.
  qed.
 
-lemma to_uint_unpack4u64 w:
-    W256.to_uint w = val_digits W64.modulus (map W64.to_uint (W4u64.to_list w)).
-proof.
-    have [? /= ?]:= W256.to_uint_cmp w.
-    rewrite /val_digits /=.
-    do 4! (rewrite bits64_div 1:// /=).
-    rewrite !of_uintK /=.
-    have P: forall x, x = x %% 18446744073709551616 + 18446744073709551616 * (x %/ 18446744073709551616).
-        by move=> x; rewrite {1}(divz_eq x 18446744073709551616) /=; ring.
-    rewrite {1}(P (to_uint w)) {1}(P (to_uint w %/ 18446744073709551616)) divz_div 1..2:/# /=
-            {1}(P (to_uint w)) {1}(P (to_uint w %/  340282366920938463463374607431768211456)) divz_div 1..2:/# /=
-            {1}(P (to_uint w)) {1}(P (to_uint w %/ 6277101735386680763835789423207666416102355444464034512896)) divz_div 1..2:/# /=.
-     by ring; smt().
-qed.
-
-lemma to_uint_unpack32u8 w:
+(*lemma to_uint_unpack32u8 w:
   W256.to_uint w = val_digits W8.modulus (map W8.to_uint (W32u8.to_list w)).
  proof.
     have [? /= ?]:= W256.to_uint_cmp w.
@@ -199,3 +183,6 @@ lemma to_uint_unpack32u8 w:
             {1}(P (to_uint w %/ 452312848583266388373324160190187140051835877600158453279131187530910662656)) divz_div 1..2:/# /=.
     ring; smt().
  qed.
+*)
+
+*)
