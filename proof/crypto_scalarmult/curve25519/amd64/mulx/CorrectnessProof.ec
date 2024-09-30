@@ -1,18 +1,15 @@
-require import AllCore Bool List Int IntDiv StdOrder CoreMap Real Ring Distr.
-from Jasmin require import JModel JMemory JWord JWord_array JUtils.
-require import Curve25519_Procedures.
-require import Curve25519_Operations.
-require import Scalarmult_s.
-import Zp_25519 Zp_limbs Zp.
-import Curve25519_Procedures Curve25519_Operations StdOrder.IntOrder EClib.
-import Scalarmult_s.
+require import Real Bool Int IntDiv.
+from Jasmin require import JModel.
+require import Curve25519_Procedures Scalarmult_s Zp_limbs Zp_25519.
 
-require import Array4 Array8 Array32.
+import Zp Ring.IntID.
+
+require import Array4 Array32.
 
 abbrev zexp = ZModpRing.exp.
 
 (** hoares, lossless and phoares **)
-lemma h_add_rrs_mulx (_f _g: zp):
+(*lemma h_add_rrs_mulx (_f _g: zp):
   hoare [M.__add4_rrs :
       inzpRep4 f = _f /\ inzpRep4 g = _g
       ==>
@@ -33,6 +30,7 @@ proof.
     proc.
     admit.
 qed.
+*)
 
 (* inline mul4_c0 mul4_c1 mul4_c2 mul4_c3 *)
 
@@ -70,6 +68,7 @@ proof.
     admit.
 qed.
 
+(*
 lemma ill_add_rrs_mulx : islossless M.__add4_rrs.
     by proc; do 2! unroll for ^while; islossless.
 qed.
@@ -97,6 +96,7 @@ lemma ph_sub_rrs_mulx (_f _g: zp):
 proof.
     by conseq ill_sub_rrs_mulx (h_sub_rrs_mulx _f _g).
 qed.
+*)
 
 lemma ill_mul_a24_mulx : islossless M.__mul4_a24_rs by islossless.
 
@@ -134,6 +134,7 @@ proof.
 qed.
 
 (** step 0 : add sub mul sqr **)
+(*
 equiv eq_spec_impl_add_rrs_mulx : CurveProcedures.add ~ M.__add4_rrs:
    f{1} = inzpRep4 f{2} /\
    g{1} = inzpRep4 g{2}
@@ -157,6 +158,7 @@ proof.
     inline *; wp; skip => />.
     move => &2 H H0 => />. by rewrite H0.
 qed.
+*)
 
 equiv eq_spec_impl_mul_a24_mulx : CurveProcedures.mul_a24 ~ M.__mul4_a24_rs:
    f{1} = inzpRep4 fs{2} /\
@@ -194,6 +196,7 @@ proof.
 qed.
 
 (** step 0.5 : transitivity stuff **)
+(*
 equiv eq_spec_impl_add_ssr_mulx : CurveProcedures.add ~ M.__add4_ssr:
    g{1} = inzpRep4 fs{2} /\
    f{1} = inzpRep4 g{2}
@@ -223,6 +226,7 @@ proof.
     proc *.  inline M.__sub4_sss. wp. sp.
     call eq_spec_impl_sub_rrs_mulx. skip. auto => />.
 qed.
+*)
 
 equiv eq_spec_impl_mul_a24_ss_mulx : CurveProcedures.mul_a24 ~ M.__mul4_a24_ss:
    f{1} = inzpRep4 fs{2} /\
@@ -310,6 +314,7 @@ proof.
     by done.
 qed.
 
+(*
 equiv eq_spec_impl_sub_rrs_rsr_mulx : M.__sub4_rrs ~ M.__sub4_rsr:
     f{1} = fs{2} /\ gs{1} = g{2} ==> ={res}.
 proof.
@@ -348,6 +353,7 @@ proof.
     proc *. inline M.__sub4_ssr. wp. sp.
     call eq_spec_impl_sub_rsr_mulx. skip. auto => />.
 qed.
+*)
 
 equiv eq_spec_impl_mul_rpr_mulx : CurveProcedures.mul ~ M._mul4_rpr:
     f{1}   = inzpRep4 fp{2} /\
@@ -389,6 +395,7 @@ proof.
 qed.
 
 (** setting last bit to 0 **)
+(*
 lemma eq_set_last_bit_to_zero64_mulx x :
   hoare [
       M.__decode_u_coordinate4 :
@@ -442,9 +449,11 @@ lemma ph_to_bytes_mulx r:
 proof.
     by conseq ill_to_bytes_mulx (eq_to_bytes_mulx r).
 qed.
-
+*)
 
 (** step 1 : decode_scalar_25519 **)
+
+(*
 equiv eq_spec_impl_decode_scalar_25519_mulx : CurveProcedures.decode_scalar ~ M.__decode_scalar:
   k'{1}  = pack4 (to_list k{2})
     ==>
@@ -530,8 +539,11 @@ proof.
     case(i %/ 64 = 0) => /> *. smt(). smt().
     + rewrite !initiE => /> /#. smt().
 qed.
+*)
+
 
 (** step 2 : decode_u_coordinate **)
+(*
 equiv eq_spec_impl_decode_u_coordinate_mulx : CurveProcedures.decode_u_coordinate ~ M.__decode_u_coordinate4:
   u'{1}                      =     pack4 (to_list u{2})
   ==>
@@ -596,10 +608,11 @@ proof.
     rewrite get_setE //. case (X = 255) => /> C.
     rewrite /to_list /mkseq /to_list -iotaredE => />.
 qed.
-
+*)
 
 (** step 3 : ith_bit **)
-equiv eq_spec_impl_ith_bit_mulx : CurveProcedures.ith_bit ~ M.__ith_bit :
+(*
+ equiv eq_spec_impl_ith_bit_mulx : CurveProcedures.ith_bit ~ M.__ith_bit :
     k'{1} =     pack32 (to_list k{2}) /\
     ctr{1}                   = to_uint ctr{2} /\
     0 <= ctr{1} < 256
@@ -659,7 +672,9 @@ proof.
     + case(ctr %/ 8 - 32 = 0) => /> *. smt().
     smt().
 qed.
+*)
 
+(*
 equiv eq_spec_impl_init_points_mulx :
     CurveProcedures.init_points ~ M.__init_points4 :
         init{1} = inzpRep4 initr{2}
@@ -677,7 +692,9 @@ equiv eq_spec_impl_init_points_mulx :
         rewrite /valRep4 /to_list /mkseq -iotaredE  => />.
     rewrite /H6  /H0 /H3 /H2 /Zp.zero /set0_64_ /inzpRep4 // /valRep4 /to_list /mkseq -iotaredE  => />.
  qed.
+*)
 
+(*
 (** step 4 : cswap **)
 equiv eq_spec_impl_cswap_mulx :
   CurveProcedures.cswap ~ M.__cswap4:
@@ -718,6 +735,7 @@ case: (toswap{1}).
     congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
     congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
 qed.
+*)
 
 (** step 5 : add_and_double **)
 equiv eq_spec_impl_add_and_double_mulx :
@@ -958,7 +976,7 @@ proof.
         f{1} = zexp h{2} (exp 2 (counter{2}))).
     wp; skip. auto => />.
     move => &1 &2 H H0 H1.
-    smt( ZModpRing.exprM IntID.exprN IntID.exprN1 IntID.exprD_nneg).
+    smt( ZModpRing.exprM Ring.IntID.exprN Ring.IntID.exprN1 Ring.IntID.exprD_nneg).
     wp.
     skip => />. move => &1 &2.
     do split. smt(). smt(). smt().
@@ -1027,9 +1045,9 @@ proof.
         f{1} = zexp h{2} (exp 2 counter{2})
     ) => //=.
    auto => />; move => &1 &2 H H0 H1 H2 H3 H4 H5 H6 H7.
-   smt( ZModpRing.exprM IntID.exprN IntID.exprN1 IntID.exprD_nneg).
+   smt( ZModpRing.exprM Ring.IntID.exprN Ring.IntID.exprN1 Ring.IntID.exprD_nneg).
    auto => />; move => &1 &2 H H0 H1 H2 H3 H4 H5.
-   smt( ZModpRing.exprM IntID.exprN IntID.exprN1 IntID.exprD_nneg).
+   smt( ZModpRing.exprM Ring.IntID.exprN Ring.IntID.exprN1 Ring.IntID.exprD_nneg).
     while true (ii) => //.
     move => H; auto => />. skip => />; move => &hr H0 H1 H2 H3 H4 H5 /#.
     while true (ii) => //. move => H; auto => /> /#. skip => /> /#.

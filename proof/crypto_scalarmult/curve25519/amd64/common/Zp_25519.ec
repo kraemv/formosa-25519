@@ -1,8 +1,7 @@
-require import List Int IntDiv Ring CoreMap StdOrder.
-require import EClib Array4 Array5 Array32.
-
+require import Int.
 from Jasmin require import JModel.
-import Ring.IntID IntOrder.
+
+import Ring.IntID.
 
 (* modular operations modulo P *)
 op p = 2^255 - 19 axiomatized by pE.

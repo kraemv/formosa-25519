@@ -1,9 +1,12 @@
-require import Bool List Int IntDiv CoreMap Real Ring StdOrder Zp_25519 Zp_limbs EClib.
+require import Bool List Int IntDiv.
 from Jasmin require import JModel.
-require import Curve25519_Spec.
-import Zp StdOrder.IntOrder Ring.IntID Array4 EClib.
+require import Curve25519_Spec Zp_25519 Zp_limbs EClib.
 
-(* sets last bit to 0 *) 
+import Zp StdOrder.IntOrder Ring.IntID.
+
+require import Array4.
+
+(* sets last bit to 0 *)
 op last_bit_to_zero64 (x: Rep4) : Rep4 = let x = x.[3 <- x.[3].[63 <- false]] in x.
 
 (* returns the first 2 elements of the input triple *)
@@ -23,7 +26,7 @@ lemma eq_reconstruct_select_triple (t : (('a * 'a) * ('a * 'a) * bool)) :
   select_double_from_triple t = reconstruct_triple t.
 proof.
   rewrite /reconstruct_triple /select_double_from_triple.
-  by move => ? /#.
+  move => A. rewrite A => />.
 qed.
 
 
@@ -190,35 +193,55 @@ op op_invert_p(z1 : zp) : zp =
   let z_50_0 = op_invert_p_p2 z_5_0 in
   let z_255_21 = op_invert_p_p3 z_50_0 z11 in
   z_255_21 axiomatized by op_invert_pE.
-
 (* lemma: invert is the same as z1^(p-2) from fermat's little theorem *)
+
+lemma eq_op_invert_p_part1 (z1: zp):
+    op_invert_p z1 = op_invert_p_p3 (op_invert_p_p2 ((ZModpRing.exp z1 31))) ((ZModpRing.exp z1 11)).
+proof.
+    rewrite op_invert_pE.
+    rewrite /op_invert_p_p1 => />.
+    smt(ZModpRing.exprM ZModpRing.exprS ZModpRing.exprD_nneg).
+qed.
+
+lemma eq_op_invert_p_part2 (z1: zp):
+    op_invert_p_p3 (op_invert_p_p2 ((ZModpRing.exp z1 31))) ((ZModpRing.exp z1 11)) =
+        op_invert_p_p3 ((ZModpRing.exp z1 1125899906842623)) ((ZModpRing.exp z1 11)).
+proof.
+    rewrite /op_invert_p_p2 => />.
+    rewrite -!ZModpRing.exprM => />.
+    rewrite -!ZModpRing.exprD_nneg => />.
+    rewrite -!ZModpRing.exprM => />.
+    rewrite -!ZModpRing.exprD_nneg => />.
+    rewrite -!ZModpRing.exprM => />.
+    rewrite -!ZModpRing.exprD_nneg => />.
+    rewrite -!ZModpRing.exprM => />.
+    rewrite -!ZModpRing.exprD_nneg => />.
+qed.
+
+
+lemma eq_op_invert_p_part3 (z1: zp):
+   op_invert_p_p3 ((ZModpRing.exp z1 1125899906842623)) ((ZModpRing.exp z1 11)) = (ZModpRing.exp z1
+   57896044618658097711785492504343953926634992332820282019728792003956564819947).
+proof.
+    rewrite /op_invert_p_p3.
+    rewrite -!ZModpRing.exprM => />.
+    rewrite -!ZModpRing.exprD_nneg => />.
+    rewrite -!ZModpRing.exprM => />.
+    rewrite -!ZModpRing.exprD_nneg => />.
+    rewrite -!ZModpRing.exprM => />.
+    rewrite -!ZModpRing.exprD_nneg => />.
+    rewrite -!ZModpRing.exprM => />.
+    rewrite -!ZModpRing.exprD_nneg => />.
+qed.
 
 lemma eq_op_invert_p (z1: zp) :
   op_invert_p z1 = ZModpRing.exp z1 (p-2).
 proof.
-    rewrite op_invert_pE.
-    rewrite /op_invert_p_p1 /= expE //= /op_invert_p_p3 /op_invert_p_p2 => />.
-    rewrite -!ZModpRing.exprS => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -ZModpRing.exprD_nneg => />.
-    rewrite -ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite pE => />.
+    rewrite pE.
+    rewrite eq_op_invert_p_part1.
+    rewrite eq_op_invert_p_part2.
+    rewrite eq_op_invert_p_part3.
+    by congr.
 qed.
 
 (* now we define invert as one op and prove it equiv to exp z1 (p-2) *)

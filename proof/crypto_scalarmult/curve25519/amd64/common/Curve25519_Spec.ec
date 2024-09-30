@@ -1,8 +1,9 @@
-require import List Int Int IntDiv CoreMap Real.
+require import List Int.
+from Jasmin require import JModel.
 require import Zp_25519.
+
 import Zp.
 
-from Jasmin require import JModel.
 
 op spec_decode_scalar_25519 (k:W256.t) =
   let k = k.[0   <- false] in

@@ -1,12 +1,10 @@
-require import AllCore Bool List Int IntDiv StdOrder CoreMap Ring Distr BitEncoding StdRing Pervasive Logic StdBigop Zp_limbs.
-from Jasmin require import JModel JMemory JWord JWord_array JUtils.
-require import Curve25519_Procedures.
-require import Scalarmult_s.
-import Zp_25519 Zp_limbs EClib Zp.
-import Curve25519_Procedures StdOrder.IntOrder EClib StdOrder.IntOrder BitEncoding.BS2Int Ring.IntID StdBigop.Bigint.
-import Scalarmult_s.
+require import Real Bool Int IntDiv.
+from Jasmin require import JModel.
+require import Curve25519_Procedures Scalarmult_s Zp_limbs Zp_25519.
 
-require import Array4 Array8 Array32.
+import Zp Ring.IntID.
+
+require import Array4 Array32.
 
 (** hoares, lossless and phoares **)
 lemma h_add_rrs_ref4 (_f _g: zp):

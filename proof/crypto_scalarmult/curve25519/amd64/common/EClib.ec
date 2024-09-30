@@ -1,7 +1,4 @@
-require import List Int IntDiv CoreMap Ring StdOrder StdBigop BitEncoding.
-import Ring.IntID IntOrder StdBigop.Bigint.BIA BitEncoding.BS2Int.
-
-from Jasmin require import JModel JWord JWord_array.
+require import List Int IntDiv.
 
 lemma foldl_in_eq_r (f1 : 'a1 -> 'b -> 'a1)
   (f2 : 'a2 -> 'b -> 'a2)
