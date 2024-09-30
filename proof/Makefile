@@ -68,7 +68,7 @@ $(ALL_OUT):
 ifeq ($(CI),1)
 	mkdir -p $(@D)/$(CI_DIR)
 endif
-	($(EASYCRYPT) -R arrays/ $(ECARGS) $(subst .out,,$@) > $@) $(CI_CMD) || !(($(FAIL_ON_ERROR)))
+	($(EASYCRYPT) -R arrays/ -R crypto_scalarmult/ $(ECARGS) $(subst .out,,$@) > $@) $(CI_CMD) || !(($(FAIL_ON_ERROR)))
 
 
 # -----------------------------------------------------------------------------
