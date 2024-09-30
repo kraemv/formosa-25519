@@ -1,6 +1,6 @@
 require import Real Bool Int IntDiv.
 from Jasmin require import JModel.
-require import CorrectnessProofRef4 Curve25519_Procedures Ref4_extraction Mulx_scalarmult_s Zp_limbs Zp_25519.
+require import CorrectnessProof_Ref4 Curve25519_Procedures Ref4_scalarmult_s Mulx_scalarmult_s Zp_limbs Zp_25519.
 
 import Zp Ring.IntID.
 
@@ -82,7 +82,7 @@ equiv eq_spec_impl_add_rrs_mulx : CurveProcedures.add ~ Mulx_scalarmult_s.M.__ad
     f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2}.
 proof.
     transitivity
-    Ref4_extraction.M.__add4_rrs
+    Ref4_scalarmult_s.M.__add4_rrs
     ( f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2})
     ( f{1} = f{2} /\ g{1} = g{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -96,7 +96,7 @@ equiv eq_spec_impl_sub_rrs_mulx : CurveProcedures.sub ~ Mulx_scalarmult_s.M.__su
     f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2}.
 proof.
     transitivity
-    Ref4_extraction.M.__sub4_rrs
+    Ref4_scalarmult_s.M.__sub4_rrs
     ( f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2})
     ( f{1} = f{2} /\ gs{1} = gs{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -149,7 +149,7 @@ equiv eq_spec_impl_add_ssr_mulx : CurveProcedures.add ~ Mulx_scalarmult_s.M.__ad
    res{1}= inzpRep4 res{2}.
 proof.
    transitivity
-    Ref4_extraction.M.__add4_ssr
+    Ref4_scalarmult_s.M.__add4_ssr
     ( f{1} = inzpRep4 g{2} /\ g{1} = inzpRep4 fs{2} ==> res{1} = inzpRep4 res{2})
     ( fs{1} = fs{2} /\ g{1} = g{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -163,7 +163,7 @@ equiv eq_spec_impl_add_sss_mulx : CurveProcedures.add ~ Mulx_scalarmult_s.M.__ad
     f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2}.
 proof.
     transitivity
-    Ref4_extraction.M.__add4_sss
+    Ref4_scalarmult_s.M.__add4_sss
     ( f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2})
     ( fs{1} = fs{2} /\ gs{1} = gs{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -177,7 +177,7 @@ equiv eq_spec_impl_sub_sss_mulx : CurveProcedures.sub ~ Mulx_scalarmult_s.M.__su
     f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2}.
 proof.
     transitivity
-    Ref4_extraction.M.__sub4_sss
+    Ref4_scalarmult_s.M.__sub4_sss
     ( f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2})
     ( fs{1} = fs{2} /\ gs{1} = gs{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -277,7 +277,7 @@ equiv eq_spec_impl_sub_rsr_mulx : CurveProcedures.sub ~ Mulx_scalarmult_s.M.__su
     f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2}.
 proof.
     transitivity
-    Ref4_extraction.M.__sub4_rsr
+    Ref4_scalarmult_s.M.__sub4_rsr
     ( f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2})
     ( fs{1} = fs{2} /\ g{1} = g{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -291,7 +291,7 @@ equiv eq_spec_impl_sub_ssr_mulx : CurveProcedures.sub ~ Mulx_scalarmult_s.M.__su
     f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2}.
 proof.
     transitivity
-    Ref4_extraction.M.__sub4_ssr
+    Ref4_scalarmult_s.M.__sub4_ssr
     ( f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2})
     ( fs{1} = fs{2} /\ g{1} = g{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -340,7 +340,7 @@ proof.
 qed.
 
 (** to bytes **)
-equiv eq_spec_impl_to_bytes_mulx : Ref4_extraction.M.__tobytes4 ~ Mulx_scalarmult_s.M.__tobytes4 :
+equiv eq_spec_impl_to_bytes_mulx : Ref4_scalarmult_s.M.__tobytes4 ~ Mulx_scalarmult_s.M.__tobytes4 :
     ={f} ==> ={res} by sim.
 
 lemma h_to_bytes_mulx r:
@@ -372,7 +372,7 @@ equiv eq_spec_impl_decode_scalar_25519_mulx : CurveProcedures.decode_scalar ~ M.
     res{1} = pack32 (to_list res{2}).
 proof.
     transitivity
-    Ref4_extraction.M.__decode_scalar
+    Ref4_scalarmult_s.M.__decode_scalar
     ( k'{1} = pack4 (to_list k{2}) ==> res{1} = pack32 (to_list res{2}))
     ( k{1} = k{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -390,7 +390,7 @@ equiv eq_spec_impl_decode_u_coordinate_mulx : CurveProcedures.decode_u_coordinat
     res{1}                     =     inzpRep4 res{2}.
 proof.
  transitivity
-    Ref4_extraction.M.__decode_u_coordinate4
+    Ref4_scalarmult_s.M.__decode_u_coordinate4
     ( u'{1} = pack4 (to_list u{2}) ==> res{1} = inzpRep4  res{2})
     ( u{1} = u{2} ==> res{1} = res{2}).
     move => &1 &2 *.
@@ -407,7 +407,7 @@ equiv eq_spec_impl_decode_u_coordinate_base_mulx :
         res{1} = inzpRep4 res{2}.
 proof.
     transitivity
-    Ref4_extraction.M.__decode_u_coordinate_base4
+    Ref4_scalarmult_s.M.__decode_u_coordinate_base4
     ( true ==> res{1} = inzpRep4 res{2})
     ( true ==> res{1} = res{2}).
     move => &1 &2 * />.
@@ -425,7 +425,7 @@ equiv eq_spec_impl_ith_bit_mulx : CurveProcedures.ith_bit ~ M.__ith_bit :
     b2i res{1}                = to_uint res{2}.
 proof.
     transitivity
-    Ref4_extraction.M.__ith_bit
+    Ref4_scalarmult_s.M.__ith_bit
     ( k'{1} = pack32 (to_list k{2}) /\ ctr{1} = to_uint ctr{2} /\ 0 <= ctr{1} < 256 /\ 0 <= to_uint ctr{2} < 256 ==> b2i res{1} = to_uint res{2})
     ( k{1} = k{2} /\ ctr{1} = ctr{2} /\ 0 <= to_uint ctr{1} < 256 /\ 0 <= to_uint ctr{2} < 256 ==> res{1} = res{2}).
     move => &1 &2 [H] [H0] [H1] H2 />.
@@ -445,7 +445,7 @@ equiv eq_spec_impl_init_points_mulx :
         res{1}.`4 = inzpRep4 res{2}.`4.
 proof.
     transitivity
-    Ref4_extraction.M.__init_points4
+    Ref4_scalarmult_s.M.__init_points4
     ( init{1} = inzpRep4 initr{2} ==> res{1}.`1 = inzpRep4 res{2}.`1 /\
                                       res{1}.`2 = inzpRep4 res{2}.`2 /\
                                       res{1}.`3 = inzpRep4 res{2}.`3 /\
@@ -473,7 +473,7 @@ equiv eq_spec_impl_cswap_mulx :
   res{1}.`4     = inzpRep4 res{2}.`4.
 proof.
     transitivity
-    Ref4_extraction.M.__cswap4
+    Ref4_scalarmult_s.M.__cswap4
     (
       x2{1} = inzpRep4 x2{2} /\
       z2{1} = inzpRep4 z2r{2} /\
