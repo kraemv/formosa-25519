@@ -1,1 +1,0 @@
-../ref4/ref4_scalarmult_s.ec
