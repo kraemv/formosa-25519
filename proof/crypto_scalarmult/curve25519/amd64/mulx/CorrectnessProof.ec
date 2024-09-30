@@ -1,6 +1,6 @@
 require import Real Bool Int IntDiv.
 from Jasmin require import JModel.
-require import Curve25519_Procedures Scalarmult_s Zp_limbs Zp_25519.
+require import Curve25519_Procedures Mulx_scalarmult_s Zp_limbs Zp_25519.
 
 import Zp Ring.IntID.
 
@@ -18,6 +18,7 @@ lemma h_add_rrs_mulx (_f _g: zp):
 proof.
     proc.
     admit.
+
 qed.
 
 lemma h_sub_rrs_mulx (_f _g: zp):

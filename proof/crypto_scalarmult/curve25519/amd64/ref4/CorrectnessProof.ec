@@ -1,6 +1,6 @@
 require import Real Bool Int IntDiv.
 from Jasmin require import JModel.
-require import Curve25519_Procedures Scalarmult_s Zp_limbs Zp_25519.
+require import Curve25519_Procedures Ref4_scalarmult_s Zp_limbs Zp_25519.
 
 import Zp Ring.IntID.
 
