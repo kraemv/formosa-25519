@@ -1,4 +1,5 @@
 require import List Int IntDiv.
+
 from Jasmin require import JModel JWord.
 require import Zp_25519 EClib Array4.
 
@@ -8,6 +9,7 @@ require import Array4.
 
 op val_digits (base: int) (x: int list) =
  foldr (fun w r => w + base * r) 0 x.
+
 
 abbrev digits64 = List.map W64.to_uint.
 (*abbrev digits8 = List.map W8.to_uint.*)
