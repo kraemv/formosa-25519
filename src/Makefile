@@ -26,7 +26,6 @@ ASSEMBLY_FILES ?= $(IMPLEMENTATIONS_FILES:%.jazz=%.s)
 OBJECT_FILES   := $(ASSEMBLY_FILES:%.s=%.o)
 C_HEADER_FILES ?= $(addsuffix include/api.h, $(dir $(ASSEMBLY_FILES)))
 
-
 # -----------------------------------------------------------------------------
 # when CI=1, information about compilation/checking properties of the files
 # will be stored under .ci/ folders in the implementations directories. Then
@@ -228,14 +227,13 @@ debug-print-variables:
 	@echo "  EXCLUDE: $(EXCLUDE)\n"
 	@echo "  IMPLEMENTATIONS_DIRECTORIES: $(IMPLEMENTATIONS_DIRECTORIES)\n"
 	@echo "  IMPLEMENTATIONS_FILES: $(IMPLEMENTATIONS_FILES)\n"
-	
+
 	@echo "  ASSEMBLY_FILES: $(ASSEMBLY_FILES)\n"
 	@echo "  OBJECT_FILES: $(OBJECT_FILES)\n"
 	@echo "  C_HEADER_FILES: $(C_HEADER_FILES)\n"
-	
+
 	@echo "  CHECK_SAFETY: $(CHECK_SAFETY)\n"
 	@echo "  CHECK_SCT: $(CHECK_SCT)\n"
 	@echo "  EXTRACT_TO_EASYCRYPT: $(EXTRACT_TO_EASYCRYPT)\n"
-	
-	@echo "  LOGS: $(LOGS)\n"
 
+	@echo "  LOGS: $(LOGS)\n"

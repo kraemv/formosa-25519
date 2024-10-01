@@ -1,41 +1,14 @@
-require import AllCore Bool List Int IntDiv StdOrder CoreMap Real Ring Distr.
-from Jasmin require import JModel JMemory JWord JWord_array JUtils.
-require import Curve25519_Procedures.
-require import Curve25519_Operations.
-require import Scalarmult_s.
-import Zp_25519 Zp_limbs Zp.
-import Curve25519_Procedures Curve25519_Operations StdOrder.IntOrder EClib.
-import Scalarmult_s.
+require import Real Bool Int IntDiv.
+from Jasmin require import JModel.
+require import CorrectnessProof_Ref4 Curve25519_Procedures Ref4_scalarmult_s Mulx_scalarmult_s Zp_limbs Zp_25519.
 
-require import Array4 Array8 Array32.
+import Zp Ring.IntID.
+
+require import Array4 Array32.
 
 abbrev zexp = ZModpRing.exp.
 
 (** hoares, lossless and phoares **)
-lemma h_add_rrs_mulx (_f _g: zp):
-  hoare [M.__add4_rrs :
-      inzpRep4 f = _f /\ inzpRep4 g = _g
-      ==>
-      inzpRep4 res = _f + _g
-  ].
-proof.
-    proc.
-    admit.
-qed.
-
-lemma h_sub_rrs_mulx (_f _g: zp):
-  hoare [M.__sub4_rrs :
-      inzpRep4 f = _f /\ inzpRep4 gs = _g
-      ==>
-      inzpRep4 res = _f - _g
-  ].
-proof.
-    proc.
-    admit.
-qed.
-
-(* inline mul4_c0 mul4_c1 mul4_c2 mul4_c3 *)
-
 lemma h_mul_a24_mulx (_f : zp, _a24: int):
   hoare [M.__mul4_a24_rs :
       inzpRep4 fs = _f /\  _a24 = to_uint a24
@@ -46,7 +19,6 @@ proof.
     proc.
     admit.
 qed.
-
 
 lemma h_mul_rsr_mulx (_f _g: zp):
   hoare [M.__mul4_rsr :
@@ -70,35 +42,11 @@ proof.
     admit.
 qed.
 
-lemma ill_add_rrs_mulx : islossless M.__add4_rrs.
-    by proc; do 2! unroll for ^while; islossless.
-qed.
-
-lemma ph_add_rrs_mulx (_f _g: zp):
-    phoare [M.__add4_rrs :
-      inzpRep4 f = _f /\ inzpRep4 g = _g
-      ==>
-      inzpRep4 res = _f + _g
-  ] = 1%r.
-proof.
-    by conseq ill_add_rrs_mulx (h_add_rrs_mulx _f _g).
-qed.
-
-lemma ill_sub_rrs_mulx : islossless M.__sub4_rrs.
-    by proc; do 2! unroll for ^while; islossless.
-qed.
-
-lemma ph_sub_rrs_mulx (_f _g: zp):
-    phoare [M.__sub4_rrs :
-      inzpRep4 f = _f /\ inzpRep4 gs = _g
-      ==>
-      inzpRep4 res = _f - _g
-  ] = 1%r.
-proof.
-    by conseq ill_sub_rrs_mulx (h_sub_rrs_mulx _f _g).
-qed.
-
 lemma ill_mul_a24_mulx : islossless M.__mul4_a24_rs by islossless.
+
+lemma ill_mul_rsr_mulx : islossless M.__mul4_rsr by islossless.
+
+lemma ill_sqr_rr_mulx : islossless M.__sqr4_rr by islossless.
 
 lemma ph_mul_a24_mulx (_f: zp, _a24: int):
     phoare [M.__mul4_a24_rs :
@@ -110,8 +58,6 @@ proof.
     by conseq ill_mul_a24_mulx (h_mul_a24_mulx _f _a24).
 qed.
 
-lemma ill_mul_rsr_mulx : islossless M.__mul4_rsr by islossless.
-
 lemma ph_mul_rsr_mulx (_f _g : zp):
     phoare [M.__mul4_rsr :
       inzpRep4 fs = _f /\  inzpRep4 g = _g
@@ -120,9 +66,6 @@ lemma ph_mul_rsr_mulx (_f _g : zp):
 proof.
     by conseq ill_mul_rsr_mulx (h_mul_rsr_mulx _f _g).
 qed.
-
-lemma ill_sqr_rr_mulx : islossless M.__sqr4_rr
-    by islossless.
 
 lemma ph_sqr_rr_mulx (_f: zp):
     phoare [M.__sqr4_rr :
@@ -134,28 +77,33 @@ proof.
 qed.
 
 (** step 0 : add sub mul sqr **)
-equiv eq_spec_impl_add_rrs_mulx : CurveProcedures.add ~ M.__add4_rrs:
-   f{1} = inzpRep4 f{2} /\
-   g{1} = inzpRep4 g{2}
-    ==>
-   res{1} = inzpRep4 res{2}.
+
+equiv eq_spec_impl_add_rrs_mulx : CurveProcedures.add ~ Mulx_scalarmult_s.M.__add4_rrs:
+    f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2}.
 proof.
-    proc *.
-    ecall {2} (ph_add_rrs_mulx (inzpRep4 f{2}) (inzpRep4 g{2})).
-    inline *; wp; skip => />.
-    move => &2 H H0 => />. by rewrite H0.
+    transitivity
+    Ref4_scalarmult_s.M.__add4_rrs
+    ( f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2})
+    ( f{1} = f{2} /\ g{1} = g{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
+    exists(f{2}, g{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_add_rrs_ref4.
+    done. sim.
 qed.
 
-equiv eq_spec_impl_sub_rrs_mulx : CurveProcedures.sub ~ M.__sub4_rrs:
-   f{1} = inzpRep4 f{2} /\
-   g{1} = inzpRep4 gs{2}
-    ==>
-   res{1} = inzpRep4 res{2}.
+equiv eq_spec_impl_sub_rrs_mulx : CurveProcedures.sub ~ Mulx_scalarmult_s.M.__sub4_rrs:
+    f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2}.
 proof.
-    proc *.
-    ecall {2} (ph_sub_rrs_mulx (inzpRep4 f{2}) (inzpRep4 gs{2})).
-    inline *; wp; skip => />.
-    move => &2 H H0 => />. by rewrite H0.
+    transitivity
+    Ref4_scalarmult_s.M.__sub4_rrs
+    ( f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2})
+    ( f{1} = f{2} /\ gs{1} = gs{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
+    exists(f{2}, gs{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_sub_rrs_ref4.
+    done. sim.
 qed.
 
 equiv eq_spec_impl_mul_a24_mulx : CurveProcedures.mul_a24 ~ M.__mul4_a24_rs:
@@ -194,34 +142,49 @@ proof.
 qed.
 
 (** step 0.5 : transitivity stuff **)
-equiv eq_spec_impl_add_ssr_mulx : CurveProcedures.add ~ M.__add4_ssr:
-   g{1} = inzpRep4 fs{2} /\
-   f{1} = inzpRep4 g{2}
-    ==>
-   res{1} = inzpRep4 res{2}.
+equiv eq_spec_impl_add_ssr_mulx : CurveProcedures.add ~ Mulx_scalarmult_s.M.__add4_ssr:
+   f{1} = inzpRep4 g{2} /\
+   g{1} = inzpRep4 fs{2}
+   ==>
+   res{1}= inzpRep4 res{2}.
 proof.
-    proc *. inline M.__add4_ssr. wp. sp.
-    call eq_spec_impl_add_rrs_mulx. skip. auto => />.
+   transitivity
+    Ref4_scalarmult_s.M.__add4_ssr
+    ( f{1} = inzpRep4 g{2} /\ g{1} = inzpRep4 fs{2} ==> res{1} = inzpRep4 res{2})
+    ( fs{1} = fs{2} /\ g{1} = g{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
+    exists(fs{2}, g{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_add_ssr_ref4. skip.
+    done. sim.
 qed.
 
-equiv eq_spec_impl_add_sss_mulx : CurveProcedures.add ~ M.__add4_sss:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 gs{2}
-    ==>
-   res{1} = inzpRep4 res{2}.
+equiv eq_spec_impl_add_sss_mulx : CurveProcedures.add ~ Mulx_scalarmult_s.M.__add4_sss:
+    f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2}.
 proof.
-    proc *. inline M.__add4_sss. wp. sp.
-    call eq_spec_impl_add_rrs_mulx. skip. auto => />.
+    transitivity
+    Ref4_scalarmult_s.M.__add4_sss
+    ( f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2})
+    ( fs{1} = fs{2} /\ gs{1} = gs{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
+    exists(fs{2}, gs{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_add_sss_ref4.
+    done. sim.
 qed.
 
-equiv eq_spec_impl_sub_sss_mulx : CurveProcedures.sub ~ M.__sub4_sss:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 gs{2}
-    ==>
-   res{1} = inzpRep4 res{2}.
+equiv eq_spec_impl_sub_sss_mulx : CurveProcedures.sub ~ Mulx_scalarmult_s.M.__sub4_sss:
+    f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2}.
 proof.
-    proc *.  inline M.__sub4_sss. wp. sp.
-    call eq_spec_impl_sub_rrs_mulx. skip. auto => />.
+    transitivity
+    Ref4_scalarmult_s.M.__sub4_sss
+    ( f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2})
+    ( fs{1} = fs{2} /\ gs{1} = gs{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
+    exists(fs{2}, gs{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_sub_sss_ref4.
+    done. sim.
 qed.
 
 equiv eq_spec_impl_mul_a24_ss_mulx : CurveProcedures.mul_a24 ~ M.__mul4_a24_ss:
@@ -230,7 +193,7 @@ equiv eq_spec_impl_mul_a24_ss_mulx : CurveProcedures.mul_a24 ~ M.__mul4_a24_ss:
     ==>
    res{1} = inzpRep4 res{2}.
 proof.
-    proc *.  inline M.__mul4_a24_ss. wp. sp.
+    proc *. inline M.__mul4_a24_ss. wp. sp.
     call eq_spec_impl_mul_a24_mulx. skip. auto => />.
 qed.
 
@@ -310,43 +273,32 @@ proof.
     by done.
 qed.
 
-equiv eq_spec_impl_sub_rrs_rsr_mulx : M.__sub4_rrs ~ M.__sub4_rsr:
-    f{1} = fs{2} /\ gs{1} = g{2} ==> ={res}.
-proof.
-    proc.
-    do 2! unroll for{1} ^while.
-    do 2! unroll for{2} ^while.
-    wp; skip => />.
-qed.
-
-equiv eq_spec_impl_sub_rsr_mulx : CurveProcedures.sub ~ M.__sub4_rsr:
-   f{1}   = inzpRep4 fs{2} /\
-   g{1}   = inzpRep4 g{2}
-   ==>
-   res{1} = inzpRep4 res{2}.
+equiv eq_spec_impl_sub_rsr_mulx : CurveProcedures.sub ~ Mulx_scalarmult_s.M.__sub4_rsr:
+    f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2}.
 proof.
     transitivity
-    M.__sub4_rrs
-    ( f{1} = inzpRep4 f{2} /\ g{1} = inzpRep4 gs{2} ==> res{1} = inzpRep4 res{2})
-    ( f{1} = fs{2} /\ gs{1} = g{2} ==> res{1} = res{2}).
-    move => &1 &2 [H] H0.
+    Ref4_scalarmult_s.M.__sub4_rsr
+    ( f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2})
+    ( fs{1} = fs{2} /\ g{1} = g{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
     exists(fs{2}, g{2}) => />.
     move => &1 &m &2 H H0. by rewrite -H0 H.
-    proc *; call eq_spec_impl_sub_rrs_mulx.
-    by skip => />.
-    proc *; call eq_spec_impl_sub_rrs_rsr_mulx.
-    by done.
+    proc *. call eq_spec_impl_sub_rsr_ref4.
+    done. sim.
 qed.
 
-
-equiv eq_spec_impl_sub_ssr_mulx : CurveProcedures.sub ~ M.__sub4_ssr:
-   f{1} = inzpRep4 fs{2} /\
-   g{1} = inzpRep4 g{2}
-    ==>
-   res{1} = inzpRep4 res{2}.
+equiv eq_spec_impl_sub_ssr_mulx : CurveProcedures.sub ~ Mulx_scalarmult_s.M.__sub4_ssr:
+    f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2}.
 proof.
-    proc *. inline M.__sub4_ssr. wp. sp.
-    call eq_spec_impl_sub_rsr_mulx. skip. auto => />.
+    transitivity
+    Ref4_scalarmult_s.M.__sub4_ssr
+    ( f{1} = inzpRep4 fs{2} /\ g{1} = inzpRep4 g{2} ==> res{1} = inzpRep4 res{2})
+    ( fs{1} = fs{2} /\ g{1} = g{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
+    exists(fs{2}, g{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_sub_ssr_ref4.
+    done. sim.
 qed.
 
 equiv eq_spec_impl_mul_rpr_mulx : CurveProcedures.mul ~ M._mul4_rpr:
@@ -378,7 +330,6 @@ proof.
     call (eq_spec_impl__sqr_rr_mulx) . skip. auto => />.
 qed.
 
-
 equiv eq_spec_impl_sqr_rr__mulx : CurveProcedures.sqr ~ M._sqr4_rr_:
     f{1}   = inzpRep4 _f{2}
     ==>
@@ -388,46 +339,17 @@ proof.
     call eq_spec_impl_sqr_rr_mulx. skip. auto => />.
 qed.
 
-(** setting last bit to 0 **)
-lemma eq_set_last_bit_to_zero64_mulx x :
-  hoare [
-      M.__decode_u_coordinate4 :
-      u = x
-      ==>
-      res = Curve25519_Operations.last_bit_to_zero64 x
-  ].
-proof.
-    proc; wp; skip => />.
-    rewrite /last_bit_to_zero64 => />; congr.
-    pose X := x.[3].
-    rewrite /of_int /int2bs  /mkseq /to_list -iotaredE => />.
-    rewrite andE  wordP => /> k K0 K1.
-    rewrite  map2iE //  get_bits2w //.
-    smt(W64.initE).
-qed.
-
-lemma ill_set_last_bit_to_zero64_mulx: islossless M.__decode_u_coordinate4 by islossless.
-
-lemma eq_ph_set_last_bit_to_zero64_mulx x:
-  phoare [
-    M.__decode_u_coordinate4 :
-    u = x
-    ==>
-    res = Curve25519_Operations.last_bit_to_zero64 x
-  ] = 1%r.
-proof.
-    by conseq ill_set_last_bit_to_zero64_mulx (eq_set_last_bit_to_zero64_mulx x).
-qed.
-
 (** to bytes **)
-lemma eq_to_bytes_mulx r:
+equiv eq_spec_impl_to_bytes_mulx : Ref4_scalarmult_s.M.__tobytes4 ~ Mulx_scalarmult_s.M.__tobytes4 :
+    ={f} ==> ={res} by sim.
+
+lemma h_to_bytes_mulx r:
   hoare [M.__tobytes4 :
       r = f
       ==>
       pack4 (to_list res) = (W256.of_int (asint (inzpRep4 r)))
   ].
 proof.
-    proc.
     admit.
 qed.
 
@@ -440,143 +362,42 @@ lemma ph_to_bytes_mulx r:
       pack4 (to_list res) = (W256.of_int (asint (inzpRep4 r)))
   ] = 1%r.
 proof.
-    by conseq ill_to_bytes_mulx (eq_to_bytes_mulx r).
+    by conseq ill_to_bytes_mulx (h_to_bytes_mulx r).
 qed.
-
 
 (** step 1 : decode_scalar_25519 **)
 equiv eq_spec_impl_decode_scalar_25519_mulx : CurveProcedures.decode_scalar ~ M.__decode_scalar:
-  k'{1}  = pack4 (to_list k{2})
+    k'{1}  = pack4 (to_list k{2})
     ==>
     res{1} = pack32 (to_list res{2}).
 proof.
-    proc; wp; auto => />.
-    unroll for{2} ^while => />; wp; skip => /> &2.
-    rewrite !/set64_direct !/get8 !/init8 => />.
-    rewrite pack4E pack32E.
-    rewrite !/to_list /mkseq -!iotaredE => /> .
-    rewrite !of_intE modz_small. by apply bound_abs. rewrite !bits2wE /int2bs /mkseq -!iotaredE => />.
-    rewrite wordP => i rgi />.
-    rewrite !of_listE !bits8E //= => />.
-    rewrite !get_setE //= !orE !andE !map2E //=.
-    rewrite !initiE => />.
-    rewrite !initiE => />. smt(). smt().
-    + case(i = 0) => /> *; case(i = 1) => /> *; case(i = 2) => /> *; case(i = 254) => /> *; case(i = 255) => /> *.
-    + case(i %/ 8 = 0) => /> *.
-    + rewrite initiE => /> . smt(). rewrite initiE => />. smt(). rewrite initiE => />. smt(). smt().
-    + case(i %/ 8 - 1 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 2 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 3 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 4 = 0) => /> *.
-    rewrite initiE => /> /#.
-    + case(i %/ 8 - 5 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 6 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 7 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 8 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 9 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 10 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 11 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 12 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 13 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 14 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 15 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 16 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 17 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 18 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 19 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 20 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 21 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 22 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 23 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 24 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 25 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 26 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 27 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 28 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 29 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 30 = 0) => /> *.
-    + rewrite initiE => /> /#.
-    + case(i %/ 8 - 31 = 0) => /> *.
-    + rewrite !initiE => />. smt().
-    + rewrite !initiE => />. smt().
-    case(i %/ 64 = 0) => /> *. smt(). smt().
-    + rewrite !initiE => /> /#. smt().
+    transitivity
+    Ref4_scalarmult_s.M.__decode_scalar
+    ( k'{1} = pack4 (to_list k{2}) ==> res{1} = pack32 (to_list res{2}))
+    ( k{1} = k{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
+    exists(k{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_decode_scalar_25519_ref4.
+    done. sim.
 qed.
+
 
 (** step 2 : decode_u_coordinate **)
 equiv eq_spec_impl_decode_u_coordinate_mulx : CurveProcedures.decode_u_coordinate ~ M.__decode_u_coordinate4:
-  u'{1}                      =     pack4 (to_list u{2})
-  ==>
+    u'{1}                      =     pack4 (to_list u{2})
+    ==>
     res{1}                     =     inzpRep4 res{2}.
 proof.
-    proc *.
-    ecall {2} (eq_ph_set_last_bit_to_zero64_mulx u{2}).
-    inline *; wp; skip => /> &2.
-    rewrite inzpRep4E. congr.
-    rewrite to_uint_unpack4u64  valRep4E; congr; congr.
-    rewrite /last_bit_to_zero64 => />.
-    rewrite /to_list /mkseq /to_list -iotaredE => />.
-    do split.
-    + rewrite !wordP => /> i I I0. rewrite !bits64iE => />.
-    + rewrite set_neqiE. smt().
-    + rewrite pack4E => />. rewrite of_listE => />.
-    + rewrite initE => />.
-    + have ->: (0 <= i && i < 256) by smt(). auto => />.
-    + rewrite initE => />. have ->: 0 <= i %/ 64 by smt(). auto => />.
-    + case(i %/ 64 < 4) => /> *. smt(). smt().
-    + rewrite !wordP => /> i I I0. rewrite !bits64iE => />.
-    + rewrite set_neqiE. smt().
-    + rewrite pack4E => />. rewrite of_listE => />.
-    + rewrite initE => />.
-    + have ->: (0 <= 64 + i && 64 + i < 256) by smt(). auto => />.
-    + rewrite initE => />. have ->: 0 <= (64 + i) %/ 64 by smt(). auto => />.
-    + case((64 + i) %/ 64 < 4) => /> *. smt(). smt().
-    + rewrite !wordP => /> i I I0. rewrite !bits64iE => />.
-    + rewrite set_neqiE. smt().
-    + rewrite pack4E => />. rewrite of_listE => />.
-    + rewrite initE => />.
-    + have ->: (0 <= 128 + i && 128 + i < 256) by smt(). auto => />.
-    + rewrite initE => />. have ->: 0 <= (128 + i) %/ 64 by smt(). auto => />.
-    + case((128 + i) %/ 64 < 4) => /> *. smt(). smt().
-    + rewrite !wordP => /> i I I0. rewrite !bits64iE => />.
-    rewrite pack4E => />. rewrite of_listE => />.
-    rewrite !setE => />. rewrite initE => />.
-    have ->: (0 <= 192 + i && 192 + i < 256) by smt(). auto => />.
-    rewrite !initE => />.
-    have ->: (0 <= i && i < 64) by smt().
-    have ->: (0 <= 192 + i && 192 + i < 256) by smt().
-    auto => />.
-    case (i <> 63) => /> C.
-    have ->: 192 + i <> 255 by smt().
-    auto => />. rewrite !initE. smt().
+ transitivity
+    Ref4_scalarmult_s.M.__decode_u_coordinate4
+    ( u'{1} = pack4 (to_list u{2}) ==> res{1} = inzpRep4  res{2})
+    ( u{1} = u{2} ==> res{1} = res{2}).
+    move => &1 &2 *.
+    exists(u{2}) => />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_decode_u_coordinate_ref4.
+    done. sim.
 qed.
 
 equiv eq_spec_impl_decode_u_coordinate_base_mulx :
@@ -585,79 +406,33 @@ equiv eq_spec_impl_decode_u_coordinate_base_mulx :
         ==>
         res{1} = inzpRep4 res{2}.
 proof.
-    proc *.
-    inline *; wp; skip => />.
-    rewrite inzpRep4E. congr.
-    rewrite to_uint_unpack4u64  valRep4E; congr; congr.
-    rewrite /last_bit_to_zero64 => />.
-    have !->: ((of_int 9))%W256.[255 <- false] = ((of_int 9))%W256.
-    rewrite !of_intE !bits2wE !/int2bs !/mkseq -iotaredE => />.
-    apply W256.ext_eq => />. move => X X0 X1.
-    rewrite get_setE //. case (X = 255) => /> C.
-    rewrite /to_list /mkseq /to_list -iotaredE => />.
+    transitivity
+    Ref4_scalarmult_s.M.__decode_u_coordinate_base4
+    ( true ==> res{1} = inzpRep4 res{2})
+    ( true ==> res{1} = res{2}).
+    move => &1 &2 * />.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_decode_u_coordinate_base_ref4.
+    done. sim.
 qed.
-
 
 (** step 3 : ith_bit **)
 equiv eq_spec_impl_ith_bit_mulx : CurveProcedures.ith_bit ~ M.__ith_bit :
-    k'{1} =     pack32 (to_list k{2}) /\
-    ctr{1}                   = to_uint ctr{2} /\
+    k'{1}                     = pack32 (to_list k{2}) /\
+    ctr{1}                    = to_uint ctr{2} /\
     0 <= ctr{1} < 256
     ==>
     b2i res{1}                = to_uint res{2}.
 proof.
-    proc; wp; skip => /> &2 H H0.
-    rewrite (W64.and_mod 3 ctr{2}) //=  (W64.and_mod 6 (of_int (to_uint ctr{2} %% 8))%W64) //= !to_uint_shr //= !shr_shrw.
-    smt(W64.to_uint_cmp  W64.of_uintK W64.to_uintK).
-    rewrite /zeroextu64 /truncateu8 //=  !of_uintK => />.
-    + rewrite  of_intE modz_small.  apply bound_abs. smt(W8.to_uint_cmp  @JUtils).
-    rewrite bits2wE /int2bs /mkseq -iotaredE => />.
-    auto => />.
-    rewrite (modz_small (to_uint ctr{2} %% 8) W64.modulus). apply bound_abs. smt(W64.to_uint_cmp).
-    rewrite (modz_small (to_uint ctr{2} %% 8) 64). apply bound_abs. smt(W64.to_uint_cmp).
-    rewrite (modz_small (to_uint ctr{2} %% 8) W64.modulus). apply bound_abs. smt(W64.to_uint_cmp).
-    pose ctr := to_uint ctr{2}.
-    rewrite pack32E of_listE /to_list !/mkseq !initiE // -!iotaredE => />.
-    rewrite !initiE //=. auto => />. smt().
-    rewrite !/b2i !of_intE !bits2wE !/int2bs !/mkseq //=.
-    rewrite -!iotaredE => />.
-    rewrite !to_uintE !/bs2int !/w2bits !/mkseq /big /range !/predT -!iotaredE => />.
-    rewrite !b2i0 => />.
-    rewrite !initiE => />. smt(). auto => />.
-    + case(ctr %/ 8 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 1 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 2 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 3 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 4 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 5 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 6 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 7 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 8 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 9 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 10 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 11 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 12 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 13 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 14 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 15 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 16 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 17 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 18 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 19 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 20 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 21 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 22 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 23 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 24 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 25 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 26 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 27 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 28 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 29 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 30 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 31 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 32 = 0) => /> *. smt().
-    smt().
+    transitivity
+    Ref4_scalarmult_s.M.__ith_bit
+    ( k'{1} = pack32 (to_list k{2}) /\ ctr{1} = to_uint ctr{2} /\ 0 <= ctr{1} < 256 /\ 0 <= to_uint ctr{2} < 256 ==> b2i res{1} = to_uint res{2})
+    ( k{1} = k{2} /\ ctr{1} = ctr{2} /\ 0 <= to_uint ctr{1} < 256 /\ 0 <= to_uint ctr{2} < 256 ==> res{1} = res{2}).
+    move => &1 &2 [H] [H0] [H1] H2 />.
+    exists(k{2}, ctr{2}) => />. by rewrite -H0.
+    move => &1 &m &2 H H0. by rewrite -H0 H.
+    proc *. call eq_spec_impl_ith_bit_ref4.
+    done. sim.
 qed.
 
 equiv eq_spec_impl_init_points_mulx :
@@ -668,15 +443,20 @@ equiv eq_spec_impl_init_points_mulx :
         res{1}.`2 = inzpRep4 res{2}.`2 /\
         res{1}.`3 = inzpRep4 res{2}.`3 /\
         res{1}.`4 = inzpRep4 res{2}.`4.
- proof.
-    proc.
-    wp. unroll for{2} ^while. wp. skip. move => &1 &2 H H0 H1 H2 H3 H4 H5 H6.
-    split; auto => />. rewrite /H4 /H0 /H2 /H3 /Zp.one /set0_64_ /inzpRep4 => />.
-        rewrite /valRep4 /to_list /mkseq -iotaredE => />.
-    split; auto => />. rewrite /H5  /H0 /H3 /H2 /Zp.zero /set0_64_ /inzpRep4 => />.
-        rewrite /valRep4 /to_list /mkseq -iotaredE  => />.
-    rewrite /H6  /H0 /H3 /H2 /Zp.zero /set0_64_ /inzpRep4 // /valRep4 /to_list /mkseq -iotaredE  => />.
- qed.
+proof.
+    transitivity
+    Ref4_scalarmult_s.M.__init_points4
+    ( init{1} = inzpRep4 initr{2} ==> res{1}.`1 = inzpRep4 res{2}.`1 /\
+                                      res{1}.`2 = inzpRep4 res{2}.`2 /\
+                                      res{1}.`3 = inzpRep4 res{2}.`3 /\
+                                      res{1}.`4 = inzpRep4 res{2}.`4)
+    ( initr{1} = initr{2} ==> ={res}).
+    move => &1 &2 * />.
+    exists(initr{2}) => />.
+    move => &1 &m &2 [H] [H0] [H1] H2 H3. by rewrite -H3 H -H0 H1 H2.
+    proc *. call eq_spec_impl_init_points_ref4.
+    done. sim.
+qed.
 
 (** step 4 : cswap **)
 equiv eq_spec_impl_cswap_mulx :
@@ -692,31 +472,36 @@ equiv eq_spec_impl_cswap_mulx :
   res{1}.`3     = inzpRep4 res{2}.`3  /\
   res{1}.`4     = inzpRep4 res{2}.`4.
 proof.
-proc.
-do 4! unroll for{2} ^while.
-case: (toswap{1}).
-  rcondt {1} 1 => //. wp => /=. skip.
-    move => &1 &2 [#] 4!->> ??.
-    have mask_set :  (set0_64.`6 - toswap{2}) = W64.onew. rewrite /set0_64_ /=. smt(W64.to_uint_cmp).
-    rewrite !mask_set /=.
-    have lxor1 : forall (x1 x2:W64.t),  x1 `^` (x2 `^` x1) = x2.
-      move=> *. rewrite xorwC -xorwA xorwK xorw0 //.
-    have lxor2 : forall (x1 x2:W64.t),  x1 `^` (x1 `^` x2) = x2.
-      move=> *. rewrite xorwA xorwK xor0w //.
-  rewrite !lxor1 !lxor2.
-      split. congr. apply Array4.ext_eq. smt(Array4.get_setE).
-      split. congr. apply Array4.ext_eq. smt(Array4.get_setE).
-      split. congr. apply Array4.ext_eq. smt(Array4.get_setE).
-        congr. apply Array4.ext_eq. rewrite /copy_64 => />. smt(Array4.get_setE).
-  rcondf {1} 1 => //. wp => /=; skip.
-    move => &1 &2 [#] 4!->> ??.
-    have mask_not_set :  (set0_64.`6 - toswap{2}) = W64.zero. rewrite /set0_64_ => />. smt().
-    rewrite !mask_not_set !andw0 !xorw0 !/copy_64 => />.
-    do split.
-    congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
-    congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
-    congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
-    congr. smt(Array4.initE Array4.ext_eq Array4.set_set_if).
+    transitivity
+    Ref4_scalarmult_s.M.__cswap4
+    (
+      x2{1} = inzpRep4 x2{2} /\
+      z2{1} = inzpRep4 z2r{2} /\
+      x3{1} = inzpRep4 x3{2} /\
+      z3{1} = inzpRep4 z3{2} /\
+      b2i toswap{1} = to_uint toswap{2}
+      ==>
+      res{1}.`1     = inzpRep4 res{2}.`1  /\
+      res{1}.`2     = inzpRep4 res{2}.`2  /\
+      res{1}.`3     = inzpRep4 res{2}.`3  /\
+      res{1}.`4     = inzpRep4 res{2}.`4
+    )
+    (
+      x2{1} =  x2{2} /\
+      z2r{1} = z2r{2} /\
+      x3{1} =  x3{2} /\
+      z3{1} =  z3{2} /\
+      toswap{1} = toswap{2}
+      ==>
+      ={res}
+    ).
+    move => &1 &2 [H] [H0] [H1] [H2] H3 />.
+    exists(
+        x2{2}, z2r{2}, x3{2}, z3{2}, toswap{2}
+    ) => />.
+    move => &1 &m &2 [H] [H0] [H1] H2 H3. by rewrite -H3 H -H0 H1 H2.
+    proc *. call eq_spec_impl_cswap_ref4.
+    done. sim.
 qed.
 
 (** step 5 : add_and_double **)
@@ -868,6 +653,7 @@ rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
   smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
 qed.
 
+(*
 equiv eq_spec_impl_it_sqr_aux_mulx_test :
         CurveProcedures.it_sqr_aux ~ M.__it_sqr4_x2:
         a{1} = inzpRep4 f{2} /\
@@ -909,7 +695,7 @@ proof.
     smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
     rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
     smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
-qed.
+qed.*)
 
 
 lemma eq_spec_impl__it_sqr_mulx (i1: int) (i2: int):
@@ -958,7 +744,7 @@ proof.
         f{1} = zexp h{2} (exp 2 (counter{2}))).
     wp; skip. auto => />.
     move => &1 &2 H H0 H1.
-    smt( ZModpRing.exprM IntID.exprN IntID.exprN1 IntID.exprD_nneg).
+    smt( ZModpRing.exprM Ring.IntID.exprN Ring.IntID.exprN1 Ring.IntID.exprD_nneg).
     wp.
     skip => />. move => &1 &2.
     do split. smt(). smt(). smt().
@@ -1027,9 +813,9 @@ proof.
         f{1} = zexp h{2} (exp 2 counter{2})
     ) => //=.
    auto => />; move => &1 &2 H H0 H1 H2 H3 H4 H5 H6 H7.
-   smt( ZModpRing.exprM IntID.exprN IntID.exprN1 IntID.exprD_nneg).
+   smt( ZModpRing.exprM Ring.IntID.exprN Ring.IntID.exprN1 Ring.IntID.exprD_nneg).
    auto => />; move => &1 &2 H H0 H1 H2 H3 H4 H5.
-   smt( ZModpRing.exprM IntID.exprN IntID.exprN1 IntID.exprD_nneg).
+   smt( ZModpRing.exprM Ring.IntID.exprN Ring.IntID.exprN1 Ring.IntID.exprD_nneg).
     while true (ii) => //.
     move => H; auto => />. skip => />; move => &hr H0 H1 H2 H3 H4 H5 /#.
     while true (ii) => //. move => H; auto => /> /#. skip => /> /#.

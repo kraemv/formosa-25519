@@ -1,8 +1,8 @@
-require import Bool List Int IntDiv CoreMap Real Zp_25519 Ring Distr StdOrder BitEncoding Zp_25519 StdBigop.
-from Jasmin require import JModel JWord JModel_x86.
-require import Curve25519_Spec.
-require import Curve25519_Operations.
-import Zp Zp_25519 Ring.IntID StdOrder.IntOrder BitEncoding.BS2Int StdBigop.Bigint.
+require import Bool List Int IntDiv.
+from Jasmin require import JModel.
+require import Curve25519_Spec Curve25519_Operations Zp_25519.
+
+import Zp Ring.IntID.
 
 module CurveProcedures = {
 

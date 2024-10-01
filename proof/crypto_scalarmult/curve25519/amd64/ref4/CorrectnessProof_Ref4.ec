@@ -1,12 +1,10 @@
-require import AllCore Bool List Int IntDiv StdOrder CoreMap Ring Distr BitEncoding StdRing Pervasive Logic StdBigop Zp_limbs.
-from Jasmin require import JModel JMemory JWord JWord_array JUtils.
-require import Curve25519_Procedures.
-require import Scalarmult_s.
-import Zp_25519 Zp_limbs EClib Zp.
-import Curve25519_Procedures StdOrder.IntOrder EClib StdOrder.IntOrder BitEncoding.BS2Int Ring.IntID StdBigop.Bigint.
-import Scalarmult_s.
+require import Real Bool Int IntDiv.
+from Jasmin require import JModel.
+require import Curve25519_Procedures Ref4_scalarmult_s Zp_limbs Zp_25519.
 
-require import Array4 Array8 Array32.
+import Zp Ring.IntID.
+
+require import Array4 Array32.
 
 (** hoares, lossless and phoares **)
 lemma h_add_rrs_ref4 (_f _g: zp):
@@ -130,17 +128,8 @@ qed.
 
 lemma ill_mul_rss_ref4 : islossless M.__mul4_rss.
 proof.
-    proc.
-    do 6! unroll for ^while.
-    rcondt 22. auto => />. rcondf 27; auto => />. rcondf 36; auto => />. rcondf 45; auto => />.
-    rcondt 60; auto => />. rcondf 68; auto => />. rcondt 72; auto => />. rcondf 80; auto => />.
-    rcondt 84; auto => />. rcondf 92; auto => />. rcondf 96; auto => />. rcondt 108; auto => />.
-    rcondf 116; auto => />. rcondt 120; auto => />. rcondf 128; auto => />. rcondt 132; auto => />.
-    rcondf 140; auto => />. rcondf 144; auto => />. rcondt 156; auto => />. rcondf 164; auto => />.
-    rcondt 168; auto => />. rcondf 176; auto => />. rcondt 180; auto => />. rcondf 188; auto => />.
-    rcondf 192; auto => />.
-    inline *.
-    do 2! unroll for ^while. by islossless.
+    proc. inline *.
+    do 8! unroll for ^while. islossless.
 qed.
 
 lemma ph_mul_rss_ref4 (_f _g : zp):
@@ -154,17 +143,8 @@ qed.
 
 lemma ill_mul_pp_ref4 : islossless M._mul4_pp.
 proof.
-    proc.
-    do 6! unroll for ^while.
-    rcondt 22. auto => />. rcondf 27; auto => />. rcondf 36; auto => />. rcondf 45; auto => />.
-    rcondt 60; auto => />. rcondf 68; auto => />. rcondt 72; auto => />. rcondf 80; auto => />.
-    rcondt 84; auto => />. rcondf 92; auto => />. rcondf 96; auto => />. rcondt 108; auto => />.
-    rcondf 116; auto => />. rcondt 120; auto => />. rcondf 128; auto => />. rcondt 132; auto => />.
-    rcondf 140; auto => />. rcondf 144; auto => />. rcondt 156; auto => />. rcondf 164; auto => />.
-    rcondt 168; auto => />. rcondf 176; auto => />. rcondt 180; auto => />. rcondf 188; auto => />.
-    rcondf 192; auto => />.
-    inline *.
-    do 3! unroll for ^while. by islossless.
+    proc. inline *.
+    do 9! unroll for ^while. islossless.
 qed.
 
 lemma ph_mul_pp_ref4 (_f _g : zp):
@@ -647,7 +627,7 @@ proof.
     rewrite /to_list /mkseq /to_list -iotaredE => />.
  qed.
 
-(** step 3 : ith_bit **)
+(** step 3 : ith_bit - quite slow, cryptoline candidate? **)
 equiv eq_spec_impl_ith_bit_ref4 : CurveProcedures.ith_bit ~ M.__ith_bit :
     k'{1}                    = pack32 (to_list k{2}) /\
     ctr{1}                   = to_uint ctr{2} /\
@@ -673,6 +653,7 @@ proof.
     rewrite !to_uintE !/bs2int !/w2bits !/mkseq /big /range !/predT -!iotaredE => />.
     rewrite !b2i0 => />.
     rewrite !initiE => />. smt(). auto => />.
+    rewrite !/b2i => />.
     + case(ctr %/ 8 = 0) => /> *. smt().
     + case(ctr %/ 8 - 1 = 0) => /> *. smt().
     + case(ctr %/ 8 - 2 = 0) => /> *. smt().
@@ -704,9 +685,7 @@ proof.
     + case(ctr %/ 8 - 28 = 0) => /> *. smt().
     + case(ctr %/ 8 - 29 = 0) => /> *. smt().
     + case(ctr %/ 8 - 30 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 31 = 0) => /> *. smt().
-    + case(ctr %/ 8 - 32 = 0) => /> *. smt().
-    smt().
+    + case(ctr %/ 8 - 31 = 0) => /> *. smt(). smt().
 qed.
 
 equiv eq_spec_impl_init_points_ref4 :

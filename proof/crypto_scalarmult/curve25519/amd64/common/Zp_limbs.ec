@@ -1,35 +1,37 @@
-require import List Int IntDiv Ring CoreMap StdOrder.
-require import Zp_25519 EClib Array4 Array32.
+require import List Int IntDiv.
 
 from Jasmin require import JModel JWord.
+require import Zp_25519 EClib Array4.
 
-import Zp EClib Ring.IntID Array4 Array32 IntOrder JWord.W8 JWord.W64.
+import Zp Ring.IntID.
+
+require import Array4.
 
 op val_digits (base: int) (x: int list) =
  foldr (fun w r => w + base * r) 0 x.
 
+
 abbrev digits64 = List.map W64.to_uint.
-abbrev digits8 = List.map W8.to_uint.
+(*abbrev digits8 = List.map W8.to_uint.*)
 abbrev val_limbs base l = val_digits base (digits64 l).
 
 abbrev val_digits64 = val_digits (2^64).
 abbrev val_limbs64 x = val_digits64 (digits64 x).
 
-abbrev val_digits8 = val_digits (2^8).
-abbrev val_limbs8 x = val_digits8 (digits8 x).
-
+(*abbrev val_digits8 = val_digits (2^8).
+abbrev val_limbs8 x = val_digits8 (digits8 x).*)
 type Rep4 = W64.t Array4.t.
-type Rep32 = W8.t Array32.t.
-
+(*type Rep32 = W8.t Array32.t.*)
 op valRep4       (x : Rep4)           : int   = val_limbs64 (Array4.to_list x) axiomatized by valRep4E.
 op valRep4List   (x : W64.t list)     : int   = val_limbs64 x       axiomatized by valRep4ListE.
 op inzpRep4      (x : Rep4)           : zp    = inzp (valRep4 x)     axiomatized by inzpRep4E.
 op inzpRep4List  (x: W64.t list)      : zp    = inzp (valRep4List x) axiomatized by inzpRep4ListE.
 
-op valRep32List  (x : W8.t list)      : int    = val_limbs8 x axiomatized by valRep32ListE.
+(*op valRep32List  (x : W8.t list)      : int    = val_limbs8 x axiomatized by valRep32ListE.
 op valRep32      (x : Rep32)          : int    = val_limbs8 (Array32.to_list x) axiomatized by valRep32E.
 op inzpRep32     (x : Rep32)          : zp     = inzp (valRep32 x) axiomatized by inzpRep32E.
 op inzpRep32List (x : W8.t list)      : zp     = inzp (valRep32List x) axiomatized by inzpRep32ListE.
+*)
 
 lemma to_uint_unpack4u64 w:
     W256.to_uint w = val_digits W64.modulus (map W64.to_uint (W4u64.to_list w)).

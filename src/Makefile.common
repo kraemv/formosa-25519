@@ -66,11 +66,11 @@ JASMIN_PREPROCESS = ($(JPP) $(JINCLUDE) -b $(PROJECT_PARENT_DIR)/ -out $@ -in $<
 
 EXTRACT_DIR = $(PROOF)/$(REL_IMPLEMENTATION_DIR)
 EXTRACT_ARRAY_DIR = $(PROOF)/arrays
-EFLAGS ?= $(addprefix -ec , $(FUNCTIONS)) 
+EFLAGS ?= $(addprefix -ec , $(FUNCTIONS))
 
 JASMIN_EXTRACT = (cd $(EXTRACT_DIR) && $(JASMIN) $(JINCLUDE) $(EFLAGS) -oecarray $(EXTRACT_ARRAY_DIR) -oec $(notdir $@) $(ABS_IMPLEMENTATION_DIR)/$<) $(CI_CMD)
 
-EASYCRYPT_FILES = $(SRCS:%.$(JEXT)=$(EXTRACT_DIR)/%_s.ec)
+EASYCRYPT_FILES = $(SRCS:%.$(JEXT)=$(EXTRACT_DIR)/$(notdir $(EXTRACT_DIR))_%_s.ec)
 
 
 # -----------------------------------------------------------------------------
@@ -123,7 +123,7 @@ extract-to-easycrypt: $(EASYCRYPT_FILES)
 	@true
 
 $(EASYCRYPT_FILES):
-$(EXTRACT_DIR)/%_s.ec : %.$(JEXT) $(DEPS_DIR)/%_s.ec.d | $(DEPS_DIR) $(EXTRACT_DIR) $(EXTRACT_ARRAY_DIR) $(CI_DIR)
+$(EXTRACT_DIR)/$(notdir $(EXTRACT_DIR))_%_s.ec : %.$(JEXT) $(DEPS_DIR)/%_s.ec.d | $(DEPS_DIR) $(EXTRACT_DIR) $(EXTRACT_ARRAY_DIR) $(CI_DIR)
 	$(DEPS)
 	$(JASMIN_EXTRACT)
 
@@ -214,4 +214,3 @@ debug-print-variables:
 	@echo "  EASYCRYPT_FILES: $(EASYCRYPT_FILES)"
 	@echo "  JASMIN_EXTRACT: not printed, it is rule dependent."
 	@echo ""
-

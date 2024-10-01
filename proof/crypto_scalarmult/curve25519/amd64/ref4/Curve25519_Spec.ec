@@ -1,1 +1,0 @@
-../common/Curve25519_Spec.ec

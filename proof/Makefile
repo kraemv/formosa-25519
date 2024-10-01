@@ -17,7 +17,7 @@ EXCLUDE ?=
 EXTRACTED ?= $(shell find $(PROOF) -type f -name "*_s.ec")
 EXTRACTED_OUT := $(addsuffix .out, $(EXTRACTED))
 
-ALL ?= $(shell find $(PROOF) -type f -name "*.ec")
+ALL ?= $(shell find $(PROOF)/crypto_* -type f -name "*.ec")
 ALL_OUT := $(addsuffix .out, $(ALL))
 
 
@@ -68,7 +68,7 @@ $(ALL_OUT):
 ifeq ($(CI),1)
 	mkdir -p $(@D)/$(CI_DIR)
 endif
-	($(EASYCRYPT) -R arrays/ $(ECARGS) $(subst .out,,$@) > $@) $(CI_CMD) || !(($(FAIL_ON_ERROR)))
+	($(EASYCRYPT) -R arrays/ -R $(abspath $(@D)/../../)  $(ECARGS) $(subst .out,,$@) > $@) $(CI_CMD) || !(($(FAIL_ON_ERROR)))
 
 
 # -----------------------------------------------------------------------------
