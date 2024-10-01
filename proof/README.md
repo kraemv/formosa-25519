@@ -1,4 +1,4 @@
-# Formosa-25519 proof
+# `crypto_scalarmult/curve25519` proof
 Correctness proof for the reference and optimised 4-limb implementation in Jasmin.
 
 Note, some lemmas are left with the tactic `admit`, which means that the lemmas are not proven, but assumed to be correct. All `admits` have been proved in Cryptoline and including them is future work.
