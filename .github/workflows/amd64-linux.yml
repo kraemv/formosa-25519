@@ -19,7 +19,7 @@ jobs:
       - name: check safety
         run: make -j$JOBS -C src/ CI=1 check-safety
       - name: print report
-        run: make -C src/ CI=1 reporter
+        run: make -C src/ CI=1 reporter-check-safety
       - name: return error
         run: make -C src/ CI=1 err
 
@@ -32,7 +32,7 @@ jobs:
       - name: check speculative constant-time (v1)
         run: make -j$JOBS -C src/ CI=1 check-sct
       - name: print report
-        run: make -C src/ CI=1 reporter
+        run: make -C src/ CI=1 reporter-check-sct
       - name: return error
         run: make -C src/ CI=1 err
 
@@ -45,7 +45,7 @@ jobs:
       - name: check extraction from Jasmin to EasyCrypt
         run: make -j$JOBS -C src/ CI=1 extract-to-easycrypt
       - name: print report
-        run: make -C src/ CI=1 reporter
+        run: make -C src/ CI=1 reporter-extract-to-easycrypt
       - name: return error
         run: make -C src/ CI=1 err
 
@@ -58,7 +58,7 @@ jobs:
       - name: check compilation of libformosa25519.a
         run: make -j$JOBS -C src/ CI=1 libformosa25519.a
       - name: print report
-        run: make -C src/ CI=1 reporter
+        run: make -C src/ CI=1 reporter-compile
       - name: return error
         run: make -C src/ CI=1 err
 
@@ -92,6 +92,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: run proof
-        run: make -j$JOBS -C proof/
+        run: make -j$JOBS -C proof/ all-no-report
+      - name: print report
+        run: make -C proof/ CI=1 reporter
+      - name: return error
+        run: make -C proof/ CI=1 err
 
 

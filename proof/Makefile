@@ -120,6 +120,13 @@ all:
 	$(MAKE) reporter
 	$(MAKE) err
 
+all-no-report: CI=1
+all-no-report:
+	$(MAKE) distclean
+	$(MAKE) -C $(SRC) extract-to-easycrypt
+	$(MAKE) check-extracted
+	$(MAKE) check-all
+
 # -----------------------------------------------------------------------------
 # clean rules
 

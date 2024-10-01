@@ -75,7 +75,7 @@ print_file()
     if [[ $ghci -eq 1 ]]; then cat_c_file "${color}" "${file_name}"; fi
     if [[ $ghci -eq 1 ]]; then echo "${end_group}"; fi
    else
-    print_bc "" "${color}" "${label}, 0" "${file_name}"
+    print_bc "" "${color}" "${label}, 0, " "${file_name}"
    fi
   done
 }

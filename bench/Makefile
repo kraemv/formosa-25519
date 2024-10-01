@@ -12,6 +12,7 @@ CFLAGS  ?= -Wall -Wno-unused-function -Wno-unused-parameter -O3 -march=native \
 
 CI ?= 0
 CI_REMOVE_OK_LOGS ?= "1"
+CI_GITHUB?=0
 
 CI_DIR = $(@D)
 CI_CMD =
@@ -22,6 +23,7 @@ CI_CMD = 2> $(CI_DIR)/$(@F).log && rm -f $(CI_DIR)/$(@F).error || \
               rm -f $(CI_DIR)/$(@F).log && \
               exit 127 \
              )
+CI_GITHUB:=1
 endif
 
 export CI
@@ -155,9 +157,9 @@ CI_ALL_FILES   := $(shell test -d $(BIN) && find $(BIN) -name '*.log') $(CI_ERRO
 .PHONY: reporter logs $(LOGS) err
 
 reporter:
-	$(JLOG) "Compilation status (*.jazz -> *.s)" src/ *.s $(CI_REMOVE_OK_LOGS)
-	$(JLOG) "Bench compilation status" bench/$(BIN) bench $(CI_REMOVE_OK_LOGS)
-	$(JLOG) "Bench execution status" bench/$(BIN) bench.out $(CI_REMOVE_OK_LOGS)
+	$(JLOG) "Compilation status (*.jazz -> *.s)" src/ *.s $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
+	$(JLOG) "Bench compilation status" bench/$(BIN) bench $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
+	$(JLOG) "Bench execution status" bench/$(BIN) bench.out $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
 
 logs: $(LOGS)
 

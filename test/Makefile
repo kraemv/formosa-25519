@@ -10,6 +10,7 @@ CFLAGS  ?= -O3 -Wall -Wextra -Wpedantic -Wvla -Werror -std=c99 \
 
 CI ?= 0
 CI_REMOVE_OK_LOGS ?= "1"
+CI_GITHUB?=0
 
 CI_DIR = $(@D)
 CI_CMD =
@@ -20,6 +21,7 @@ CI_CMD = 2> $(CI_DIR)/$(@F).log && rm -f $(CI_DIR)/$(@F).error || \
               rm -f $(CI_DIR)/$(@F).log && \
               exit 127 \
              )
+CI_GITHUB:=1
 endif
 
 export CI
@@ -125,13 +127,13 @@ CI_ALL_FILES   := $(shell test -d $(BIN) && find $(BIN) -name '*.log') $(CI_ERRO
 .PHONY: reporter logs $(LOGS) err
 
 reporter:
-	$(JLOG) "Compilation status (*.jazz -> *.s)" src/ *.s $(CI_REMOVE_OK_LOGS)
+	$(JLOG) "Compilation status (*.jazz -> *.s)" src/ *.s $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
 	@for type in $(TESTS_NAMES); do \
-		$(JLOG) "Tests compilation status - $$type" test/$(BIN) $$type $(CI_REMOVE_OK_LOGS); \
-		$(JLOG) "Tests execution status - $$type" test/$(BIN) $$type.out $(CI_REMOVE_OK_LOGS); \
+		$(JLOG) "Tests compilation status - $$type" test/$(BIN) $$type $(CI_REMOVE_OK_LOGS) $(CI_GITHUB); \
+		$(JLOG) "Tests execution status - $$type" test/$(BIN) $$type.out $(CI_REMOVE_OK_LOGS) $(CI_GITHUB); \
 	done
 	$(JCHK)
-	$(JLOG) "Checksums status" test/$(BIN) checksum*.ok $(CI_REMOVE_OK_LOGS);
+	$(JLOG) "Checksums status" test/$(BIN) checksum*.ok $(CI_REMOVE_OK_LOGS) $(CI_GITHUB);
 
 logs: $(LOGS)
 
