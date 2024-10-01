@@ -70,7 +70,7 @@ $(ALL_OUT):
 ifeq ($(CI),1)
 	mkdir -p $(@D)/$(CI_DIR)
 endif
-	($(EASYCRYPT) -R arrays/ -R $(abspath $(@D)/../../)  $(ECARGS) $(subst .out,,$@) > $@) $(CI_CMD) || !(($(FAIL_ON_ERROR)))
+	($(EASYCRYPT) -script -R arrays/ -R $(abspath $(@D)/../../)  $(ECARGS) $(subst .out,,$@) > $@) $(CI_CMD) || !(($(FAIL_ON_ERROR)))
 
 
 # -----------------------------------------------------------------------------
