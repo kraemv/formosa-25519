@@ -25,6 +25,7 @@ ALL_OUT := $(addsuffix .out, $(ALL))
 
 CI ?= 0
 CI_REMOVE_OK_LOGS ?= "1"
+CI_GITHUB?=0
 
 CI_DIR =
 CI_CMD =
@@ -35,6 +36,7 @@ CI_CMD = 2> $(@D)/$(CI_DIR)/$(@F).log && rm -f $(@D)/$(CI_DIR)/$(@F).error || \
               rm $(@D)/$(CI_DIR)/$(@F).log && \
               exit 0 \
              )
+CI_GITHUB:=1
 endif
 
 export CI
@@ -84,9 +86,9 @@ CI_ALL_FILES   := $(shell find $(PROOF) -name '*.log') $(CI_ERROR_FILES)
 .PHONY: reporter logs $(LOGS) err
 
 reporter:
-	$(JLOG) "Extraction from Jasmin to EasyCrypt status" src/ *_s.ec $(CI_REMOVE_OK_LOGS)
-	$(JLOG) "Checking EasyCrypt - extracted files status" proof/ *_s.ec.out $(CI_REMOVE_OK_LOGS)
-	$(JLOG) "Checking EasyCrypt - all files status" proof/ *.ec.out $(CI_REMOVE_OK_LOGS)
+	$(JLOG) "Extraction from Jasmin to EasyCrypt status" src/ *_s.ec $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
+	$(JLOG) "Checking EasyCrypt - extracted files status" proof/ *_s.ec.out $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
+	$(JLOG) "Checking EasyCrypt - all files status" proof/ *.ec.out $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
 
 logs: $(LOGS)
 
@@ -117,6 +119,13 @@ all:
 	$(MAKE) check-all
 	$(MAKE) reporter
 	$(MAKE) err
+
+all-no-report: CI=1
+all-no-report:
+	$(MAKE) distclean
+	$(MAKE) -C $(SRC) extract-to-easycrypt
+	$(MAKE) check-extracted
+	$(MAKE) check-all
 
 # -----------------------------------------------------------------------------
 # clean rules

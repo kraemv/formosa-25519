@@ -33,6 +33,11 @@ C_HEADER_FILES ?= $(addsuffix include/api.h, $(dir $(ASSEMBLY_FILES)))
 # of the current status: compilation, safety checking, and sct checking.
 CI ?= 0
 CI_REMOVE_OK_LOGS ?= "1"
+CI_GITHUB?=0
+
+ifeq ($(CI),1)
+CI_GITHUB:=1
+endif
 
 export CI
 
@@ -141,12 +146,21 @@ CI_ERROR_FILES := $(shell find $(SRC) -name '*.error')
 CI_ALL_FILES   := $(shell find $(SRC) -name '*.log') $(CI_ERROR_FILES)
 
 .PHONY: reporter logs $(LOGS) err
+.PHONY: reporter-check-safety reporter-check-sct reporter-extract-to-easycrypt reporter-compile
 
-reporter:
-	$(JLOG) "Safety checking status" src/ *.safety $(CI_REMOVE_OK_LOGS)
-	$(JLOG) "Speculative constant-time status" src/ *.sct $(CI_REMOVE_OK_LOGS)
-	$(JLOG) "Extraction to EasyCrypt status" src/ *.ec $(CI_REMOVE_OK_LOGS)
-	$(JLOG) "Compilation status (*.jazz -> *.s)" src/ *.s $(CI_REMOVE_OK_LOGS)
+reporter: reporter-check-safety reporter-check-sct reporter-extract-to-easycrypt reporter-compile
+
+reporter-check-safety:
+	$(JLOG) "Safety checking status" src/ *.safety $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
+
+reporter-check-sct:
+	$(JLOG) "Speculative constant-time status" src/ *.sct $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
+
+reporter-extract-to-easycrypt:
+	$(JLOG) "Extraction to EasyCrypt status" src/ *.ec $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
+
+reporter-compile:
+	$(JLOG) "Compilation status (*.jazz -> *.s)" src/ *.s $(CI_REMOVE_OK_LOGS) $(CI_GITHUB)
 
 logs: $(LOGS)
 

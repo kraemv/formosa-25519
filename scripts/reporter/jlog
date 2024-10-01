@@ -5,8 +5,9 @@ top=$(cd "$(dirname "$0")/../../" ; pwd -P)
 dir=$top/$2
 spattern=$3
 rempty=$4
+ghci=$5
 
-NORMAL="\e[0m"
+RESET="\e[0m"
 BOLD="\e[1m"
 RED="\e[31m"
 GREEN="\e[32m"
@@ -29,16 +30,53 @@ status()
   sort -t',' -g -k1 | sed -e 's/^[ \t]*//' -e 's/, \.\//, /' > $output
 }
 
-print()
+# cat file in color
+cat_c_file()
+{
+  color=$1
+  file=$2
+
+  echo -e "${color}"
+  sed '/\r/d' $file | uniq | cat -
+  echo -e "${RESET}"
+}
+
+# print bold color - some string and a valid file name
+print_bc()
+{
+  prefix=$1
+  color=$2
+  string=$3
+  file_name=$4
+
+  file_name_relative=$(realpath --relative-to=$top $file_name)
+
+  echo -e "${prefix}${color}${string}${file_name_relative}${RESET}"
+}
+
+print_file()
 {
   color=$1;
   filter=$2;
   file=$3;
   label=$4;
 
+  begin_group=""
+  end_group=""
+  if [[ $ghci -eq 1 ]]; then
+    begin_group="::group::"
+    end_group="::endgroup::"
+  fi
+
   egrep -E "$filter" $file | \
-  while read line; do
-   echo -e "${color}${BOLD}${label}, ${line}${NORMAL}"
+  while IFS=',' read -r line_count file_name; do
+   if [[ "$line_count" != "0" ]]; then
+    print_bc "${begin_group}" "${color}" "${label}, ${line_count}, " "${file_name}"
+    if [[ $ghci -eq 1 ]]; then cat_c_file "${color}" "${file_name}"; fi
+    if [[ $ghci -eq 1 ]]; then echo "${end_group}"; fi
+   else
+    print_bc "" "${color}" "${label}, 0, " "${file_name}"
+   fi
   done
 }
 
@@ -51,22 +89,22 @@ clear_empty()
   done
 }
 
-warning=$(mktemp)
-error=$(mktemp)
+okandwarnings=$(mktemp)
+errors=$(mktemp)
 
-status "${spattern}.log" $warning;
-status "${spattern}.error" $error;
+status "${spattern}.log" $okandwarnings;
+status "${spattern}.error" $errors;
 
 # print
 echo -e "${BOLD}$message: ${NORMAL}"
 
-print $GREEN "^0" $warning "OK";
-print $YELLOW "^[^0]" $warning "WARNING";
-print $RED "" $error "ERROR";
+print_file $GREEN "^0" $okandwarnings "OK";
+print_file $YELLOW "^[^0]" $okandwarnings "WARNING";
+print_file $RED "" $errors "ERROR";
 
 if [ "$rempty" == "1" ]; then
-  clear_empty $warning;
+  clear_empty $okandwarnings;
 fi
 
-rm $warning $error
+rm $okandwarnings $errors
 
