@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: preprocess
+        run: make -j$JOBS -C src/ CI=1 preprocess-inplace
 
       - name: check safety
         run: make -j$JOBS -C src/ CI=1 check-safety
@@ -28,6 +30,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: preprocess
+        run: make -j$JOBS -C src/ CI=1 preprocess-inplace
 
       - name: check speculative constant-time (v1)
         run: make -j$JOBS -C src/ CI=1 check-sct
@@ -41,6 +45,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: preprocess
+        run: make -j$JOBS -C src/ CI=1 preprocess-inplace
 
       - name: check extraction from Jasmin to EasyCrypt
         run: make -j$JOBS -C src/ CI=1 extract-to-easycrypt
@@ -54,6 +60,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: preprocess
+        run: make -j$JOBS -C src/ CI=1 preprocess-inplace
 
       - name: check compilation of libformosa25519.a
         run: make -j$JOBS -C src/ CI=1 libformosa25519.a
@@ -68,6 +76,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: preprocess
+        run: make -j$JOBS -C src/ CI=1 preprocess-inplace
 
       - name: run tests
         run: make -j$JOBS -C test/
@@ -80,6 +90,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: recursive
+      - name: preprocess
+        run: make -j$JOBS -C src/ CI=1 preprocess-inplace
 
       - name: run benchmarks
         run: make -j$JOBS -C bench/
@@ -90,6 +102,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: preprocess
+        run: make -j$JOBS -C src/ CI=1 preprocess-inplace
 
       - name: run proof
         run: make -j$JOBS -C proof/ all-no-report

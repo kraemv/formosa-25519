@@ -1,0 +1,37 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+our $R = '^'.'[\s]*'.'(?:from[\s]+(\w+)[\s+])?'.'[\s]*'.'require'.'[\s]*'.'"'.'([\w./_-]+)'.'"';
+
+sub jpp_slim_main()
+{ my $f = rp($ARGV[0]);
+  my %i = map { my ($a,$b) = split /:/; $b = rp($b); ($a, $b) } split /;/, $ARGV[1];
+  pp($f, \%i, {});
+}
+
+sub rp { chomp(my $p = `realpath $_[0]`); $p }
+sub ld { open my $f, '<', $_[0]; chomp(my @s = <$f>); @s }
+sub pc { print "//$_\n" }
+sub pn { print "$_\n" }
+
+sub ppl
+{ my ($d, $l, $i, $v) = @_;
+  ($l =~ m/$R/) ?
+  do { pc $l; pp( rp((defined $1)?$i->{$1}."/".$2 : rp($d."/".$2)), $i, $v) } :
+  pn $l
+}
+
+sub pp
+{ my ($f, $i, $v) = @_;
+  return if defined $v->{$f};
+  $v->{$f} = 1;
+  chomp(my $d = `dirname $f`);
+  map { ppl($d, $_, $i, $v) } (ld $f)
+}
+
+unless (caller) { jpp_slim_main(); }
+
+1;
+

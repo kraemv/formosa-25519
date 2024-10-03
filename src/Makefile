@@ -192,7 +192,7 @@ all:
 	$(MAKE) extract-to-easycrypt
 	$(MAKE) libformosa25519.a
 	$(MAKE) libformosa25519.h
-	$(MAKE) reporter
+	$(MAKE) -j1 reporter
 	$(MAKE) err
 
 all-with-preprocess-inplace: CI=1
@@ -204,7 +204,7 @@ all-with-preprocess-inplace:
 	$(MAKE) extract-to-easycrypt
 	$(MAKE) libformosa25519.a
 	$(MAKE) libformosa25519.h
-	$(MAKE) reporter
+	$(MAKE) -j1 reporter
 	$(MAKE) err
 
 
