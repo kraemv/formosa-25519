@@ -37,7 +37,7 @@ cat_c_file()
   file=$2
 
   echo -e "${color}"
-  sed '/\r/d' $file | uniq | cat -
+  cat $file | col -b
   echo -e "${RESET}"
 }
 
