@@ -47,7 +47,7 @@ JASMIN ?= jasminc
 
 JEXT ?= jazz
 override JFLAGS += -stack-zero loopSCT -noinsertarraycopy
-JINCLUDE ?= -I formosa25519:$(SRC)
+JINCLUDE ?=-I formosa25519:$(SRC)
 
 JASMIN_COMPILE = ($(JASMIN) $(JFLAGS) $(JINCLUDE) -o $@ $<) $(CI_CMD)
 
@@ -56,9 +56,10 @@ ASSEMBLY_FILES = $(SRCS:%.$(JEXT)=%.s)
 
 # preprocessing vars
 
-JPP ?= $(PROJECT_DIR)/scripts/releaser/jpp
+JPP ?= $(PROJECT_DIR)/scripts/releaser/jpp-slim
+JPP_JINCLUDE := $(subst -I,,$(JINCLUDE))
 PREPROCESSED_FILES := $(SRCS:%.$(JEXT)=%.jpp)
-JASMIN_PREPROCESS = ($(JPP) $(JINCLUDE) -b $(PROJECT_PARENT_DIR)/ -out $@ -in $<) $(CI_CMD)
+JASMIN_PREPROCESS = ($(JPP) $< $(JPP_JINCLUDE) > $@) $(CI_CMD)
 
 
 # -----------------------------------------------------------------------------
