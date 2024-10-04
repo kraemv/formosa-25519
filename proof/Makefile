@@ -127,6 +127,12 @@ all-no-report:
 	$(MAKE) check-extracted
 	$(MAKE) check-all
 
+all-runtest: CI=1
+all-runtest:
+	$(MAKE) distclean
+	$(MAKE) -C $(SRC) extract-to-easycrypt
+	(cd $(PROOF)/crypto_scalarmult/curve25519 && $(EASYCRYPT) runtest tests.config curve25519)
+
 # -----------------------------------------------------------------------------
 # clean rules
 
