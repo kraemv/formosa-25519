@@ -8,11 +8,9 @@ Note, some lemmas are left with the tactic `admit`, which means that the lemmas 
 The logic in the `common/` folder is that the following files provide various lemmas used throughout the correctness proofs.
 
 #### Generic files
-- **EClib.ec** includes lemmas relating the implementation of elliptic curve cryptography, such as packing/unpacking. No dependencies.
+- **EClib.ec** includes lemmas relating to some simple mathematical lemmas that the other files will use. No dependencies.
 - **Zp_25519** includes lemmas relating to the finite field of size 2^255 - 19, such as congruence over said finite field and reduction. No dependencies.
-- **Zp_limbs** includes lemmas concerning the implementation of 4 limbs representations (called `valRep4` in these proofs). Some miscellaneous lemmas concerning, for example, valid pointers are also present. Depends on the above two files.
-
-Naturally, not all the lemmas in these files are used, but are still present as they allow for efficient modification of proofs in case of either software changes (e.g. Jasmin or Easycrypt) and if the implementation changes.
+- **Zp_limbs** includes lemmas concerning the implementation of 4 limbs representations (called `valRep4` in these proofs). Depends on the above two files.
 
 #### Curve25519 files
 The logic behind these files is that a specification of the various "core" operations used in the X25519 are defined (`Curve25519_Specs.ec`). From these, various other related operations and lemmas are defined in another file (`Curve25519_Operations`).
