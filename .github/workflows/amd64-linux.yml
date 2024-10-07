@@ -106,22 +106,6 @@ jobs:
         run: make -j$JOBS -C src/ CI=1 preprocess-inplace
 
       - name: run proof
-        run: make -j$JOBS -C proof/ all-no-report
-      - name: print report
-        run: make -C proof/ CI=1 reporter
-      - name: return error
-        run: make -C proof/ CI=1 err
-
-  # proof (using runtest)
-  proof-runtest:
-    runs-on: [self-hosted, linux, X64, amd64-main]
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: preprocess
-        run: make -j$JOBS -C src/ CI=1 preprocess-inplace
-
-      - name: run proof
         run: make -j$JOBS -C proof/ all-runtest
       - name: print report
         run: make -C proof/ CI=1 reporter
