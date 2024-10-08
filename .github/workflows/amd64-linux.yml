@@ -112,4 +112,11 @@ jobs:
       - name: return error
         run: make -C proof/ CI=1 err
 
-
+      - name: upload artifact - all files in proof
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: formosa-25519-proofs
+          path: proof/
+          retention-days: 90
+          overwrite: true
