@@ -195,53 +195,35 @@ op op_invert_p(z1 : zp) : zp =
   z_255_21 axiomatized by op_invert_pE.
 (* lemma: invert is the same as z1^(p-2) from fermat's little theorem *)
 
-lemma eq_op_invert_p_part1 (z1: zp):
-    op_invert_p z1 = op_invert_p_p3 (op_invert_p_p2 ((ZModpRing.exp z1 31))) ((ZModpRing.exp z1 11)).
-proof.
-    rewrite op_invert_pE.
-    rewrite /op_invert_p_p1 => />.
-    smt(ZModpRing.exprM ZModpRing.exprS ZModpRing.exprD_nneg).
-qed.
-
-lemma eq_op_invert_p_part2 (z1: zp):
-    op_invert_p_p3 (op_invert_p_p2 ((ZModpRing.exp z1 31))) ((ZModpRing.exp z1 11)) =
-        op_invert_p_p3 ((ZModpRing.exp z1 1125899906842623)) ((ZModpRing.exp z1 11)).
-proof.
-    rewrite /op_invert_p_p2 => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-qed.
-
-
-lemma eq_op_invert_p_part3 (z1: zp):
-   op_invert_p_p3 ((ZModpRing.exp z1 1125899906842623)) ((ZModpRing.exp z1 11)) = (ZModpRing.exp z1
-   57896044618658097711785492504343953926634992332820282019728792003956564819947).
-proof.
-    rewrite /op_invert_p_p3.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-    rewrite -!ZModpRing.exprM => />.
-    rewrite -!ZModpRing.exprD_nneg => />.
-qed.
-
 lemma eq_op_invert_p (z1: zp) :
   op_invert_p z1 = ZModpRing.exp z1 (p-2).
 proof.
-    rewrite pE.
-    rewrite eq_op_invert_p_part1.
-    rewrite eq_op_invert_p_part2.
-    rewrite eq_op_invert_p_part3.
-    by congr.
+    rewrite op_invert_pE.
+    rewrite /op_invert_p_p1 /= expE //=.
+    have -> : op_invert_p_p3 (op_invert_p_p2 (z1 * ZModpRing.exp z1 8 *
+                ZModpRing.exp (ZModpRing.exp z1 2 * (z1 * ZModpRing.exp z1 8)) 2))
+                    (ZModpRing.exp z1 2 * (z1 * ZModpRing.exp z1 8)) =
+           op_invert_p_p3 (op_invert_p_p2 (ZModpRing.exp z1 (2^5 - 2^0))) (ZModpRing.exp z1 11).
+           smt(expE ZModpRing.exprS ZModpRing.exprD_nneg).
+(*invert_p2*)
+    rewrite /op_invert_p_p2 //=.
+    have -> : op_invert_p_p3 (ZModpRing.exp (ZModpRing.exp (ZModpRing.exp
+             (ZModpRing.exp (ZModpRing.exp z1 31) 32 * ZModpRing.exp z1 31) 1024 *
+             (ZModpRing.exp (ZModpRing.exp z1 31) 32 * ZModpRing.exp z1 31)) 1048576 *
+             (ZModpRing.exp (ZModpRing.exp (ZModpRing.exp z1 31) 32 * ZModpRing.exp z1 31) 1024 *
+             (ZModpRing.exp (ZModpRing.exp z1 31) 32 * ZModpRing.exp z1 31))) 1024 *
+             (ZModpRing.exp (ZModpRing.exp z1 31) 32 * ZModpRing.exp z1 31)) (ZModpRing.exp z1 11) =
+           op_invert_p_p3 (ZModpRing.exp z1 (2^50 - 2^0)) (ZModpRing.exp z1 11).
+           rewrite !expE //=. rewrite -!ZModpRing.exprD_nneg //=.
+           rewrite !expE //=. rewrite -!ZModpRing.exprD_nneg //=.
+           rewrite !expE //=. rewrite -!ZModpRing.exprD_nneg //=.
+           rewrite !expE //=. rewrite -!ZModpRing.exprD_nneg //=.
+(*invert_p3*)
+    rewrite /op_invert_p_p3 //= pE //=.
+    rewrite !expE //=. rewrite -!ZModpRing.exprD_nneg //=.
+    rewrite !expE //=. rewrite -!ZModpRing.exprD_nneg //=.
+    rewrite !expE //=. rewrite -!ZModpRing.exprD_nneg //=.
+    rewrite !expE //=. rewrite -!ZModpRing.exprD_nneg //=.
 qed.
 
 (* now we define invert as one op and prove it equiv to exp z1 (p-2) *)
