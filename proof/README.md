@@ -1,7 +1,8 @@
-# `crypto_scalarmult/curve25519` proof
-Correctness proof for the reference and optimised 4-limb implementation in Jasmin.
+# Curve25519 correctness proof
+Correctness proof for the reference and optimised 4-limb implementation of Curve25519 scalar multiplication in Jasmin.
 
-Note, some lemmas are left with the tactic `admit`, which means that the lemmas are not proven, but assumed to be correct. All `admits` have been proved in Cryptoline and including them is future work.
+Note, some lemmas are left with the tactic `admit`, which means that the lemmas are not proven, but assumed to be correct. 
+All `admits` have been proved in Cryptoline and including them is future work.
 
 ## Overview
 ### Common files
@@ -13,13 +14,12 @@ The logic in the `common/` folder is that the following files provide various le
 - **Zp_limbs** includes lemmas concerning the implementation of 4 limbs representations (called `valRep4` in these proofs). Depends on the above two files.
 
 #### Curve25519 files
-The logic behind these files is that a specification of the various "core" operations used in the X25519 are defined (`Curve25519_Specs.ec`). From these, various other related operations and lemmas are defined in another file (`Curve25519_Operations`).
+The logic behind these files is that a functional specification of X25519 are defined (`Curve25519_Specs.ec`). 
+From these, various other related operations and lemmas are defined in another file (`Curve25519_Operations`).
+From these two files, we can write an procedural specification of scalar multiplication in Easycrypt, which we show to be equivalent to the functional specification.
+Finally, `Curve25519_PHoare` contains probabilistic hoare statements relating to the procedural specification.
 
-From these two files, we can write an abstract specification of scalar multiplication in Easycrypt, which we will be shown to be equivalent to the implementation (`Curve25519_Procedures`). In this file, we also prove that the specification conforms to the aforementioned operations (i.e., the specification is proven to be correct as long as the defined operations are correct).
-
-Finally, `Curve25519_PHoare` contains probabilistic hoare statements relating to the specification.
-
-From this, we now have a foundation to be able to prove the correctness of both the reference and optimised implementations of scalar multiplication.
+From this, we now have a foundation to be able to prove the correctness of both the reference and optimised implementations of scalar multiplication in relation to the **procedural specification**.
 
 Note that the dependency chain (where x <- y indicates that y depends on x) is:
 
@@ -27,9 +27,9 @@ Note that the dependency chain (where x <- y indicates that y depends on x) is:
 Curve25519_Specs <- Curve25519_Operations <- Curve25519_Procedures <- Curve25519_PHoare
 ```
 
-
 ### Correctness proofs
-The correctness proofs are similar for both implementations, so unless specified, all explanations apply to both implementations. Each lemma corresponds to a step in the X25519 implementation and are presented and proven in the same order. This order is:
+The correctness proofs are similar for both implementations, so unless specified, all explanations apply to both implementations. 
+Each lemma corresponds to a step in the X25519 implementation and are presented and proven in the same order. This order is:
 
 0. Arithmetic, such as addition, subtraction, multiplication and squaring.
 1. Decoding scalar value.
@@ -44,7 +44,7 @@ The correctness proofs are similar for both implementations, so unless specified
 10. Encoding of the resulting elliptic curve point (includes reduction to \mod p).
 11. Scalar multiplication.
 
-These correctness proofs prove that all computations are correct with respect to the abstract specifications.
+As mentioned, these correctness proofs prove that the Jasmin implementation is correct, with respect to the procedural specification.
 
 ### Note on admitted lemmas
 The following list of lemmas are left as `admit`, but are proven in Cryptoline (not available on this repository, yet):
