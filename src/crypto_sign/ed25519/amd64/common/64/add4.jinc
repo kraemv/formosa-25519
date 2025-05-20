@@ -60,16 +60,60 @@ inline fn __add4_rrs(reg u64[4] f, stack u64[4] g) -> reg u64[4]
   return h;
 }
 
-inline fn __add4_sss(stack u64[4] fs gs) -> stack u64[4]
+inline fn __add4_rrr(reg u64[4] f, reg u64[4] g) -> reg u64[4]
 {
-  stack u64[4] hs;
+  inline int i;
+  reg bool cf;
+  reg u64 z;
+
+  ?{}, z = #set0();
+
+  cf, f[0] += g[0];
+  for i=1 to 4
+  { cf, f[i] += g[i] + cf; }
+
+  _, z -= z - cf;
+  z &= 38;
+
+  cf, f[0] += z;
+  for i=1 to 4
+  { cf, f[i] += 0 + cf; }
+
+  _, z -= z - cf;
+  z &= 38;
+  f[0] += z;
+
+  return f;
+}
+
+inline fn __add4_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[4]
+{
+  reg u64[4] h;
+
+  h = __add4_rrs(g, fs);
+
+  return h;
+}
+
+inline fn __add4_srr(reg u64[4] f, reg u64[4] g) -> stack u64[4]
+{
+	reg u64[4] h;
+	stack u64[4] hs;
+	
+	h = __add4_rrr(f, g);
+	hs = #copy(h);
+	
+	return hs;
+}
+
+inline fn __add4_rss(stack u64[4] fs gs) -> reg u64[4]
+{
   reg u64[4] h f;
 
   f = #copy(fs);
   h = __add4_rrs(f, gs);
-  hs = #copy(h);
 
-  return hs;
+  return h;
 }
 
 inline fn __add4_ssr(stack u64[4] fs, reg u64[4] g) -> stack u64[4]
@@ -83,12 +127,14 @@ inline fn __add4_ssr(stack u64[4] fs, reg u64[4] g) -> stack u64[4]
   return hs;
 }
 
-inline fn __add4_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[4]
+inline fn __add4_sss(stack u64[4] fs gs) -> stack u64[4]
 {
-  reg u64[4] h;
+  stack u64[4] hs;
+  reg u64[4] h f;
 
-  h = __add4_rrs(g, fs);
+  f = #copy(fs);
+  h = __add4_rrs(f, gs);
+  hs = #copy(h);
 
-  return h;
+  return hs;
 }
-

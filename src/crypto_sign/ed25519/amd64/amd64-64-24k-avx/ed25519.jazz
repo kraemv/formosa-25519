@@ -1,23 +1,27 @@
-from formosa25519 require "crypto_sign/ed25519/amd64/common/load_store4.jinc"
-
 require "shared_const.jinc"
+
+from formosa25519 require "crypto_sign/ed25519/amd64/common/load_store4.jinc"
+from formosa25519 require "crypto_sign/ed25519/amd64/common/decode_scalar.jinc"
 
 require "sha512_api.jinc"
 require "curve25519.jinc"
 require "sc25519_barrett.jinc"
 require "sc25519_add.jinc"
 require "sc25519_mul.jinc"
+require "mGnP.jinc"
 
 export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
 {
   reg u64 num_bytes;
   reg u64 flag r;
-  reg u64[4] h_red pk sk;
+  reg u64[4] h_red pk;
   reg u64[8] h;
+  reg u256 v_256;
   stack u64 pkps skps;
   stack u64[4] ks sks;
   stack u64[8] H;
   stack u64[25] state;
+  reg ptr u64[4] sks_ptr;
   #[sct="{ptr:public, val:secret}"] reg ptr u64[8] Hreg;
   #[sct="{ptr:public, val:secret}"] reg ptr u64[25] pstate;
   #msf reg u64 msf;
@@ -25,30 +29,32 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
   skps = skp;
   pkps = pkp;
 	
+	sks_ptr = sks;
+	
   while {
 		flag = 0;
-		sks, num_bytes = #randombytes(sks, flag);
+		sks_ptr = sks;
+		sks_ptr, num_bytes = #randombytes(sks_ptr, flag);
 	} (num_bytes != 32)
 	
 	msf = #init_msf();
 	
-	sk = #copy(sks);
+	sks = sks_ptr;
+	v_256 = #VMOVDQA_256(sks[u256 0]);
   
   skp = skps;
-  __store4(skp, sk);
+  (u256)[skp] = v_256;
   skp += 8*4;
   skps = skp;
   
 	state = sha512_init(state);
 	
-	state[0] = sk[0];
-	state[1] = sk[1];
-	state[2] = sk[2];
-	state[3] = sk[3];
+	state[u256 0] =  #VMOVDQA_256(v_256);
 	state[24] = 32;
   
   Hreg = H;
 	pstate = state;
+	#update_after_call
 	Hreg, msf = sha512_finalize(pstate, Hreg, msf);
 	H = Hreg;
 	h = #copy(H);
@@ -98,6 +104,7 @@ export fn jade_ed25519_amd64_pubkey(reg u64 skp pkp) -> reg u64
   
   Hreg = H;
 	pstate = state;
+	#update_after_call
 	Hreg, msf = sha512_finalize(pstate, Hreg, msf);
 	H = Hreg;
 	h = #copy(H);
@@ -147,6 +154,7 @@ export fn jade_ed25519_amd64_sign(#transient reg u64 skp mp msg_len sigp) -> reg
   
   Hreg = H;
 	pstate = state;
+	#update_after_call
 	Hreg, msf = sha512_finalize(pstate, Hreg, msf);
 	H = Hreg;
 	h = #copy(H);
@@ -163,11 +171,13 @@ export fn jade_ed25519_amd64_sign(#transient reg u64 skp mp msg_len sigp) -> reg
   msg_len = msg_lens;
   pstate = state;
   mp = #protect(mp, msf);
+	#update_after_call
   pstate, msf = sha512_update_ext(pstate, mp, msg_len, msf);
   state = pstate;
   
   Hreg = H;
 	pstate = state;
+	#update_after_call
 	Hreg, msf = sha512_finalize(pstate, Hreg, msf);
 	H = Hreg;
   
@@ -194,12 +204,14 @@ export fn jade_ed25519_amd64_sign(#transient reg u64 skp mp msg_len sigp) -> reg
   msg_len = msg_lens;
   pstate_2 = state_2;
   mp = #protect(mp, msf);
+	#update_after_call
   pstate_2, msf = sha512_update_ext(pstate_2, mp, msg_len, msf);
   state_2 = pstate_2;
   
   Hreg = H;
 	pstate_2 = state_2;
 	
+	#update_after_call
 	Hreg, msf = sha512_finalize(pstate_2, Hreg, msf);
 	H = Hreg;
   msf_s = #mov_msf(msf);
@@ -219,18 +231,20 @@ export fn jade_ed25519_amd64_sign(#transient reg u64 skp mp msg_len sigp) -> reg
 
 export fn jade_ed25519_amd64_verify(#transient reg u64 sigp pkp mp msg_len) -> reg u64
 {
-  reg u64 vrfy_res temp_64;
-  reg u64[4] B R s A h_red;
-  reg u64[4] s_enc r_enc;
-  stack u8 valid;
-  stack u64 msg_lens mps sigps;
-  stack u64[4] xb yb zb tb xr yr zr tr xabc yabc zabc;
-  stack u64[4] Rs As Bs s_encs;
+  reg u64 valid;
+  reg u64 v_64 vrfy_res z;
+  reg u64[4] s;
+  reg u256 A_256 R_256;
+  stack u8[33] Rcheck;
+  stack u64 diff msg_lens mps sigps;
+  stack u64[4] Rs As;
   stack u64[8] H;
   stack u64[25] state;
-  reg u256 A_256 R_256;
+  reg ptr u64[4] Ap;
   reg ptr u64[8] Hreg;
   reg ptr u64[25] pstate;
+  reg ptr u8[33] Rcheck_p;
+  reg bool neq;
   inline int i;
   
   #msf reg u64 msf;
@@ -258,64 +272,44 @@ export fn jade_ed25519_amd64_verify(#transient reg u64 sigp pkp mp msg_len) -> r
   mp = mps;
   msg_len = msg_lens;
   mp = #protect(mp, msf);
+  #update_after_call
   pstate, msf = sha512_update_ext(pstate, mp, msg_len, msf);
   state = pstate;
   
   Hreg = H;
 	pstate = state;
-	Hreg, msf = sha512_finalize(pstate, Hreg, msf);
-	H = Hreg;
+	#update_after_call
+	#declassify Hreg, msf = sha512_finalize(pstate, Hreg, msf);
   msf_s = #mov_msf(msf);
-  
-  h_red = sc25519_barrett(H);
-  for i=0 to 4{
-  	temp_64 = As[i];
-  	temp_64 = #BSWAP_64(temp_64);
-  	A[3-i] = temp_64;
-  }
-  msf = #mov_msf(msf_s);
-  
-  s_enc, msf = __curve25519_mulx(h_red, A, msf);
-  
-  for i=0 to 4{
-  	#declassify temp_64 = s_enc[i];
-  	temp_64 = #BSWAP_64(temp_64);
-  	s_encs[3-i] = temp_64;
-  }
   
   sigp = sigps;
   sigp += 8*4;
   sigp = #protect(sigp, msf);
-  
   for i=0 to 4
 	{
 		#declassify s[i] = (u64)[sigp + 8*i];
 	}
-  // s = __load4(sigp);
-  B, msf = __curve25519_mulx_base(s, msf);
-  Bs = #copy(B);
+	
+	Rcheck_p = Rcheck;
+	Ap = As;
+	#update_after_call
+	Rcheck_p, msf = mGnP(Rcheck_p, s, Hreg, Ap, msf);
+	Rcheck = Rcheck_p;
   
-  xb, yb, zb, tb, valid, msf = __decode_point(s_encs, msf);
-  for i=0 to 4{
-  	temp_64 = Rs[i];
-  	temp_64 = #BSWAP_64(temp_64);
-  	R[3-i] = temp_64;
-  }
-  Rs = #copy(R);
-  
-  xr, yr, zr, tr, valid, msf = __decode_point(Rs, msf);
-  msf_s = #mov_msf(msf);
-  _, _, _, _, xabc, yabc, zabc, _ = __add_and_double4(xr, yr, zr, tr, xb, yb, zb, tb);
-  
-  msf = #mov_msf(msf_s);
-  r_enc, msf = __encode_point(xabc, yabc, zabc, msf);
-  
-  B = #copy(Bs);
-	valid = __cmp4_rr(r_enc, B);
-	temp_64 = (64u)valid;
-	vrfy_res = temp_64;
-	vrfy_res &= 0x1;
-  
+  valid = (64u)Rcheck[32];
+  diff = 0;
+	for i=0 to 4
+	{
+		v_64 = Rs[u64 i];
+		v_64 ^= Rcheck[u64 i];
+		diff |= v_64;
+	}
+	
+	?{}, z = #set0();
+	?{"!=" = neq} = #CMP(diff, 0);
+	valid = #CMOVcc(!neq, valid, z);
+	
+	vrfy_res = valid - 1;
+	
   return vrfy_res;
 }
-

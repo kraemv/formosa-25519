@@ -106,6 +106,198 @@ inline fn __sqr4_rr(reg u64[4] f)-> reg u64[4]
 	return res;
 }
 
+inline fn __sqr5_rr(reg u64[4] g) -> reg u64[5]
+{
+  reg bool cf of;
+  reg u64[5] o;
+  reg u64[8] t h;
+  reg u64 z _38 rdx;
+  of, cf, _, _, _, z = #set0();
+  
+  // 0
+  rdx = g[0];
+
+  (h[2], h[1]) = #MULX ( rdx,  g[1]     ); // f0*f1
+  (h[3], t[2]) = #MULX ( rdx,  g[2]     ); // f0*f2
+		  cf, h[2] = #ADCX ( h[2], t[2], cf	);
+	
+  (h[4], t[3]) = #MULX ( rdx,  g[3]     ); // f0*f3
+     cf, h[3]  = #ADCX ( h[3], t[3], cf );
+
+
+  // 1
+  rdx = g[1];
+
+  (t[4], t[3]) = #MULX ( rdx,  g[2]     ); // f1*f2
+
+  of, h[3]     = #ADOX ( h[3], t[3], of );
+  cf, h[4]     = #ADCX ( h[4], t[4], cf );
+  
+  (h[5], t[4]) = #MULX ( rdx,   g[3]     ); // f1*f3
+     of, h[4]  = #ADOX ( h[4], t[4], of );
+
+  // 2
+  rdx = g[2];
+
+  (h[6], t[5]) = #MULX ( rdx,   g[3]     ); // f2*f3
+
+   cf, h[5]    = #ADCX ( h[5], t[5], cf );
+   of, h[5]    = #ADOX ( h[5], z,    of );
+
+   cf, h[6]    = #ADCX ( h[6], z,    cf ); // cf = 0
+   of, h[6]    = #ADOX ( h[6], z,    of ); // of = 0 ?? TODO: VERIFYME
+
+	h[7] = 0;
+	_, _, _, _, _, h[7] = #SHLD(h[7], h[6], 1);
+	_, _, _, _, _, h[6] = #SHLD(h[6], h[5], 1);
+	_, _, _, _, _, h[5] = #SHLD(h[5], h[4], 1);
+	_, _, _, _, _, h[4] = #SHLD(h[4], h[3], 1);
+	_, _, _, _, _, h[3] = #SHLD(h[3], h[2], 1);
+	_, _, _, _, _, h[2] = #SHLD(h[2], h[1], 1);
+	_, _, _, _, _, h[1] = #SHL(h[1], 1);
+	
+  // 0
+  rdx = g[0];
+  (t[1], h[0]) = #MULX ( rdx,   rdx     ); // f0*f0
+  cf, h[1] += t[1];
+  
+  // 1
+  rdx = g[1];
+  (t[3], t[2]) = #MULX ( rdx,   rdx     ); // f1*f1
+  cf, h[2] += t[2] + cf;
+  cf, h[3] += t[3] + cf;
+  
+  // 2
+  rdx = g[2];
+  (t[5], t[4]) = #MULX ( rdx,   rdx     ); // f2*f2
+  cf, h[4] += t[4] + cf;
+  cf, h[5] += t[5] + cf;
+  
+  // 3
+  rdx = g[3];
+  (t[7], t[6]) = #MULX ( rdx,   rdx     ); // f3*f3
+  cf, h[6] += t[6] + cf;
+   _, h[7] += t[7] + cf;
+  
+  // Reduce
+  _38 = 38;
+  (t[5], h[4]) = #MULX ( _38,   h[4]    );
+  (t[6], h[5]) = #MULX ( _38,   h[5]    );
+  cf, h[5] 		 += t[5];
+  
+  (t[7], h[6]) = #MULX ( _38,  h[6]     );
+  cf, h[6]     = #ADCX ( h[6], t[6], cf );
+  
+  (o[4], h[7]) = #MULX ( _38,  h[7]     );
+  cf, h[7]     = #ADCX ( h[7], t[7], cf );
+  cf, o[4]     = #ADCX ( o[4],    z, cf );
+  
+  // Final add
+  cf, o[0] = h[0] + h[4];
+  cf, o[1] = h[1] + h[5] + cf;
+  cf, o[2] = h[2] + h[6] + cf;
+  cf, o[3] = h[3] + h[7] + cf;
+   _, o[4] = o[4] + 0 + cf;
+  
+  return o;
+}
+
+inline fn __sqr5_rp(reg ptr u64[4] g) -> reg u64[5]
+{
+  reg bool cf of;
+  reg u64[5] o;
+  reg u64[8] t h;
+  reg u64 z _38 rdx;
+  of, cf, _, _, _, z = #set0();
+  
+  // 0
+  rdx = g[0];
+
+  (h[2], h[1]) = #MULX ( rdx,  g[1]     ); // f0*f1
+  (h[3], t[2]) = #MULX ( rdx,  g[2]     ); // f0*f2
+		  cf, h[2] = #ADCX ( h[2], t[2], cf	);
+	
+  (h[4], t[3]) = #MULX ( rdx,  g[3]     ); // f0*f3
+     cf, h[3]  = #ADCX ( h[3], t[3], cf );
+
+
+  // 1
+  rdx = g[1];
+
+  (t[4], t[3]) = #MULX ( rdx,  g[2]     ); // f1*f2
+
+  of, h[3]     = #ADOX ( h[3], t[3], of );
+  cf, h[4]     = #ADCX ( h[4], t[4], cf );
+  
+  (h[5], t[4]) = #MULX ( rdx,   g[3]     ); // f1*f3
+     of, h[4]  = #ADOX ( h[4], t[4], of );
+
+  // 2
+  rdx = g[2];
+
+  (h[6], t[5]) = #MULX ( rdx,   g[3]     ); // f2*f3
+
+   cf, h[5]    = #ADCX ( h[5], t[5], cf );
+   of, h[5]    = #ADOX ( h[5], z,    of );
+
+   cf, h[6]    = #ADCX ( h[6], z,    cf ); // cf = 0
+   of, h[6]    = #ADOX ( h[6], z,    of ); // of = 0 ?? TODO: VERIFYME
+
+	h[7] = 0;
+	_, _, _, _, _, h[7] = #SHLD(h[7], h[6], 1);
+	_, _, _, _, _, h[6] = #SHLD(h[6], h[5], 1);
+	_, _, _, _, _, h[5] = #SHLD(h[5], h[4], 1);
+	_, _, _, _, _, h[4] = #SHLD(h[4], h[3], 1);
+	_, _, _, _, _, h[3] = #SHLD(h[3], h[2], 1);
+	_, _, _, _, _, h[2] = #SHLD(h[2], h[1], 1);
+	_, _, _, _, _, h[1] = #SHL(h[1], 1);
+	
+  // 0
+  rdx = g[0];
+  (t[1], h[0]) = #MULX ( rdx,   rdx     ); // f0*f0
+  cf, h[1] += t[1];
+  
+  // 1
+  rdx = g[1];
+  (t[3], t[2]) = #MULX ( rdx,   rdx     ); // f1*f1
+  cf, h[2] += t[2] + cf;
+  cf, h[3] += t[3] + cf;
+  
+  // 2
+  rdx = g[2];
+  (t[5], t[4]) = #MULX ( rdx,   rdx     ); // f2*f2
+  cf, h[4] += t[4] + cf;
+  cf, h[5] += t[5] + cf;
+  
+  // 3
+  rdx = g[3];
+  (t[7], t[6]) = #MULX ( rdx,   rdx     ); // f3*f3
+  cf, h[6] += t[6] + cf;
+   _, h[7] += t[7] + cf;
+  
+  // Reduce
+  _38 = 38;
+  (t[5], h[4]) = #MULX ( _38,   h[4]    );
+  (t[6], h[5]) = #MULX ( _38,   h[5]    );
+  cf, h[5] 		 += t[5];
+  
+  (t[7], h[6]) = #MULX ( _38,  h[6]     );
+  cf, h[6]     = #ADCX ( h[6], t[6], cf );
+  
+  (o[4], h[7]) = #MULX ( _38,  h[7]     );
+  cf, h[7]     = #ADCX ( h[7], t[7], cf );
+  cf, o[4]     = #ADCX ( o[4],    z, cf );
+  
+  // Final add
+  cf, o[0] = h[0] + h[4];
+  cf, o[1] = h[1] + h[5] + cf;
+  cf, o[2] = h[2] + h[6] + cf;
+  cf, o[3] = h[3] + h[7] + cf;
+   _, o[4] = o[4] + 0 + cf;
+  
+  return o;
+}
+
 inline fn __it_sqr4_x2(reg u64[4] f, reg u32 i, #msf reg u64 msf) -> reg u64[4], #msf reg u64
 {
   reg bool zf;
