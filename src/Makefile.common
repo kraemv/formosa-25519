@@ -43,7 +43,7 @@ endif
 # -----------------------------------------------------------------------------
 # compile vars
 
-JASMIN ?= /home/vincent/jasmin_syscalls/compiler/jasminc
+JASMIN ?= jasminc
 
 JEXT ?= jazz
 override JFLAGS += -stack-zero loopSCT -noinsertarraycopy
