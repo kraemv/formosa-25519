@@ -2,8 +2,10 @@ require "shared_const.jinc"
 
 abstract predicate bool eqmod(int, int, tuple);
 abstract predicate tuple single(int);
+abstract predicate tuple quad(u64, u64, u64, u64);
 abstract predicate int b2i(bool);
 abstract predicate int u64i(u64);
+abstract predicate u256 limbs_4u64(tuple);
 abstract predicate int pow(int, int);
 
 fn __reduce4

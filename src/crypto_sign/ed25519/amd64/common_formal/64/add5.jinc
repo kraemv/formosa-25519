@@ -1,4 +1,21 @@
-inline fn __add5_rrr(reg u64[5] a, reg u64[5] b) -> reg u64[4]
+require "../shared_const.jinc"
+
+abstract predicate bool eqmod(int, int, tuple);
+abstract predicate tuple single(int);
+abstract predicate int b2i(bool);
+abstract predicate int u64i(u64);
+abstract predicate int pow(int, int);
+
+fn __add5_rrr(reg u64[5] a, reg u64[5] b) -> reg u64[4]
+	requires #[prover=smt]{a[4] < 256}
+	requires #[prover=smt]{b[4] < 256}
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(a[ii])) + \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(b[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
 	reg u64[4] c;
 	reg bool cf;
@@ -7,6 +24,9 @@ inline fn __add5_rrr(reg u64[5] a, reg u64[5] b) -> reg u64[4]
 	cf, a[0] += b[0];
   for i=1 to 5
   { cf, a[i] += b[i] + cf; }
+  
+  #[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   _, _, _, _, _, a[4] = #SHLD(a[4], a[3], 1);
   a[3] &= mask63;
@@ -16,11 +36,23 @@ inline fn __add5_rrr(reg u64[5] a, reg u64[5] b) -> reg u64[4]
 	cf, c[1] = a[1] + 0 + cf;
 	cf, c[2] = a[2] + 0 + cf;
 	cf, c[3] = a[3] + 0 + cf;
+	
+	#[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
 	return c;
 }
 
 inline fn __add5_rrs(reg u64[5] a, stack u64[5] b) -> reg u64[4]
+	requires #[prover=smt]{a[4] < 256}
+	requires #[prover=smt]{b[4] < 256}
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(a[ii])) + \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(b[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
 	reg u64[4] c;
 	reg bool cf;
@@ -29,6 +61,9 @@ inline fn __add5_rrs(reg u64[5] a, stack u64[5] b) -> reg u64[4]
 	cf, a[0] += b[0];
   for i=1 to 5
   { cf, a[i] += b[i] + cf; }
+  
+  #[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   _, _, _, _, _, a[4] = #SHLD(a[4], a[3], 1);
   a[3] &= mask63;
@@ -38,11 +73,22 @@ inline fn __add5_rrs(reg u64[5] a, stack u64[5] b) -> reg u64[4]
 	cf, c[1] = a[1] + 0 + cf;
 	cf, c[2] = a[2] + 0 + cf;
 	cf, c[3] = a[3] + 0 + cf;
+	
+	#[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
 	return c;
 }
 
 inline fn __add54_rrs(reg u64[5] a, stack u64[4] b) -> reg u64[4]
+	requires #[prover=smt]{a[4] < 256}
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(a[ii])) + \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(b[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
 	reg u64[4] c;
 	reg bool cf;
@@ -51,7 +97,10 @@ inline fn __add54_rrs(reg u64[5] a, stack u64[4] b) -> reg u64[4]
 	cf, a[0] += b[0];
   for i=1 to 4
   { cf, a[i] += b[i] + cf; }
-   _, a[4] += 0 + cf;
+  cf, a[4] += 0 + cf;
+  
+  #[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   _, _, _, _, _, a[4] = #SHLD(a[4], a[3], 1);
   a[3] &= mask63;
@@ -61,11 +110,23 @@ inline fn __add54_rrs(reg u64[5] a, stack u64[4] b) -> reg u64[4]
 	cf, c[1] = a[1] + 0 + cf;
 	cf, c[2] = a[2] + 0 + cf;
 	cf, c[3] = a[3] + 0 + cf;
+	
+	#[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
 	return c;
 }
 
-inline fn __add5_rrp(reg u64[5] a, reg ptr u64[5] b) -> reg u64[4]
+fn __add5_rrp(reg u64[5] a, reg ptr u64[5] b) -> reg u64[4]
+	requires #[prover=smt]{a[4] < 256}
+	requires #[prover=smt]{b[4] < 256}
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(a[ii])) + \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(b[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
 	reg u64[4] c;
 	reg bool cf;
@@ -74,6 +135,9 @@ inline fn __add5_rrp(reg u64[5] a, reg ptr u64[5] b) -> reg u64[4]
 	cf, a[0] += b[0];
   for i=1 to 5
   { cf, a[i] += b[i] + cf; }
+  
+  #[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   _, _, _, _, _, a[4] = #SHLD(a[4], a[3], 1);
   a[3] &= mask63;
@@ -83,6 +147,9 @@ inline fn __add5_rrp(reg u64[5] a, reg ptr u64[5] b) -> reg u64[4]
 	cf, c[1] = a[1] + 0 + cf;
 	cf, c[2] = a[2] + 0 + cf;
 	cf, c[3] = a[3] + 0 + cf;
+	
+	#[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
 	return c;
 }

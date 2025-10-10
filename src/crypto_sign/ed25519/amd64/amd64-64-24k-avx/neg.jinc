@@ -10,10 +10,10 @@ inline fn __neg5_rr(reg u64[5] a) -> reg u64[5]
 	b[4] = twoexp8_p4;
 	
 	cf, b[0] -= a[0];
-	cf, b[1] -= a[1];
-	cf, b[2] -= a[2];
-	cf, b[3] -= a[3];
-	cf, b[4] -= a[4];
+	cf, b[1] -= a[1] - cf;
+	cf, b[2] -= a[2] - cf;
+	cf, b[3] -= a[3] - cf;
+	cf, b[4] -= a[4] - cf;
 	
 	return b;
 }
@@ -30,10 +30,10 @@ inline fn __neg5_rs(stack u64[5] a) -> reg u64[5]
 	b[4] = twoexp8_p4;
 	
 	cf, b[0] -= a[0];
-	cf, b[1] -= a[1];
-	cf, b[2] -= a[2];
-	cf, b[3] -= a[3];
-	cf, b[4] -= a[4];
+	cf, b[1] -= a[1] - cf;
+	cf, b[2] -= a[2] - cf;
+	cf, b[3] -= a[3] - cf;
+	cf, b[4] -= a[4] - cf;
 	
 	return b;
 }

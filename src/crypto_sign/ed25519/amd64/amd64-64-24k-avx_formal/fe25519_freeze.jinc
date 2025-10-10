@@ -1,16 +1,15 @@
 abstract predicate bool eqmod(int, int, tuple);
 abstract predicate tuple single(int);
-abstract predicate int u64i(u64);
+abstract predicate tuple quad(u64, u64, u64, u64);
 abstract predicate int b2i(bool);
+abstract predicate int u64i(u64);
+abstract predicate u256 limbs_4u64(tuple);
 abstract predicate int pow(int, int);
 
 fn __freeze4_rr(reg u64[4] r_in) -> reg u64[4]
 	ensures #[prover=smt] {
-		result.0[3] == 0x7fffffffffffffff && result.0[2] == 0xffffffffffffffff && result.0[1] == 0xffffffffffffffff && result.0[0] < 0xffffffffffffffed||
-		result.0[3] == 0x7fffffffffffffff && result.0[2] == 0xffffffffffffffff && result.0[1] < 0xffffffffffffffff ||
-		result.0[3] == 0x7fffffffffffffff && result.0[2] < 0xffffffffffffffff ||
-		result.0[3] <64u 0x7fffffffffffffff
-	}
+     limbs_4u64(quad(result.0[0], result.0[1], result.0[2], result.0[3])) < 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed
+  }
 	ensures #[prover=cas] {
   eqmod (
      \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),

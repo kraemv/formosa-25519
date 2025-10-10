@@ -3,6 +3,34 @@ require "mul4.jinc"
 require "mul5.jinc"
 
 inline fn ge25519_p1p1_to_p3(stack u64[16] pp) -> stack u64[18]
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(result.0[ii])),
+     (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[ii]))) * (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[12+ii]))),
+     single((pow(2,255)) - 19)
+    )
+  }
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(result.0[5+ii])),
+     (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[4+ii]))) * (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[8+ii]))),
+     single((pow(2,255)) - 19)
+    )
+  }
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[10+ii])),
+     (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[4+ii]))) * (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[12+ii]))),
+     single((pow(2,255)) - 19)
+    )
+  }
+  ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[14+ii])),
+     (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[ii]))) * (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[8+ii]))),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
 	stack u64[18] r; 
 	
@@ -18,6 +46,34 @@ inline fn ge25519_p1p1_to_p3(stack u64[16] pp) -> stack u64[18]
 }
 
 inline fn ge25519_p1p1_to_p3_19(stack u64[16] pp) -> stack u64[19]
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(result.0[ii])),
+     (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[ii]))) * (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[12+ii]))),
+     single((pow(2,255)) - 19)
+    )
+  }
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(result.0[5+ii])),
+     (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[4+ii]))) * (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[8+ii]))),
+     single((pow(2,255)) - 19)
+    )
+  }
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(result.0[10+ii])),
+     (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[4+ii]))) * (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[12+ii]))),
+     single((pow(2,255)) - 19)
+    )
+  }
+  ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[15+ii])),
+     (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[ii]))) * (\sum (ii \in 0:4) (pow(2, 64*ii)*u64i(pp[8+ii]))),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
 	stack u64[19] r; 
 	

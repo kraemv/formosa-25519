@@ -157,6 +157,13 @@ inline fn __mul5_c3
 }
 
 fn __mul5_rsr(reg u64[4] fs, reg u64[4] g) -> reg u64[5]
+	ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(fs[ii])) * \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(g[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
   reg bool cf of;
   reg u64[4] h r;
@@ -230,12 +237,13 @@ inline fn __mul5_ssr(stack u64[4] fs, reg u64[4] g) -> stack u64[5]
 
 inline fn __mul5_sss(stack u64[4] fs gs) -> stack u64[5]
 {
-  reg u64[4] g;
+  reg u64[4] f g;
   reg u64[5] h;
   stack u64[5] hs;
 
+  f = #copy(fs);
   g = #copy(gs);
-  h = __mul5_rsr(fs, g);
+  h = __mul5_rsr(f, g);
   hs = #copy(h);
 
   return hs;

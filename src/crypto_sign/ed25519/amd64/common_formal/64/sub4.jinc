@@ -1,11 +1,24 @@
+abstract predicate bool eqmod(int, int, tuple);
+abstract predicate tuple single(int);
+abstract predicate int b2i(bool);
+abstract predicate int u64i(u64);
+abstract predicate int pow(int, int);
+
 // h = f - g
 // h = (2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3) -
 //     (2**0*g0 + 2**64*g1 + 2**128*g2 + 2**192*g3)
 
-inline fn __sub4_rrp(reg u64[4] f, reg ptr u64[4] gs) -> reg u64[4]
+fn __sub4_rrp(reg u64[4] f, reg ptr u64[4] gs) -> reg u64[4]
+  ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(f[ii])) - \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(gs[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
   inline int i;
-  reg bool cf;
+  reg bool cf carryo;
   reg u64[4] h;
   reg u64 z;
 
@@ -17,24 +30,49 @@ inline fn __sub4_rrp(reg u64[4] f, reg ptr u64[4] gs) -> reg u64[4]
   for i=1 to 4
   { cf, h[i] -= gs[i] - cf; }
 
+  carryo = cf;
   _, z -= z - cf;
+  #[kind=Assert, prover=smt] assert (cf == carryo);
+  #[kind=Assume, prover=cas] assert (b2i(cf) ==  b2i(carryo));
+  
   z &= 38;
+  
+  #[kind=Assert, prover=smt] assert ((!cf && z == 0x0) || (cf && z == 0x26));
+  #[kind=Assume, prover=cas] assert (u64i(z) == b2i(cf)*0x26);
 
   cf, h[0] -= z;
   for i=1 to 4
   { cf, h[i] -= 0 - cf; }
 
+  carryo = cf;
   _, z -= z - cf;
+  #[kind=Assert, prover=smt] assert (cf == carryo);
+  #[kind=Assume, prover=cas] assert (b2i(cf) ==  b2i(carryo));
+  
   z &= 38;
-  h[0] -= z;
+  
+  #[kind=Assert, prover=smt] assert ((!cf && z == 0x0) || (cf && z == 0x26));
+  #[kind=Assume, prover=cas] assert (u64i(z) == b2i(cf)*0x26);
+  
+  cf, h[0] -= z;
+  
+  #[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   return h;
 }
 
 inline fn __sub4_rrr(reg u64[4] f, reg u64[4] g) -> reg u64[4]
+  ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(f[ii])) - \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(g[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
   inline int i;
-  reg bool cf;
+  reg bool carryo cf;
   reg u64 z;
 
   ?{}, z = #set0();
@@ -43,19 +81,37 @@ inline fn __sub4_rrr(reg u64[4] f, reg u64[4] g) -> reg u64[4]
   for i=1 to 4
   { cf, f[i] -= g[i] - cf; }
 
+  carryo = cf;
   _, z -= z - cf;
+  #[kind=Assert, prover=smt] assert (cf == carryo);
+  #[kind=Assume, prover=cas] assert (b2i(cf) ==  b2i(carryo));
+  
   z &= 38;
+  
+  #[kind=Assert, prover=smt] assert ((!cf && z == 0x0) || (cf && z == 0x26));
+  #[kind=Assume, prover=cas] assert (u64i(z) == b2i(cf)*0x26);
 
   cf, f[0] -= z;
   for i=1 to 4
   { cf, f[i] -= 0 - cf; }
 
+  carryo = cf;
   _, z -= z - cf;
+  #[kind=Assert, prover=smt] assert (cf == carryo);
+  #[kind=Assume, prover=cas] assert (b2i(cf) ==  b2i(carryo));
+  
   z &= 38;
-  f[0] -= z;
+  
+  #[kind=Assert, prover=smt] assert ((!cf && z == 0x0) || (cf && z == 0x26));
+  #[kind=Assume, prover=cas] assert (u64i(z) == b2i(cf)*0x26);
+  
+  cf, f[0] -= z;
+  #[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   return f;
 }
+
 
 inline fn __sub4_srr(reg u64[4] f, reg u64[4] g) -> stack u64[4]
 {
@@ -68,10 +124,18 @@ inline fn __sub4_srr(reg u64[4] f, reg u64[4] g) -> stack u64[4]
 	return hs;
 }
 
+
 inline fn __sub4_rrs(reg u64[4] f, stack u64[4] gs) -> reg u64[4]
+  ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(f[ii])) - \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(gs[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
   inline int i;
-  reg bool cf;
+  reg bool carryo cf;
   reg u64[4] h;
   reg u64 z;
 
@@ -83,16 +147,33 @@ inline fn __sub4_rrs(reg u64[4] f, stack u64[4] gs) -> reg u64[4]
   for i=1 to 4
   { cf, h[i] -= gs[i] - cf; }
 
+  carryo = cf;
   _, z -= z - cf;
+  #[kind=Assert, prover=smt] assert (cf == carryo);
+  #[kind=Assume, prover=cas] assert (b2i(cf) ==  b2i(carryo));
+  
   z &= 38;
+  
+  #[kind=Assert, prover=smt] assert ((!cf && z == 0x0) || (cf && z == 0x26));
+  #[kind=Assume, prover=cas] assert (u64i(z) == b2i(cf)*0x26);
 
   cf, h[0] -= z;
   for i=1 to 4
   { cf, h[i] -= 0 - cf; }
 
+  carryo = cf;
   _, z -= z - cf;
+  #[kind=Assert, prover=smt] assert (cf == carryo);
+  #[kind=Assume, prover=cas] assert (b2i(cf) ==  b2i(carryo));
+  
   z &= 38;
-  h[0] -= z;
+  
+  #[kind=Assert, prover=smt] assert ((!cf && z == 0x0) || (cf && z == 0x26));
+  #[kind=Assume, prover=cas] assert (u64i(z) == b2i(cf)*0x26);
+  
+  cf, h[0] -= z;
+  #[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   return h;
 }
@@ -120,9 +201,16 @@ inline fn __sub4_rss(stack u64[4] fs gs) -> reg u64[4]
 }
 
 inline fn __sub4_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[4]
+  ensures #[prover=cas] {
+  eqmod (
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),
+     \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(fs[ii])) - \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(g[ii])),
+     single((pow(2,255)) - 19)
+    )
+  }
 {
   inline int i;
-  reg bool cf;
+  reg bool carryo cf;
   reg u64[4] h;
   reg u64 z;
 
@@ -134,16 +222,33 @@ inline fn __sub4_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[4]
   for i=1 to 4
   { cf, h[i] -= g[i] - cf; }
 
+  carryo = cf;
   _, z -= z - cf;
+  #[kind=Assert, prover=smt] assert (cf == carryo);
+  #[kind=Assume, prover=cas] assert (b2i(cf) ==  b2i(carryo));
+  
   z &= 38;
+  
+  #[kind=Assert, prover=smt] assert ((!cf && z == 0x0) || (cf && z == 0x26));
+  #[kind=Assume, prover=cas] assert (u64i(z) == b2i(cf)*0x26);
 
   cf, h[0] -= z;
   for i=1 to 4
   { cf, h[i] -= 0 - cf; }
 
+  carryo = cf;
   _, z -= z - cf;
+  #[kind=Assert, prover=smt] assert (cf == carryo);
+  #[kind=Assume, prover=cas] assert (b2i(cf) ==  b2i(carryo));
+  
   z &= 38;
-  h[0] -= z;
+  
+  #[kind=Assert, prover=smt] assert ((!cf && z == 0x0) || (cf && z == 0x26));
+  #[kind=Assume, prover=cas] assert (u64i(z) == b2i(cf)*0x26);
+  
+  cf, h[0] -= z;
+  #[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   return h;
 }

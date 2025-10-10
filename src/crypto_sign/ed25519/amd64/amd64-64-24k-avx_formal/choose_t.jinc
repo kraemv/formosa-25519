@@ -25,8 +25,7 @@ inline fn choose_t(reg u64 pos, reg u64 b) -> stack u64[12]
 	txaddy = _1[u256 0];
 	tt2d =  #set0_256();
 	
-	u_128 = #set0_128();
-	u_256 = (256u)#VPINSR_2u64(u_128, u, 0);
+	u_256 = (256u)#VMOV_64(u);
 	u_256 = #VPBROADCAST_4u64(u_256);
 	cmp_1 = #VPCMPEQ_4u64(u_256, v1234[u256 0]);
 	cmp_5 = #VPCMPEQ_4u64(u_256, v5678[u256 0]);

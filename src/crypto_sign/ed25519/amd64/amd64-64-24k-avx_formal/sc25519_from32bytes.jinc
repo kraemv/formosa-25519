@@ -9,8 +9,10 @@ u64[16] order = {0x5812631A5CF5D3ED, 0x14DEF9DEA2F79CD6,
                 
 abstract predicate bool eqmod(int, int, tuple);
 abstract predicate tuple single(int);
+abstract predicate tuple quad(u64, u64, u64, u64);
 abstract predicate int b2i(bool);
 abstract predicate int u64i(u64);
+abstract predicate u256 limbs_4u64(tuple);
 abstract predicate int pow(int, int);
 
 inline fn smaller(reg u64 a_in b_in) -> reg u64
@@ -28,10 +30,8 @@ inline fn smaller(reg u64 a_in b_in) -> reg u64
 
 fn sc25519_from32bytes(reg u64[4] r) -> reg u64[4]
 	ensures #[prover=smt] {
-		result.0[3] == 0x1000000000000000 && result.0[2] == 0 && result.0[1] == 0x14DEF9DEA2F79CD6 && result.0[0] <64u 0x5812631A5CF5D3ED||
-		result.0[3] == 0x1000000000000000 && result.0[2] == 0 && result.0[1] <64u 0x14DEF9DEA2F79CD6 ||
-		result.0[3] <64u 0x1000000000000000
-	}
+     limbs_4u64(quad(result.0[0], result.0[1], result.0[2], result.0[3])) < 0x1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED
+  }
 	ensures #[prover=cas] {
   eqmod (
      \sum (ii \in 0:4) (pow(2, 64*ii)*u64i(result.0[ii])),

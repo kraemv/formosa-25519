@@ -8,6 +8,7 @@ abstract predicate int pow(int, int);
 
 fn __neg5_rr(reg u64[5] a) -> reg u64[5]
 	requires #[prover=smt] {a[4] <u 64}
+	ensures #[prover=smt] {result.0[4] <u 128}
 	ensures #[prover=cas] {
   eqmod (
      \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(result.0[ii])),
@@ -39,6 +40,7 @@ fn __neg5_rr(reg u64[5] a) -> reg u64[5]
 
 fn __neg5_rs(reg ptr u64[5] a) -> reg u64[5]
 	requires #[prover=smt] {a[4] <u 64}
+	ensures #[prover=smt] {result.0[4] <u 128}
 	ensures #[prover=cas] {
   eqmod (
      \sum (ii \in 0:5) (pow(2, 64*ii)*u64i(result.0[ii])),

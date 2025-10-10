@@ -2,8 +2,10 @@ require "shared_const.jinc"
 
 abstract predicate bool eqmod(int, int, tuple);
 abstract predicate tuple single(int);
+abstract predicate tuple quad(u64, u64, u64, u64);
 abstract predicate int b2i(bool);
 abstract predicate int u64i(u64);
+abstract predicate u256 limbs_4u64(tuple);
 abstract predicate int pow(int, int);
 
 fn __reduce5
@@ -78,6 +80,9 @@ inline fn __reduce5to4_rs(stack u64[5] as) -> reg u64[4]
 	cf, c[1] = a[1] + 0 + cf;
 	cf, c[2] = a[2] + 0 + cf;
 	cf, c[3] = a[3] + 0 + cf;
+	
+	#[kind=Assert, prover=smt] assert (!cf);
+  #[kind=Assume, prover=cas] assert (b2i(cf) == 0);
 
   return c;
 }
