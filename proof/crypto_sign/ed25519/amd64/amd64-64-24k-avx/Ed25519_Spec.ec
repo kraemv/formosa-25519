@@ -2,21 +2,22 @@ require import List Int IntDiv.
 from Jasmin require import JModel.
 require import Array32 Array64.
 require import Zp_25519.
-
+require import ZL_25519.
+import ModL.
 import Zp.
 
 op one = (inzp 1).
 op ecd = (inzp 37095705934669439343138083508754565189542113879843219016388785533085940283555) axiomatized by ecdE.
-op mopd_sqrt_m1 = (inzp 19681161376707505956807079304988542015446066515923890162744021073123829784752).
+op modp_sqrt_m1 = (inzp 19681161376707505956807079304988542015446066515923890162744021073123829784752).
 
 type msg.
-
-op SHA2_512_32_32 : W256.t -> (W256.t * W256.t).
-op SHA2_512_32_msg_32 : W256.t -> msg -> W8.t Array64.t.
-op SHA2_512_64_msg_32 : W256.t -> W256.t -> msg -> W8.t Array64.t.
+    
+op SHA2_512_32_64 : W256.t -> (W256.t * W256.t).
+op SHA2_512_32_msg_32 : (W256.t * msg) -> lmod.
+op SHA2_512_32_32_msg_32 : (W256.t * W256.t * msg) -> lmod.
 
 op spec_secret_expand(secret:W256.t) =
-  let (a, h) = SHA2_512_32_32(secret) in
+  let (a, h) = SHA2_512_32_64(secret) in
   let a = a.[0   <- false] in
   let a = a.[1   <- false] in
   let a = a.[2   <- false] in
@@ -24,23 +25,24 @@ op spec_secret_expand(secret:W256.t) =
   let a = a.[254 <- true ] in
       (a, h).
 
-op spec_encode_point (q: zp * zp * zp) : W256.t  =
+op spec_encode_point (q: zp * zp * zp * zp) : W256.t  =
   let x = q.`1 * (ZModpRing.exp q.`3 (p - 2)) in
   let y = q.`2 * (ZModpRing.exp q.`3 (p - 2)) in
   let x = W256.of_int (asint x) in
-      (W256.of_int (asint y)).[255 <- x.[0]] axiomatized by spec_encode_pointE.
-      
-op spec_decode_point (u:W256.t) = 
+    (W256.of_int (asint y)).[255 <- x.[0]] axiomatized by spec_encode_pointE.
+
+op spec_decode_point (u:W256.t) : ((zp * zp * zp * zp) * bool)= 
   let sign = u.[255] in
   let u = u.[255 <- false] in
-  let y = inzp (to_uint u) in
-  (* Add check y >= p here *)
-  let x2 = (y * y - one) * (ZModpRing.exp ((inzp ecd) * y * y + one) (p - 2)) in
+  let valid = (to_uint u < p) in
+  let y = inzp(to_uint u) in
+  let x2 = (y * y - one) * (ZModpRing.exp (ecd * y * y + one) (p - 2)) in
   let x = ZModpRing.exp (x2) ((p + 3) %/ 8) in
-  (*if !((x*x - x2) %% p = 0)
-then let x = x * modp_sqrt_m1
-else let x = x in*)
-      x.
+  let x = (!(asint(x * x - x2) %% p = 0))? x * modp_sqrt_m1 : x in
+  let valid = valid && (asint(x*x - x2) %% p = 0) in
+  let valid = valid && (!(asint x2 = 0) || !sign) in
+  let x = ((W256.of_int (asint x)).[0] = sign)? x : -x in
+      ((x, y, one, x*y), valid).
 	
 
 op spec_add_and_double (nqs : (zp * zp * zp * zp) * (zp * zp * zp * zp)) =
@@ -76,29 +78,39 @@ op spec_swap_tuple (t : ('a * 'a * 'a * 'a) * ('a * 'a * 'a * 'a)) = (t.`2, t.`1
 
 op spec_ith_bit(k : W256.t, i : int) = k.[i].
 
-op spec_montgomery_ladder(init : (zp * zp * zp * zp), k : W256.t) =
-  let nqs0 = ((Zp.zero,Zp.one,Zp.one,Zp.zero),init) in
+op spec_montgomery_ladder(init : W256.t, k : W256.t) =
+  let (bp, valid) = spec_decode_point(init) in
+  let nqs0 = ((Zp.zero,Zp.one,Zp.one,Zp.zero),bp) in
   foldl (fun (nqs : (zp * zp * zp * zp) * (zp * zp * zp * zp)) ctr =>
          if spec_ith_bit k ctr
          then spec_swap_tuple (spec_add_and_double (spec_swap_tuple(nqs)))
          else spec_add_and_double nqs) nqs0 (rev (iota_ 0 255)).
 
-op spec_scalarmult_internal (k: zp) (u: W256.t) : W256.t =
-   let r = spec_montgomery_ladder k u in
-       spec_encode_point (r.`1) axiomatized by scalarmult_internalE.
+op spec_scalarmult_internal (k: W256.t) (u: W256.t) : W256.t =
+  let r = spec_montgomery_ladder u k in
+    spec_encode_point (r.`1) axiomatized by scalarmult_internalE.
 
 op spec_scalarmult (k: W256.t) (u: W256.t) : W256.t =
-    let k = spec_decode_scalar_25519 k in
-    let u = spec_decode_u_coordinate u in
-        spec_scalarmult_internal (inzp (to_uint u)) k axiomatized by spec_scalarmultE.
+  spec_scalarmult_internal k u axiomatized by spec_scalarmultE.
 
 hint simplify spec_scalarmultE.
 
 op spec_scalarmult_base (k:W256.t) : W256.t =
-    spec_scalarmult (k) (W256.of_int(9%Int)).
-    
-op spec_keygen =
+  spec_scalarmult (k) (W256.of_int(9%Int)).
 
-op spec_sign = 
+op spec_keygen(sk: W256.t) =
+  let (a, h) = spec_secret_expand(sk) in
+  let A = spec_scalarmult_base(a) in
+(sk, A).
+    
+op spec_sign(sk: W256.t, m: msg) =
+  let (s, prefix) = spec_secret_expand(sk) in
+  let A = spec_scalarmult_base(s) in
+  let r = SHA2_512_32_msg_32(prefix, m) in
+  let R = spec_scalarmult_base(W256.of_int( asint r)) in
+  let k = SHA2_512_32_32_msg_32(R, A, m) in
+  let s = r + k * inlmod(to_uint s) in
+    (R, s).
+
 
 op spec_verify = 
