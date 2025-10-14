@@ -1,4 +1,5 @@
-require import Int.
+require import Int IntDiv.
+require import ZModP.
 
 from Jasmin require import JModel.
 
@@ -6,6 +7,7 @@ import Ring.IntID.
 
 (* modular operations modulo P *)
 op p = 2^255 - 19 axiomatized by pE.
+axiom prime_p : prime p.
 
 (* Embedding into ring theory *)
 lemma two_pow255E: 2^255 = 57896044618658097711785492504343953926634992332820282019728792003956564819968 by done.
@@ -14,20 +16,22 @@ lemma pVal: p = 5789604461865809771178549250434395392663499233282028201972879200
 
 require ZModP.
 
-clone import ZModP.ZModRing as Zp with
+clone import ZModField as Zp with
         op p <- p
         rename "zmod" as "zp"
-        proof ge2_p by rewrite pE.
+        rename "ZModp" as "Zp"
+        proof  prime_p by apply prime_p.
 
+(*
 lemma expE (z : zp) (e1 e2 : int) : 0 <= e1 /\ 0 <= e2 =>
-    ZModpRing.exp (ZModpRing.exp z e1) e2 =
-    ZModpRing.exp z (e1*e2).
+    ZModField.exp (ZModField.exp z e1) e2 =
+    ZModField.exp z (e1*e2).
 proof.
-    rewrite -ZModpRing.exprM => />.
+    rewrite -ZModField.exprM => />.
 qed.
 
 
-(*
+
 (* congruence "mod p" *)
 
 lemma zpcgr_over a b:
