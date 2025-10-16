@@ -1,4 +1,4 @@
-require import List Int.
+require import List Int IntDiv.
 from Jasmin require import JModel JWord.
 require import Array8 Array16 Array80.
  
@@ -18,15 +18,37 @@ op SSIG0(x: W64.t) : W64.t = (x`|>>>|`1) +^ (x`|>>>|`8) +^ (x`>>>`7).
 
 op SSIG1(x: W64.t) : W64.t = (x`|>>>|`19) +^ (x`|>>>|`61) +^ (x`>>>`6).
 
+(*
+op sw (m: W64.t Array16.t) (i: int) : W64.t =
+  if i < 16
+  then m.[i]
+  else SSIG1(sw m (i-2)) + sw m (i-7) + SSIG0(sw m (i-15)) + sw m (i-16).
+
 op msg_schedule(m: W64.t Array16.t): W64.t Array80.t =
-let W: W64.t Array80.t = Array80.create W64.zero in
-let W = mapi (fun a : W64.t => a) m 16 in
-let W = map (fun t : int => SSIG1(W.[t-2]) + W.[t-7] + SSIG0(W.[t-15]) + W.[t-16]) (iota_ 16 80)in
+  let W: W64.t Array80.t = Array80.init(fun i => sw m i) in
+    W.
+  *)
+
+op schedule_word(W: W64.t Array80.t, i: int) : W64.t =
+  SSIG1(W.[i-2]) + W.[i-7] + SSIG0(W.[i-15]) + W.[i-16].
+
+op msg_schedule(m: W64.t Array16.t): W64.t Array80.t =
+  let W: W64.t Array80.t = Array80.init(fun i => if 0 <= i < 16 then m.[i] else W64.zero) in
+  let W = foldl (fun (W : W64.t Array80.t) t => W.[t <- schedule_word W t]) W (iota_ 16 64)in
     W.
 
-op inner_sha(a b c d e f g h: W64.t, W: W64.t Array80.t, i: int) : (W64.t * W64.t * W64.t * W64.t * W64.t * W64.t * W64.t * W64.t) = 
-  let T1 = h + BSIG1(e) + (CH e f g) + K.[i] + W.[i] in
-  let T2 = BSIG0(a) + (MAJ a b c) in
+op inner_sha(W: W64.t Array80.t, H: W64.t Array8.t, i: int) : W64.t Array8.t = 
+  let a = H.[0] in
+  let b = H.[1] in
+  let c = H.[2] in
+  let d = H.[3] in
+  let e = H.[4] in
+  let f = H.[5] in
+  let g = H.[6] in
+  let h = H.[7] in
+	
+  let T1 = h + BSIG1 e + (CH e f g) + K.[i] + W.[i] in
+  let T2 = BSIG0 a + (MAJ a b c) in
   let h = g in
   let g = f in
   let f = e in
@@ -35,5 +57,44 @@ op inner_sha(a b c d e f g h: W64.t, W: W64.t Array80.t, i: int) : (W64.t * W64.
   let c = b in
   let b = a in
   let a = T1 + T2 in
-    (a, b, c, d, e, f, g, h).
+  
+  let H = H.[0 <- a] in
+  let H = H.[1 <- b] in
+  let H = H.[2 <- c] in
+  let H = H.[3 <- d] in
+  let H = H.[4 <- e] in
+  let H = H.[5 <- f] in
+  let H = H.[6 <- g] in
+  let H = H.[7 <- h] in
+    H.
 
+op digest_block(H : W64.t Array8.t, m: W64.t Array16.t) =
+  let W = msg_schedule(m) in
+  let old_H = H in
+  let H = foldl (inner_sha W) H (iota_ 0 80)  in
+  let H = map2 W64.(+) H old_H in
+    H.
+
+op pad_msg(m: W8.t list) =
+  let L = size(m) in
+  let n_zeros = (112 - 1 - L) %% 128 in
+  let zeros = mkseq(fun i => W8.zero) n_zeros in
+  let init_word = W8.of_int(128) in
+  let length_block = unpack8(W128.of_int(8*L)) in
+  let length_block = to_list(length_block) in
+  let m = m ++ [init_word] ++ zeros ++ length_block in
+    m.
+
+op SHA2_512(m: W8.t list) =
+  let m = pad_msg(m) in
+  let H = H in
+  let mlen: int = size(m) %/ 8 in
+  let m = map (
+    fun i => map (fun j => nth W8.zero m j) (iota_ (8*i) 8)
+  ) (iota_ 0 mlen) in
+  let m = map pack8 m in
+  let m = map(
+    fun i => Array16.init(fun j => nth W64.zero m (16*i+j))
+  ) (iota_ 0 (mlen %/ 16)) in
+  let H = foldl digest_block H m in
+    H.

@@ -1,6 +1,5 @@
 require import List Int IntDiv.
 from Jasmin require import JModel.
-require import Array32 Array64.
 require import Zp_25519.
 require import ZL_25519.
 require import Ed25519_point.
@@ -67,12 +66,12 @@ op spec_scalarmult (k: W256.t) (u: W256.t) : W256.t =
 hint simplify spec_scalarmultE.
 
 op spec_scalarmult_base (k:W256.t) : W256.t =
-  spec_scalarmult (k) (W256.of_int(39984455814760748732201855760812543180582291579854007269875196977732502578790%Int)).
+  spec_scalarmult k (W256.of_int(39984455814760748732201855760812543180582291579854007269875196977732502578790%Int)).
 
 op spec_keygen(sk: W256.t) : (W256.t * W256.t)=
   let (a, h) = spec_secret_expand(sk) in
   let A = spec_scalarmult_base(a) in
-(sk, A).
+    (sk, A).
     
 op spec_sign(sk: W256.t, m: msg) : (W256.t * W256.t)=
   let (s, prefix) = spec_secret_expand(sk) in
@@ -89,7 +88,7 @@ op spec_verify(pk: W256.t, m: msg, sig: (W256.t*W256.t)) : bool =
   let A = pk in
   let k = asint (SHA2_512_32_32_msg_32(R, A, m)) in
   let S = spec_scalarmult_base(s) in
-  let Rp = (spec_decode_point(R)).`1 in
-  let A = k &* ((spec_decode_point(A)).`1) in
+  let Rp = (spec_decode_point R).`1 in
+  let A = k &* ((spec_decode_point A).`1) in
   let rhs = Rp &+ A in
     (S = spec_encode_point(rhs)).
