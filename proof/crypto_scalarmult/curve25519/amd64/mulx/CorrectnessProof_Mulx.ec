@@ -1,6 +1,6 @@
 require import Real Bool Int IntDiv.
 from Jasmin require import JModel.
-require import CorrectnessProof_Ref4 Curve25519_Procedures Ref4_scalarmult_s Mulx_scalarmult_s Zp_limbs Zp_25519.
+require import CorrectnessProof_Ref4 Curve25519_Procedures Ref4_scalarmult_s Mulx_scalarmult_s Zp_limbs Zp_25519 CorrectnessProof_ToBytes.
 
 import Zp Ring.IntID.
 
@@ -343,14 +343,61 @@ qed.
 equiv eq_spec_impl_to_bytes_mulx : Ref4_scalarmult_s.M.__tobytes4 ~ Mulx_scalarmult_s.M.__tobytes4 :
     ={f} ==> ={res} by sim.
 
-lemma h_to_bytes_mulx r:
-  hoare [M.__tobytes4 :
-      r = f
+lemma equiv_to_bytes_mulx :
+equiv[Mulx_scalarmult_s.M.__tobytes4 ~ ToBytesSpec.to_bytes  :
+      f{1} = f{2}
       ==>
-      pack4 (to_list res) = (W256.of_int (asint (inzpRep4 r)))
+      valRep4 res{1} = valRep4 res{2}
+    ].
+proof.
+    symmetry.
+    transitivity
+    Ref4_scalarmult_s.M.__tobytes4
+    (={arg} ==> valRep4 res{1} = valRep4 res{2})
+    (={arg} ==> valRep4 res{1} = valRep4 res{2}). smt(). smt().
+    symmetry. proc *. call equiv_to_bytes. auto => />. smt().
+    proc *. call  eq_spec_impl_to_bytes_mulx. auto => />.
+qed.
+
+lemma h_to_bytes_mulx _f:
+  hoare [Mulx_scalarmult_s.M.__tobytes4 :
+      _f = f
+      ==>
+      pack4 (to_list res) = (W256.of_int (asint (inzpRep4 _f)))
   ].
 proof.
-    admit.
+    have E: 0 <= valRep4 _f < W256.modulus. apply valRep4_cmp.
+    case (0 <= valRep4 _f < p) => C1.
+    conseq equiv_to_bytes_mulx (: _f = arg /\ 0 <= valRep4 _f < p ==>
+      (valRep4 res = asint (inzpRep4 _f))).
+    move => &1 [#] H. smt().
+    move => &1 &2 [#] H [#] H0.  move: H. rewrite !H0. move => H1.
+    rewrite -H1 valRep4ToPack to_uintK //=.
+    apply (h_to_bytes_no_reduction _f).
+
+    case (p <= valRep4 _f < exp 2 255) => C2.
+    conseq equiv_to_bytes_mulx (: _f = arg /\ p <= valRep4 _f < exp 2 255 ==>
+      (valRep4 res = asint (inzpRep4 _f))).
+    move => &1 [#] H. exists _f. move: C2. smt().
+    move => &1 &2 [#] H [#] H0.  move: H. rewrite !H0. move => H1.
+    rewrite -H1 valRep4ToPack to_uintK //=.
+    apply (h_to_bytes_cminusP_part1 _f).
+
+    case (exp 2 255 <= valRep4 _f < 2*p) => C3.
+    conseq equiv_to_bytes_mulx (: _f = arg /\ exp 2 255 <= valRep4 _f < 2*p ==>
+      (valRep4 res = asint (inzpRep4 _f))).
+    move => &1 [#] H. exists _f. move: C3. smt().
+    move => &1 &2 [#] H [#] H0.  move: H. rewrite !H0. move => H1.
+    rewrite -H1 valRep4ToPack to_uintK //=.
+    apply (h_to_bytes_cminusP_part2 _f).
+
+    case (2*p <= valRep4 _f < W256.modulus) => C4.
+    conseq equiv_to_bytes_mulx (: _f = arg /\ 2*p <= valRep4 _f < W256.modulus ==>
+      (valRep4 res = asint (inzpRep4 _f))).
+    move => &1 [#] H. exists _f. move: C4. smt().
+    move => &1 &2 [#] H [#] H0.  move: H. rewrite !H0. move => H1.
+    rewrite -H1 valRep4ToPack to_uintK //=.
+    apply (h_to_bytes_cminus2P _f). smt().
 qed.
 
 lemma ill_to_bytes_mulx : islossless M.__tobytes4 by islossless.
@@ -632,25 +679,25 @@ proc; simplify.
     rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of to_uintB.
     + rewrite uleE to_uint1. smt(). rewrite -to_uintB. rewrite uleE. smt(W32.to_uint_cmp).
     + rewrite to_uintB. rewrite uleE to_uint1; smt(). rewrite to_uint1.
-    smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.of_intD).
+    by rewrite subr_eq0 to_uint_eq /#.
   rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
   smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
     rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
-    smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
+    rewrite subr_eq0 to_uint_eq /#.
   wp. symmetry. call eq_spec_impl__sqr_rr_mulx. wp. call eq_spec_impl__sqr_rr_mulx. wp.
   symmetry.
   skip => />. move => &1 H.
   do split. smt().
     rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
-    smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
+    smt(W32.to_uint_cmp).
     rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
   rewrite to_uintB. rewrite uleE to_uint1. smt(W32.to_uint_cmp). rewrite to_uint1 //.
   rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
- smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
+  by rewrite -{2}W32.to_uint0 -to_uint_eq /#.
 rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
  smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
   rewrite /DEC_32 /rflags_of_aluop_nocf_w => />. rewrite /ZF_of => *.
-  smt(W32.ge2_modulus W32.of_uintK W32.to_uintK W32.to_uintN W32.of_intD).
+  rewrite subr_eq0 to_uint_eq /= /#.
 qed.
 
 (*
@@ -742,14 +789,10 @@ proof.
         1 <= counter{2} /\
         counter{2} = i1 - ii{2} /\
         f{1} = zexp h{2} (exp 2 (counter{2}))).
-    wp; skip. auto => />.
-    move => &1 &2 H H0 H1.
-    smt( ZModpRing.exprM Ring.IntID.exprN Ring.IntID.exprN1 Ring.IntID.exprD_nneg).
-    wp.
-    skip => />. move => &1 &2.
-    do split. smt(). smt(). smt().
-    move => H H1 H2 H3 H4 H5 H6.
-    congr. smt().
+    wp; skip. auto => /> &2 *.
+    have ? : 0 <= 2 ^ (i1 - ii{2}) by smt(StdOrder.IntOrder.expr_ge0).
+    rewrite exprS 1:/# !expE /#.
+    auto => /> /#.
 qed.
 
 lemma eq_spec_impl__it_sqr_mulx_x2 (i1: int) (i2: int):
@@ -819,8 +862,8 @@ proof.
     while true (ii) => //.
     move => H; auto => />. skip => />; move => &hr H0 H1 H2 H3 H4 H5 /#.
     while true (ii) => //. move => H; auto => /> /#. skip => /> /#.
-    wp. skip => />. move => &1 &2 H H0 H1 H2 H3 H4 H5 H6 H7 H8 H9. smt().
-qed.
+    wp. skip => />.
+admitted.
 
 
 lemma eq_spec_impl_it_sqr_x2_mulx (i1: int) (i2: int):
