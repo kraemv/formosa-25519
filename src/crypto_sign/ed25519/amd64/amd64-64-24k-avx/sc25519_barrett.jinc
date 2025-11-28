@@ -159,7 +159,6 @@ inline fn __barrett_c4
 inline fn __mulL_c0
 ( reg u64    q0,
   reg u64[4] r2,
-  reg u64    z, // zero
   reg bool   cf of // cf = 0 and of = 0
   ) ->
   reg u64[4],
@@ -184,7 +183,6 @@ inline fn __mulL_c0
 inline fn __mulL_c1
 ( reg u64    q1,
   reg u64[4] r2,
-  reg u64    z, // zero
   reg bool   cf of // cf = 0 and of = 0
   ) ->
   reg u64[4],
@@ -210,7 +208,6 @@ inline fn __mulL_c1
 inline fn __mulL_c2
 ( reg u64    q2,
   reg u64[4] r2,
-  reg u64    z, // zero
   reg bool   cf of // cf = 0 and of = 0
   ) ->
   reg u64[4],
@@ -230,7 +227,7 @@ inline fn __mulL_c2
 
 inline fn sc25519_barrett(stack u64[8] x) -> reg u64[4]
 {
-	reg u64 z rax rdx c;
+	reg u64 z rax rdx;
 	reg u64[4] r r2 t;
 	reg u64[6] q;
 	stack u64[4] q3s;
@@ -267,16 +264,16 @@ inline fn sc25519_barrett(stack u64[8] x) -> reg u64[4]
 	// Multiply with L for final reduction
 	// First limb
 	rdx = q3s[0];
-	r2, cf, of = __mulL_c0(rdx, r2, z, cf, of);
+	r2, cf, of = __mulL_c0(rdx, r2, cf, of);
 	
 	// Second limb
 	rdx = q3s[1];
-	r2, cf, of = __mulL_c1(rdx, r2, z, cf, of);
+	r2, cf, of = __mulL_c1(rdx, r2, cf, of);
 	
 	// Third limb
 	?{CF=cf, OF=of}, z = #set0();
 	rdx = q3s[2];
-	r2, cf, of = __mulL_c2(rdx, r2, z, cf, of);
+	r2, cf, of = __mulL_c2(rdx, r2, cf, of);
 	
 	rax = q3s[3];
 	rdx, rax = rax * L[0];
@@ -320,7 +317,7 @@ inline fn sc25519_barrett(stack u64[8] x) -> reg u64[4]
 
 inline fn sc25519_barrett_p(reg ptr u64[8] x) -> reg u64[4]
 {
-	reg u64 z rax rdx c;
+	reg u64 z rax rdx;
 	reg u64[4] r r2 t;
 	reg u64[6] q;
 	stack u64[4] q3s;
@@ -357,16 +354,16 @@ inline fn sc25519_barrett_p(reg ptr u64[8] x) -> reg u64[4]
 	// Multiply with L for final reduction
 	// First limb
 	rdx = q3s[0];
-	r2, cf, of = __mulL_c0(rdx, r2, z, cf, of);
+	r2, cf, of = __mulL_c0(rdx, r2, cf, of);
 	
 	// Second limb
 	rdx = q3s[1];
-	r2, cf, of = __mulL_c1(rdx, r2, z, cf, of);
+	r2, cf, of = __mulL_c1(rdx, r2, cf, of);
 	
 	// Third limb
 	?{CF=cf, OF=of}, z = #set0();
 	rdx = q3s[2];
-	r2, cf, of = __mulL_c2(rdx, r2, z, cf, of);
+	r2, cf, of = __mulL_c2(rdx, r2, cf, of);
 	
 	rax = q3s[3];
 	rdx, rax = rax * L[0];

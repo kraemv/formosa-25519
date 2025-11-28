@@ -20,13 +20,13 @@ inline fn ge25519_nielsadd_p1p1(stack u64[19] pp, reg ptr u64[12] qp) -> stack u
 	as = __sub5_srs(a, pp[0:5]);
 	bs = __add5_srs(b, pp[0:5]);
 	
-	as5 = __mul5_sss(as, qp[0:4]);
-	e = __mul5_rss(bs, qp[4:4]);
+	as5 = __mul5_sp12s_x(qp, as);
+	e = __mul5_rp12s_y(qp, bs);
 	h = #copy(e);
 	r[8:4] = __add5_srs(e, as5);
 	r[0:4] = __sub5_srs(h, as5);
 	
-	c = __mul5_rss(qp[8:4], pp[15:4]);
+	c = __mul5_rp12s_z(qp, pp[15:4]);
 	
 	for i=0 to 5
 	{	f[i] = pp[10+i]; }

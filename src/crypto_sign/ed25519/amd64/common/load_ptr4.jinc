@@ -1,3 +1,11 @@
+/**
+ * function __load_ptr4
+ * @param {u64[4]} src - The memory to load in registers
+ * @returns {u64[4]} - Contents of the memory region
+ * 
+ * This function loads 256-bit from a reg ptr and stores
+ * them in 4 registers
+ */
 inline fn __load_ptr4(reg ptr u64[4] src) -> reg u64[4]
 {
 	reg u64[4] dest;
@@ -9,6 +17,15 @@ inline fn __load_ptr4(reg ptr u64[4] src) -> reg u64[4]
 	return dest;
 }
 
+/**
+ * function __store_ptr4
+ * @param {u64[4]} dest - The memory to store contents
+ * @param {u64[4]} src - The registers we want to store
+ * @returns {u64[4]} - Memory region with stored contents
+ * 
+ * This function loads 256-bit from four registers and stores
+ * them in a 256-bit memory region
+ */
 inline fn __store_ptr4(reg ptr u64[4] dest, reg u64[4] src) -> reg ptr u64[4]
 {
 	dest[0] = src[0];

@@ -177,13 +177,13 @@ inline fn __Wt_part_avx(stack u64[20] W, reg ptr u64[80] Kp, reg u64 tr, inline 
 	reg u128 W_128 X_128;
 	reg u256 D_256 Wsigma1_256 X0 X1;
 	
-	X0 = W.[u256 32*i];
-	X1 = W.[u256 32*i + 8];
+	X0 = W.[:u256 (32*i)];
+	X1 = W.[:u256 (32*i + 8)];
 	X1 = __SSIG0_avx(X1);
 	X0 = #VPADD_4u64(X0, X1);
-	X0 = #VPADD_4u64(X0, W.[u256 (72 + 32*i) % 128]);
+	X0 = #VPADD_4u64(X0, W.[:u256 (72 + 32*i) % 128]);
 	
-	W_128 = W.[u128 (112 + 32*i) % 128];
+	W_128 = W.[:u128 (112 + 32*i) % 128];
 	Wsigma1_256 = __SSIG1_avx(W_128);
 	X0 = #VPADD_4u64(X0, Wsigma1_256);
 	
@@ -191,16 +191,13 @@ inline fn __Wt_part_avx(stack u64[20] W, reg ptr u64[80] Kp, reg u64 tr, inline 
 	Wsigma1_256 = __SSIG1_avx(X_128);
 	Wsigma1_256 = #VPERMQ(Wsigma1_256, 0x4e);
 	X0 = #VPADD_4u64(X0, Wsigma1_256);
-	W[u256 i] = X0;
+	W[:u256 i] = X0;
 	
-	D_256 = #VPADD_4u64(X0, Kp.[u256 (int)8*tr + 32*i]);
+	D_256 = #VPADD_4u64(X0, Kp.[:u256 (int)8*tr + 32*i]);
 	
   return W, D_256;
 }
 
-// inline fn __inner_sha(reg u64 a b c d e f g h, reg ptr u64[80] Kp, reg u256[4] m) -> 
-// reg u64, reg u64, reg u64, reg u64, reg u64, reg u64, reg u64, reg u64
-// inline fn __inner_sha(stack u64[8] H, reg ptr u64[80] Kp, reg u256[4] m) -> stack u64[8]
 inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg u64[8]
 {
 	reg u64 a b c d e f g h;
@@ -238,7 +235,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	eSigma1 = #RORX_64(e, 14);
 	ch ^= f;
 	
-	D[0] = #VPADD_4u64(X[0], Kp[u256 0]);
+	D[0] = #VPADD_4u64(X[0], Kp[:u256 0]);
 	
 	r18 = #RORX_64(e, 18);
 	eSigma1 ^= r18;
@@ -249,7 +246,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	ch ^= g;
 	r34 = #RORX_64(a, 34);
 	r39 = #RORX_64(a, 39);
-	H[u64 7] = h;
+	H[7] = h;
 	
 	aSigma0 ^= r34;
 	h += ch;
@@ -260,10 +257,10 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	aAndb &= a;
 	h += eSigma1;
 	maj[7] = c;
-	wc[u256 0] = #VMOVDQA_256(D[0]);
-	h += wc[u64 0];
+	wc[:u256 0] = #VMOVDQA_256(D[0]);
+	h += wc[0];
 	maj[7] &= maj[6];
-	H[u64 3] = d;
+	H[3] = d;
 	
 	d += h;
 	h += aSigma0;
@@ -279,7 +276,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	X[4] = #VPSHUFB_256(X[4], bswap_256);
 	h += maj[7];
 	r18 = #RORX_64(d, 18);
-	D[4] = #VPADD_4u64(X[4], Kp[u256 1]);
+	D[4] = #VPADD_4u64(X[4], Kp[:u256 1]);
 	ch &= d;
 	dSigma1 ^= r18;
 	maj[6] &= h;
@@ -295,7 +292,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	dSigma1 ^= r41;
 	r34 = #RORX_64(h, 34);
 	H[2] = c;
-	f += wc[u64 2];
+	f += wc[2];
 	r39 = #RORX_64(h, 39);
 	hSigma0 ^= r34;
 	
@@ -303,10 +300,10 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	ch = e;
 	ch ^= d;
 	
-	g += wc[u64 1];
+	g += wc[1];
 	g += dSigma1;
 	
-	W[u256 0] = #VMOVDQA_256(X[0]);
+	W[:u256 0] = #VMOVDQA_256(X[0]);
 	
 	hSigma0 ^= r39;
 	c += g;
@@ -317,14 +314,14 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	g += hSigma0;
 	ch &= c;
 	r18 = #RORX_64(c, 18);
-	W[u256 1] = #VMOVDQA_256(X[4]);
+	W[:u256 1] = #VMOVDQA_256(X[4]);
 	cSigma1 ^= r18;
 	ch ^= e;
 	r41 = #RORX_64(c, 41);
 	maj[4] = h;
 	maj[4] ^= g;
 	gSigma0 = #RORX_64(g, 28);
-	wc[u256 1] = #VMOVDQA_256(D[4]);
+	wc[:u256 1] = #VMOVDQA_256(D[4]);
 	cSigma1 ^= r41;
 	f += ch;
 	r34 = #RORX_64(g, 34);
@@ -336,7 +333,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	maj[5] = a;
 	H[1] = b;
 	f += cSigma1;
-	e += wc[u64 3];
+	e += wc[3];
 	maj[5] &= maj[4];
 	b += f;
 	f += gSigma0;
@@ -362,7 +359,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	r34 = #RORX_64(f, 34);
 	e += bSigma1;
 	fSigma0 ^= r34;
-	d += wc[u64 4];
+	d += wc[4];
 	X[12] = m[3];
 	a += e;
 	r39 = #RORX_64(f, 39);
@@ -380,21 +377,21 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	ch &= a;
 	r41 = #RORX_64(a, 41);
 	eSigma0 = #RORX_64(e, 28);
-	D[8] = #VPADD_4u64(X[8], Kp[u256 2]);
+	D[8] = #VPADD_4u64(X[8], Kp[:u256 2]);
 	aSigma1 ^= r41;
 	ch ^= c;
-	W[u256 2] = #VMOVDQA_256(X[8]);
+	W[:u256 2] = #VMOVDQA_256(X[8]);
 	d += ch;
 	r34 = #RORX_64(e, 34);
 	r39 = #RORX_64(e, 39);
 	maj[2] = f;
 	maj[2] ^= e;
-	wc[u256 2] = #VMOVDQA_256(D[8]);
+	wc[:u256 2] = #VMOVDQA_256(D[8]);
 	eSigma0 ^= r34;
 	d += aSigma1;
 	eAndf = f;
 	eAndf &= e;
-	c += wc[u64 5];
+	c += wc[5];
 	eSigma0 ^= r39;
 	maj[3] = g;
 	maj[3] &= maj[2];
@@ -408,21 +405,21 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	ch ^= a;
 	d += maj[3];
 	hSigma1 = #RORX_64(h, 14);
-	D[12] = #VPADD_4u64(X[12], Kp[u256 3]);
+	D[12] = #VPADD_4u64(X[12], Kp[:u256 3]);
 	ch &= h;
 	r18 = #RORX_64(h, 18);
 	hSigma1 ^= r18;
 	maj[2] &= d;
 	ch ^= b;
 	r41 = #RORX_64(h, 41);
-	W[u256 3] = #VMOVDQA_256(X[12]);
+	W[:u256 3] = #VMOVDQA_256(X[12]);
 	hSigma1 ^= r41;
 	maj[2] ^= eAndf;
 	dSigma0 = #RORX_64(d, 28);
-	wc[u256 3] = #VMOVDQA_256(D[12]);
+	wc[:u256 3] = #VMOVDQA_256(D[12]);
 	c += ch;
 	c += hSigma1;
-	b += wc[u64 6];
+	b += wc[6];
 	
 	// Start of round 7 functions
 	ch = a;
@@ -454,7 +451,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	b += gSigma1;
 	maj[1] = e;
 	maj[1] &= maj[0];
-	a += wc[u64 7];
+	a += wc[7];
 	f += b;
 	b += cSigma0;
 	
@@ -487,10 +484,10 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	for i=0 to 4
 	{
 		// Round 1 functions
-		X[1] = W.[u256 8];
+		X[1] = W.[:u256 8];
 		Xright1 = #VPSRL_4u64(X[1], 1);
 		eSigma1 = #RORX_64(e, 14);
-		h += wc[u64 8];
+		h += wc[8];
 		Xleft63 = #VPSLL_4u64(X[1], 63);
 		ch = g;
 		ch ^= f;
@@ -498,7 +495,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		ch &= e;
 		maj[6] = b;
 		maj[6] ^= a;
-		W_128[14] = W.[u128 112];
+		W_128[14] = W.[:u128 112];
 		r41 = #RORX_64(e, 41);
 		eSigma1 ^= r18;
 		ch ^= g;
@@ -519,7 +516,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		d += h;
 		aSigma0 ^= r39;
 		
-		g += wc[u64 9];
+		g += wc[9];
 		aAndb  = b;
 		aAndb &= a;
 		Wleft45 = #VPSLL_2u64(W_128[14], 45);
@@ -549,10 +546,10 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		hSigma0 = #RORX_64(h, 28);
 		ch ^= f;
 		g += dSigma1;
-		X[0] = #VPADD_4u64(X[0], W.[u256 72]);
+		X[0] = #VPADD_4u64(X[0], W.[:u256 72]);
 		r34 = #RORX_64(h, 34);
 		
-		f += wc[u64 10];
+		f += wc[10];
 		g += ch;
 		hSigma0 ^= r34;
 		r39 = #RORX_64(h, 39);
@@ -583,7 +580,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		r34 = #RORX_64(g, 34);
 		cSigma1 ^= r41;
 		maj[4] = h;
-		X[5] = W.[u256 40];
+		X[5] = W.[:u256 40];
 		maj[4] ^= g;
 		Wright61 = #VPSRL_2u64(X_128, 61);
 		Wsigma1 = Wright19 ^ Wleft45;
@@ -615,27 +612,27 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		ch &= b;
 		maj[4] &= f;
 		ch ^= d;
-		e += wc[u64 11];
+		e += wc[11];
 		bSigma1 ^= r18;
 		r41 = #RORX_64(b, 41);
 		X[0] = #VPADD_4u64(X[0], Wsigma1_256);
 		e += ch;
 		maj[4] ^= gAndh;
 		fSigma0 = #RORX_64(f, 28);
-		D[0] = #VPADD_4u64(X[0], Kp[u256 4*i+4]);
+		D[0] = #VPADD_4u64(X[0], Kp[:u256 4*i+4]);
 		bSigma1 ^= r41;
 		r34 = #RORX_64(f, 34);
-		W[u256 4] = #VMOVDQA_256(X[0]);
+		W[:u256 4] = #VMOVDQA_256(X[0]);
 		e += bSigma1;
 		fSigma0 ^= r34;
 		r39 = #RORX_64(f, 39);
-		d += wc[u64 12];
-		W[u256 0] = #VMOVDQA_256(X[0]);
+		d += wc[12];
+		W[:u256 0] = #VMOVDQA_256(X[0]);
 		a += e;
 		e += maj[4];
 		fSigma0 ^= r39;
-		wc[u256 0] = #VMOVDQA_256(D[0]);
-		W_128[2] = W.[u128 16];
+		wc[:u256 0] = #VMOVDQA_256(D[0]);
+		W_128[2] = W.[:u128 16];
 		e += fSigma0;
 		aSigma1 = #RORX_64(a, 14);
 		
@@ -667,7 +664,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		Xleft56 = #VPSLL_4u64(X[5], 56);
 		h += d;
 		eSigma0 ^= r39;
-		c += wc[u64 13];
+		c += wc[13];
 		eAndf = f;
 		eAndf &= e;
 		Wleft45 = #VPSLL_2u64(W_128[2], 45);
@@ -699,9 +696,9 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		ch ^= b;
 		c += hSigma1;
 		r34 = #RORX_64(d, 34);
-		X[4] = #VPADD_4u64(X[4], W.[u256 104]);
+		X[4] = #VPADD_4u64(X[4], W.[:u256 104]);
 		
-		b += wc[u64 14];
+		b += wc[14];
 		c += ch;
 		dSigma0 ^= r34;
 		r39 = #RORX_64(d, 39);
@@ -734,7 +731,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		maj[0] = d;
 		maj[0] ^= c;
 		Wright61 = #VPSRL_2u64(X_128, 61);
-		X[9] = W.[u256 72];
+		X[9] = W.[:u256 72];
 		cSigma0 ^= r34;
 		Wsigma1 = Wright19 ^ Wleft45;
 		r39 = #RORX_64(c, 39);
@@ -764,17 +761,17 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		r18 = #RORX_64(f, 18);
 		maj[0] &= b;
 		
-		a += wc[u64 15];
+		a += wc[15];
 		ch ^= h;
 		fSigma1 ^= r18;
 		X[4] = #VPADD_4u64(X[4], Wsigma1_256);
 		r41 = #RORX_64(f, 41);
-		W[u256 1] = #VMOVDQA_256(X[4]);
+		W[:u256 1] = #VMOVDQA_256(X[4]);
 		a += ch;
 		maj[0] ^= cAndd;
 		bSigma0 = #RORX_64(b, 28);
-		D[4] = #VPADD_4u64(X[4], Kp[u256 4*i+5]);
-		wc[u256 1] = #VMOVDQA_256(D[4]);
+		D[4] = #VPADD_4u64(X[4], Kp[:u256 4*i+5]);
+		wc[:u256 1] = #VMOVDQA_256(D[4]);
 		fSigma1 ^= r41;
 		r34 = #RORX_64(b, 34);
 		a += fSigma1;
@@ -785,7 +782,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		a += maj[0];
 		bSigma0 ^= r39;
 		eSigma1 = #RORX_64(e, 14);
-		W_128[6] = W.[u128 48];
+		W_128[6] = W.[:u128 48];
 		a += bSigma0;
 		
 		// Start of round 1 functions
@@ -815,7 +812,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		d += h;
 		aSigma0 ^= r39;
 		Xleft56 = #VPSLL_4u64(X[9], 56);
-		g += wc[u64 1];
+		g += wc[1];
 		aAndb  = b;
 		aAndb &= a;
 		h += aSigma0;
@@ -845,10 +842,10 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		hSigma0 = #RORX_64(h, 28);
 		ch ^= f;
 		g += dSigma1;
-		X[8] = #VPADD_4u64(X[8], W.[u256 8]);
+		X[8] = #VPADD_4u64(X[8], W.[:u256 8]);
 		r34 = #RORX_64(h, 34);
 		
-		f += wc[u64 2];
+		f += wc[2];
 		g += ch;
 		hSigma0 ^= r34;
 		Wsigma1 ^= Wleft3;
@@ -904,32 +901,32 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		// Start of round 4 functions
 		ch = d;
 		ch ^= c;
-		X[13] = W.[u256 104];
+		X[13] = W.[:u256 104];
 		Xright1 = #VPSRL_4u64(X[13], 1);
 		f += maj[5];
 		r18 = #RORX_64(b, 18);
 		ch &= b;
 		maj[4] &= f;
 		ch ^= d;
-		e += wc[u64 3];
+		e += wc[3];
 		bSigma1 ^= r18;
 		r41 = #RORX_64(b, 41);
 		X[8] = #VPADD_4u64(X[8], Wsigma1_256);
-		W[u256 2] = #VMOVDQA_256(X[8]);
+		W[:u256 2] = #VMOVDQA_256(X[8]);
 		e += ch;
 		maj[4] ^= gAndh;
 		fSigma0 = #RORX_64(f, 28);
-		D[8] = #VPADD_4u64(X[8], Kp[u256 4*i+6]);
-		wc[u256 2] = #VMOVDQA_256(D[8]);
+		D[8] = #VPADD_4u64(X[8], Kp[:u256 4*i+6]);
+		wc[:u256 2] = #VMOVDQA_256(D[8]);
 		r34 = #RORX_64(f, 34);
 		bSigma1 ^= r41;
 		e += bSigma1;
 		fSigma0 ^= r34;
 		r39 = #RORX_64(f, 39);
-		d += wc[u64 4];
+		d += wc[4];
 		a += e;
 		e += maj[4];
-		W_128[10] = W.[u128 80];
+		W_128[10] = W.[:u128 80];
 		fSigma0 ^= r39;
 		aSigma1 = #RORX_64(a, 14);
 		e += fSigma0;
@@ -961,7 +958,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		r39 = #RORX_64(e, 39);
 		Xleft56 = #VPSLL_4u64(X[13], 56);
 		eSigma0 ^= r39;
-		c += wc[u64 5];
+		c += wc[5];
 		eAndf = f;
 		Wleft45 = #VPSLL_2u64(W_128[10], 45);
 		eAndf &= e;
@@ -993,9 +990,9 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		ch ^= b;
 		c += hSigma1;
 		r34 = #RORX_64(d, 34);
-		X[12] = #VPADD_4u64(X[12], W.[u256 40]);
+		X[12] = #VPADD_4u64(X[12], W.[:u256 40]);
 		
-		b += wc[u64 6];
+		b += wc[6];
 		c += ch;
 		Wsigma1 ^= Wleft3;
 		dSigma0 ^= r34;
@@ -1056,17 +1053,17 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 		ch &= f;
 		r18 = #RORX_64(f, 18);
 		maj[0] &= b;
-		a += wc[u64 7];
+		a += wc[7];
 		ch ^= h;
 		fSigma1 ^= r18;
 		r41 = #RORX_64(f, 41);
 		X[12] = #VPADD_4u64(X[12], Wsigma1_256);
 		a += ch;
-		W[u256 3] = #VMOVDQA_256(X[12]);
+		W[:u256 3] = #VMOVDQA_256(X[12]);
 		maj[0] ^= cAndd;
 		bSigma0 = #RORX_64(b, 28);
-		D[12] = #VPADD_4u64(X[12], Kp[u256 4*i+7]);
-		wc[u256 3] = #VMOVDQA_256(D[12]);
+		D[12] = #VPADD_4u64(X[12], Kp[:u256 4*i+7]);
+		wc[:u256 3] = #VMOVDQA_256(D[12]);
 		fSigma1 ^= r41;
 		r34 = #RORX_64(b, 34);
 		a += fSigma1;
@@ -1080,7 +1077,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	
 	
 	// Start of round 1 functions
-	h += wc[u64 8];
+	h += wc[8];
   eSigma1 = #RORX_64(e, 14);
   ch = g;
 	r18 = #RORX_64(e, 18);
@@ -1103,7 +1100,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	aSigma0 ^= r39;
 	h += eSigma1;
 	maj[7] = c;
-	g += wc[u64 9];
+	g += wc[9];
 	maj[7] &= maj[6];
 	d += h;
 	h += aSigma0;	
@@ -1132,7 +1129,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	r39 = #RORX_64(h, 39);
 	hSigma0 ^= r39;
 	g += hSigma0;
-	f += wc[u64 10];
+	f += wc[10];
 	cSigma1 = #RORX_64(c, 14);
 	
 	// Start of round 3 functions
@@ -1156,7 +1153,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	gSigma0 ^= r39;
 	f += cSigma1;
 	maj[5] = a;
-	e += wc[u64 11];
+	e += wc[11];
 	maj[5] &= maj[4];
 	b += f;
 	f += gSigma0;
@@ -1185,7 +1182,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	r39 = #RORX_64(f, 39);
 	fSigma0 ^= r39;
 	e += fSigma0;
-	d += wc[u64 12];
+	d += wc[12];
 	aSigma1 = #RORX_64(a, 14);
 	
 	// Start of round 5 functions
@@ -1209,7 +1206,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	eSigma0 ^= r39;
 	d += aSigma1;
 	maj[3] = g;
-	c += wc[u64 13];
+	c += wc[13];
 	maj[3] &= maj[2];
 	h += d;
 	d += eSigma0;
@@ -1238,7 +1235,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	r39 = #RORX_64(d, 39);
 	dSigma0 ^= r39;
 	c += dSigma0;
-	b += wc[u64 14];
+	b += wc[14];
 	gSigma1 = #RORX_64(g, 14);
 	
 	// Start of round 7 functions
@@ -1262,7 +1259,7 @@ inline fn __inner_sha(reg u64[8] H_r, reg ptr u64[80] Kp, reg u256[4] m) -> reg 
 	cSigma0 ^= r39;
 	b += gSigma1;
 	maj[1] = e;
-	a += wc[u64 15];
+	a += wc[15];
 	maj[1] &= maj[0];
 	f += b;
 	b += cSigma0;
@@ -1370,7 +1367,7 @@ inline fn _blocks_1_ref(reg ptr u64[8] H, reg ptr u64[32] sblocks, reg u64 nbloc
 		
 		for t=0 to 4
 		{
-			m_buf[t] = #VMOVDQA_256(sblocks[u256 t]);
+			m_buf[t] = #VMOVDQA_256(sblocks[:u256 t]);
 		}
 		
 		// Hs = __inner_sha(Hs, Kp, m_buf);
@@ -1381,8 +1378,8 @@ inline fn _blocks_1_ref(reg ptr u64[8] H, reg ptr u64[32] sblocks, reg u64 nbloc
 		for t=0 to 4
     { 
       // Shift sblocks to the left
-      v_256 = #VMOVDQA_256(sblocks[u256 4+t]);
-      sblocks[u256 t] = #VMOVDQA_256(v_256);
+      v_256 = #VMOVDQA_256(sblocks[:u256 4+t]);
+      sblocks[:u256 t] = #VMOVDQA_256(v_256);
     }
     
     () = #unspill(i);
@@ -1412,7 +1409,7 @@ inline fn __lastblocks_ref(stack u8[128] in, reg u64 inlen bits, #msf reg u64 ms
 	
 	z_256 = #set0_256();
   // Zero-fill the sblocks array
-  for k = 4 to 8 { sblocks[u256 k] = #VMOVDQA_256(z_256); }
+  for k = 4 to 8 { sblocks[:u256 k] = #VMOVDQA_256(z_256); }
   
   inlen_256 = (256u)#VMOV_64(inlen);
   inlen_256 = #VPBROADCAST_32u8(inlen_256);
@@ -1421,11 +1418,11 @@ inline fn __lastblocks_ref(stack u8[128] in, reg u64 inlen bits, #msf reg u64 ms
 	{
 		cmp_lt = #VPCMPGT_32u8(inlen_256, _0_128[k]);
 		cmp_eq = #VPCMPEQ_32u8(inlen_256, _0_128[k]);
-		v_256 = #VMOVDQA_256(in[u256 k]);
-		v_256 = #VPBLENDVB_256(z_256, v_256, cmp_lt);
-		v_256 = #VPBLENDVB_256(v_256, x80, cmp_eq);
+		v_256 = #VMOVDQA_256(in[:u256 k]);
+		v_256 = #BLENDV_32u8(z_256, v_256, cmp_lt);
+		v_256 = #BLENDV_32u8(v_256, x80, cmp_eq);
 		
-		sblocks[u256 k] = #VMOVDQA_256(v_256);
+		sblocks[:u256 k] = #VMOVDQA_256(v_256);
 	}
 
   // check if one or two blocks are needed

@@ -21,16 +21,16 @@ inline fn ge25519_pnielsadd_p1p1(stack u64[18] pp, reg ptr u64[16] qp) -> stack 
 	as = __sub5_srs(a, pp[0:5]);
 	bs = __add5_srs(b, pp[0:5]);
 	
-	as5 = __mul5_sss(as, qp[0:4]);
-	b = __mul5_rss(bs, qp[4:4]);
+	as5 = __mul5_sp16s_x(qp, as);
+	b = __mul5_rp16s_y(qp, bs);
 	
 	c = #copy(b);
 	t[8:4] = __add5_srs(b, as5);
 	
 	t[0:4] = __sub5_srs(c, as5);
 	
-	es5 = __mul5_sss(pp[14:4], qp[12:4]);
-	f = __mul5_rss(pp[10:4], qp[8:4]);
+	es5 = __mul5_sp16s_t(qp, pp[14:4]);
+	f = __mul5_rp16s_z(qp, pp[10:4]);
 	
 	cf, f[0] += f[0];
   for i=1 to 5

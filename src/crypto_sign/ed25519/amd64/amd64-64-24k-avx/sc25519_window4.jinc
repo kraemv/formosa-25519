@@ -25,10 +25,10 @@ inline fn sc25519_window4(reg u64[4] s) -> stack u8[64]
 	r_low = #VPUNPCKL_32u8(v_256, w_256);
 	r_high = #VPUNPCKH_32u8(v_256, w_256);
 	
-	r[u256 0] = r_low;
-	r[u256 1] = r_high;
-	r[u128 2] = #VEXTRACTI128(r_low, 1);
-	r[u128 1] = #VEXTRACTI128(r_high, 0);
+	r[:u256 0] = r_low;
+	r[:u256 1] = r_high;
+	r[:u128 2] = #VEXTRACTI128(r_low, 1);
+	r[:u128 1] = #VEXTRACTI128(r_high, 0);
 	
 	carry = 0;
 	

@@ -4,25 +4,24 @@ fn sc25519_slide(reg u64[4] s, reg ptr u8[256] r, reg u64 swindowsize, #msf reg 
 	#public reg u16 c_2 inv_val neg_val new_val new_window state state_01 xor_val;
 	#public reg bool cond s0 s1 zf;
 	#public reg u64 addr b _1r k i z;
-	// #public stack u8[256] r;
 	
 	swindowsize -= 1;
 	
 	soplen = 256;
 	
-	
+	// Refactor: Use AVX2 and have bad array design
 	k = 0;
 	while {cond=(k < 64);}(cond)
 	{
 		msf = #update_msf(cond, msf);
-		r[(int)k] 			= s[0];
-		r[(int)k]  			&= 1;
-		r[(int)k+64] 		= s[1];
-		r[(int)k+64] 		&= 1;
-		r[(int)k+128] 	= s[2];
-		r[(int)k+128] 	&= 1;
-		r[(int)k+192] 	= s[3];
-		r[(int)k+192] 	&= 1;
+		r[k] 			= s[0];
+		r[k]  			&= 1;
+		r[k+64] 		= s[1];
+		r[k+64] 		&= 1;
+		r[k+128] 	= s[2];
+		r[k+128] 	&= 1;
+		r[k+192] 	= s[3];
+		r[k+192] 	&= 1;
 		
 		s[0] = s[0] >> 1;
 		s[1] = s[1] >> 1;

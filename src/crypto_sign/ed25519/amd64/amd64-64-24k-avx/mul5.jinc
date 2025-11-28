@@ -165,7 +165,42 @@ inline fn __mul5_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[5]
   return red_h;
 }
 
-inline fn __mul5_rpr(reg ptr u64[4] fp, reg u64[4] g) -> reg u64[5]
+inline fn __mul5_rss(stack u64[4] fs, stack u64[4] gs) -> reg u64[5]
+{
+  reg u64[5] h;
+  reg u64[4] g;
+  
+  g = #copy(gs);
+  h = __mul5_rsr(fs, g);
+  
+  return h;
+}
+
+inline fn __mul5_ssr(stack u64[4] fs, reg u64[4] g) -> stack u64[5]
+{
+  reg u64[5] h;
+  stack u64[5] hs;
+  
+  h = __mul5_rsr(fs, g);
+  hs = #copy(h);
+  
+  return hs;
+}
+
+inline fn __mul5_sss(stack u64[4] fs, stack u64[4] gs) -> stack u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  stack u64[5] hs;
+  
+  g = #copy(gs);
+  h = __mul5_rsr(fs, g);
+  hs = #copy(h);
+  
+  return hs;
+}
+
+inline fn __mul5_rp16r_x(reg ptr u64[16] fp, reg u64[4] g) -> reg u64[5]
 {
   reg bool cf of;
   reg u64[4] h r;
@@ -192,38 +227,295 @@ inline fn __mul5_rpr(reg ptr u64[4] fp, reg u64[4] g) -> reg u64[5]
   return red_h;
 }
 
-inline fn __mul5_ssr(stack u64[4] fs, reg u64[4] g) -> stack u64[5]
+inline fn __mul5_rp16r_y(reg ptr u64[16] fp, reg u64[4] g) -> reg u64[5]
 {
-  stack u64[5] hs;
-  reg u64[5] h;
+  reg bool cf of;
+  reg u64[4] h r;
+  reg u64[5] red_h;
+  reg u64 _38 f z;
 
-  h = __mul5_rsr(fs, g);
-  hs = #copy(h);
+  of, cf, _, _, _, z = #set0();
 
-  return hs;
+  f = fp[4];
+  h, r, cf, of = __mul5_c0(      f, g, z, cf, of);
+
+  f = fp[5];
+  h, r, cf, of = __mul5_c1(h, r, f, g, z, cf, of);
+
+  f = fp[6];
+  h, r, cf, of = __mul5_c2(h, r, f, g, z, cf, of);
+
+  f = fp[7];
+  h, r, cf, of = __mul5_c3(h, r, f, g, z, cf, of);
+
+  _38 = 38;
+  red_h = __reduce5(h, r, _38, z, cf, of);
+
+  return red_h;
 }
 
-inline fn __mul5_sss(stack u64[4] fs gs) -> stack u64[5]
+inline fn __mul5_rp16r_z(reg ptr u64[16] fp, reg u64[4] g) -> reg u64[5]
+{
+  reg bool cf of;
+  reg u64[4] h r;
+  reg u64[5] red_h;
+  reg u64 _38 f z;
+
+  of, cf, _, _, _, z = #set0();
+
+  f = fp[8];
+  h, r, cf, of = __mul5_c0(      f, g, z, cf, of);
+
+  f = fp[9];
+  h, r, cf, of = __mul5_c1(h, r, f, g, z, cf, of);
+
+  f = fp[10];
+  h, r, cf, of = __mul5_c2(h, r, f, g, z, cf, of);
+
+  f = fp[11];
+  h, r, cf, of = __mul5_c3(h, r, f, g, z, cf, of);
+
+  _38 = 38;
+  red_h = __reduce5(h, r, _38, z, cf, of);
+
+  return red_h;
+}
+
+inline fn __mul5_rp16r_t(reg ptr u64[16] fp, reg u64[4] g) -> reg u64[5]
+{
+  reg bool cf of;
+  reg u64[4] h r;
+  reg u64[5] red_h;
+  reg u64 _38 f z;
+
+  of, cf, _, _, _, z = #set0();
+
+  f = fp[12];
+  h, r, cf, of = __mul5_c0(      f, g, z, cf, of);
+
+  f = fp[13];
+  h, r, cf, of = __mul5_c1(h, r, f, g, z, cf, of);
+
+  f = fp[14];
+  h, r, cf, of = __mul5_c2(h, r, f, g, z, cf, of);
+
+  f = fp[15];
+  h, r, cf, of = __mul5_c3(h, r, f, g, z, cf, of);
+
+  _38 = 38;
+  red_h = __reduce5(h, r, _38, z, cf, of);
+
+  return red_h;
+}
+
+inline fn __mul5_rp12r_x(reg ptr u64[12] fp, reg u64[4] g) -> reg u64[5]
+{
+  reg bool cf of;
+  reg u64[4] h r;
+  reg u64[5] red_h;
+  reg u64 _38 f z;
+
+  of, cf, _, _, _, z = #set0();
+
+  f = fp[0];
+  h, r, cf, of = __mul5_c0(      f, g, z, cf, of);
+
+  f = fp[1];
+  h, r, cf, of = __mul5_c1(h, r, f, g, z, cf, of);
+
+  f = fp[2];
+  h, r, cf, of = __mul5_c2(h, r, f, g, z, cf, of);
+
+  f = fp[3];
+  h, r, cf, of = __mul5_c3(h, r, f, g, z, cf, of);
+
+  _38 = 38;
+  red_h = __reduce5(h, r, _38, z, cf, of);
+
+  return red_h;
+}
+
+inline fn __mul5_rp12r_y(reg ptr u64[12] fp, reg u64[4] g) -> reg u64[5]
+{
+  reg bool cf of;
+  reg u64[4] h r;
+  reg u64[5] red_h;
+  reg u64 _38 f z;
+
+  of, cf, _, _, _, z = #set0();
+
+  f = fp[4];
+  h, r, cf, of = __mul5_c0(      f, g, z, cf, of);
+
+  f = fp[5];
+  h, r, cf, of = __mul5_c1(h, r, f, g, z, cf, of);
+
+  f = fp[6];
+  h, r, cf, of = __mul5_c2(h, r, f, g, z, cf, of);
+
+  f = fp[7];
+  h, r, cf, of = __mul5_c3(h, r, f, g, z, cf, of);
+
+  _38 = 38;
+  red_h = __reduce5(h, r, _38, z, cf, of);
+
+  return red_h;
+}
+
+inline fn __mul5_rp12r_z(reg ptr u64[12] fp, reg u64[4] g) -> reg u64[5]
+{
+  reg bool cf of;
+  reg u64[4] h r;
+  reg u64[5] red_h;
+  reg u64 _38 f z;
+
+  of, cf, _, _, _, z = #set0();
+
+  f = fp[8];
+  h, r, cf, of = __mul5_c0(      f, g, z, cf, of);
+
+  f = fp[9];
+  h, r, cf, of = __mul5_c1(h, r, f, g, z, cf, of);
+
+  f = fp[10];
+  h, r, cf, of = __mul5_c2(h, r, f, g, z, cf, of);
+
+  f = fp[11];
+  h, r, cf, of = __mul5_c3(h, r, f, g, z, cf, of);
+
+  _38 = 38;
+  red_h = __reduce5(h, r, _38, z, cf, of);
+
+  return red_h;
+}
+
+inline fn __mul5_rp12s_x(reg ptr u64[12] fp, stack u64[4] gs) -> reg u64[5]
 {
   reg u64[4] g;
   reg u64[5] h;
-  stack u64[5] hs;
-
   g = #copy(gs);
-  h = __mul5_rsr(fs, g);
-  hs = #copy(h);
-
-  return hs;
-}
-
-inline fn __mul5_rss(stack u64[4] fs gs) -> reg u64[5]
-{
-  reg u64[4] g;
-  reg u64[5] h;
-
-  g = #copy(gs);
-  h = __mul5_rsr(fs, g);
-
+  
+  h = __mul5_rp12r_x(fp, g);
+  
   return h;
 }
 
+inline fn __mul5_sp12s_x(reg ptr u64[12] fp, stack u64[4] gs) -> stack u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  stack u64[5] hs;
+  
+  g = #copy(gs);
+  h = __mul5_rp12r_x(fp, g);
+  hs = #copy(h);
+  
+  return hs;
+}
+
+inline fn __mul5_rp12s_y(reg ptr u64[12] fp, stack u64[4] gs) -> reg u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  
+  g = #copy(gs);
+  h = __mul5_rp12r_y(fp, g);
+  
+  return h;
+}
+
+inline fn __mul5_sp12s_y(reg ptr u64[12] fp, stack u64[4] gs) -> stack u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  stack u64[5] hs;
+  
+  g = #copy(gs);
+  h = __mul5_rp12r_y(fp, g);
+  hs = #copy(h);
+  
+  return hs;
+}
+
+inline fn __mul5_rp12s_z(reg ptr u64[12] fp, stack u64[4] gs) -> reg u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  g = #copy(gs);
+  
+  h = __mul5_rp12r_z(fp, g);
+  
+  return h;
+}
+
+inline fn __mul5_rp16s_x(reg ptr u64[16] fp, stack u64[4] gs) -> reg u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  g = #copy(gs);
+  
+  h = __mul5_rp16r_x(fp, g);
+  
+  return h;
+}
+
+inline fn __mul5_sp16s_x(reg ptr u64[16] fp, stack u64[4] gs) -> stack u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  stack u64[5] hs;
+  
+  g = #copy(gs);
+  h = __mul5_rp16r_x(fp, g);
+  hs = #copy(h);
+  
+  return hs;
+}
+
+inline fn __mul5_rp16s_y(reg ptr u64[16] fp, stack u64[4] gs) -> reg u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  g = #copy(gs);
+  
+  h = __mul5_rp16r_y(fp, g);
+  
+  return h;
+}
+
+inline fn __mul5_sp16s_y(reg ptr u64[16] fp, stack u64[4] gs) -> stack u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  stack u64[5] hs;
+  
+  g = #copy(gs);
+  h = __mul5_rp16r_y(fp, g);
+  hs = #copy(h);
+  
+  return hs;
+}
+
+inline fn __mul5_rp16s_z(reg ptr u64[16] fp, stack u64[4] gs) -> reg u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  g = #copy(gs);
+  
+  h = __mul5_rp16r_z(fp, g);
+  
+  return h;
+}
+
+inline fn __mul5_sp16s_t(reg ptr u64[16] fp, stack u64[4] gs) -> stack u64[5]
+{
+  reg u64[4] g;
+  reg u64[5] h;
+  stack u64[5] hs;
+  
+  g = #copy(gs);
+  h = __mul5_rp16r_t(fp, g);
+  hs = #copy(h);
+  
+  return hs;
+}

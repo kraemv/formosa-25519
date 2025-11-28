@@ -30,17 +30,17 @@ inline fn ge25519_pack(stack u64[12] pp, #msf reg u64 msf) -> reg u256, #msf reg
 	r = __fe25519_pack(ry);
 	for i=0 to 4
 	{
-		rs[u64 i] = r[i];
+		rs[:u64 i] = r[i];
 	}
 	
 	rxs = __freeze4_ss(rxs);
-	par = rxs[u8 0];
+	par = rxs[:u8 0];
   par = par & 1;
   par = par << 7;
   
   rs[31] ^= par;
   
-  res = rs[u256 0];
+  res = rs[:u256 0];
   msf = #mov_msf(msf_s);
   
   return res, msf;

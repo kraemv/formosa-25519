@@ -46,12 +46,12 @@ fn mGnP(reg ptr u8[33] Q, reg u64[4] m, reg ptr u64[8] np, reg ptr u8[32] P, #ms
 	n = #copy(n_s);
 	m = #copy(m_red);
 	
-	r, msf = __ge25519_double_scalarmult_vartime(r, ps, n, m, msf);
+	r, msf = __ge25519_double_scalarmult_vartime(ps, n, m, msf);
   v_256, msf = ge25519_pack(r, msf);
   
   Q = Qs;
   valid = valids;
-  Q[u256 0] = #VMOVDQA_256(v_256);
+  Q[:u256 0] = #VMOVDQA_256(v_256);
   Q[32] = valid;
   
   return Q, msf;

@@ -61,7 +61,7 @@ fn _curve25519_mulx_base(reg u64 k0 k1 k2 k3, #msf reg u64 msf) -> reg u64, reg 
 	ry = #copy(rys);
 	r = __fe25519_pack(ry);
   
-  par = rxs[u64 0];
+  par = rxs[0];
   par &= 0x1;
   
   temp = 1;

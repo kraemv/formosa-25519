@@ -38,10 +38,10 @@ inline fn ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf re
 	
 	for i=0 to 3
 	{
-		ry[i] = pp[u64 i];
+		ry[i] = pp[:u64 i];
 		rs[4+i] = ry[i];
 	}
-	ry[3] = pp[u64 3];
+	ry[3] = pp[:u64 3];
 	ry[3] &= 0x7fffffffffffffff;
 	rs[7] = ry[3];
 	
@@ -50,7 +50,7 @@ inline fn ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf re
 	pcheck = __freeze4_ss(rs[4:4]);
 	par = pars;
 	par = par << 7;
-	pcheck[u8 31] |= par;
+	pcheck[:u8 31] |= par;
 	cmp_8 = __cmp4_ps(pp, pcheck);
 	
 	valid = (64u)cmp_8;
@@ -199,12 +199,12 @@ inline fn ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf re
 	valid =-valid;
 	valid_256 = (256u)#VMOV_64(valid);
 	valid_256 = #VPBROADCAST_32u8(valid_256);
-	v_256 = point26_x[u256 0];
-	v_256 = #VPBLENDVB_256(v_256, rs[u256 0], valid_256);
-	rs[u256 0] = v_256;
-	v_256 = point26_y[u256 0];
-	v_256 = #VPBLENDVB_256(v_256, rs[u256 1], valid_256);
-	rs[u256 1] = v_256;
+	v_256 = point26_x[:u256 0];
+	v_256 = #BLENDV_32u8(v_256, rs[:u256 0], valid_256);
+	rs[:u256 0] = v_256;
+	v_256 = point26_y[:u256 0];
+	v_256 = #BLENDV_32u8(v_256, rs[:u256 1], valid_256);
+	rs[:u256 1] = v_256;
 	
 	for i=0 to 4
 	{

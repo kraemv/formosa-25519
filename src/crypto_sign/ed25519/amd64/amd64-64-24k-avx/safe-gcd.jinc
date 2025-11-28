@@ -51,62 +51,62 @@ inline fn __precompute_FVGS(reg u64[4] a) -> stack u256[9]
 	// Precompute FVGS = f, v, g, s
 	// f = p, v = 0, g = x, s = some mask
 	// 1073741823 = 0x3fffffff
-	d1 = table[u256 9];
+	d1 = table[:u256 9];
 	stack_FVGS[0] = d1;
 	t0 = a[0];
 	t0 &= 1073741823;
-	stack_FVGS[u64 2] = t0;
+	stack_FVGS[:u64 2] = t0;
 	
-	d1 = table[u256 10];
+	d1 = table[:u256 10];
 	stack_FVGS[1] = d1;
 	t0 = a[0];
 	t0 >>= 30;
 	t0 &= 1073741823;
-	stack_FVGS[u64 6] = t0;
+	stack_FVGS[:u64 6] = t0;
 	
-	d1 = table[u256 11];
+	d1 = table[:u256 11];
 	stack_FVGS[2] = d1;
 	_, _, _, _, _, a[0] = #SHRD_64(a[0], a[1], 60);
 	a[0] &= 1073741823;
-	stack_FVGS[u64 10] = a[0];
+	stack_FVGS[:u64 10] = a[0];
 	
-	d1 = table[u256 12];
+	d1 = table[:u256 12];
 	stack_FVGS[3] = d1;
 	t0 = a[1];
 	t0 >>= 26;
 	t0 &= 1073741823;
-	stack_FVGS[u64 14] = t0;
+	stack_FVGS[:u64 14] = t0;
 	
-	d1 = table[u256 13];
+	d1 = table[:u256 13];
 	stack_FVGS[4] = d1;
 	_, _, _, _, _, a[1] = #SHRD_64(a[1], a[2], 56);
 	a[1] &= 1073741823;
-	stack_FVGS[u64 18] = a[1];
+	stack_FVGS[:u64 18] = a[1];
 	
-	d1 = table[u256 14];
+	d1 = table[:u256 14];
 	stack_FVGS[5] = d1;
 	t0 = a[2];
 	t0 >>= 22;
 	t0 &= 1073741823;
-	stack_FVGS[u64 22] = t0;
+	stack_FVGS[:u64 22] = t0;
 	
-	d1 = table[u256 15];
+	d1 = table[:u256 15];
 	stack_FVGS[6] = d1;
 	_, _, _, _, _, a[2] = #SHRD_64(a[2], a[3], 52);
 	a[2] &= 1073741823;
-	stack_FVGS[u64 26] = a[2];
+	stack_FVGS[:u64 26] = a[2];
 	
-	d1 = table[u256 16];
+	d1 = table[:u256 16];
 	stack_FVGS[7] = d1;
 	t0 = a[3];
 	t0 >>= 18;
 	t0 &= 1073741823;
-	stack_FVGS[u64 30] = t0;
+	stack_FVGS[:u64 30] = t0;
 	
-	d1 = table[u256 17];
+	d1 = table[:u256 17];
 	stack_FVGS[8] = d1;
 	a[3] >>= 48;
-	stack_FVGS[u64 34] = a[3];
+	stack_FVGS[:u64 34] = a[3];
 	
 	return stack_FVGS;
 }
@@ -136,7 +136,7 @@ inline fn divstep(reg u64 grs fuv m z) -> reg u64, reg u64, reg u64
 
 fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 {
-	reg u64 a4 a5 a6 y0 y1 y2 y3;
+	reg u64 a4 a5 a6;
 	reg u64 f f0 g g0 h i m mnew r s u v z;
 	reg u64 fuv grs oldg;
 	reg u64 rax rdx;
@@ -150,7 +150,7 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	reg u256[9] FVGS GSFV;
 	reg u256[10] outplus;
 	reg u256[11] out;
-	stack u64 _m2p62s _2p20s _m2p41s _m2p20s _2p20a2p41s;
+	stack u64 _m2p62s _2p20s _m2p41s _2p20a2p41s;
 	stack u64[2] m1s;
 	stack u256 _19x4s _0_19x4s _32767x4s _inv19_2p30x4s _2p30m1x4s _2p33x4s _2p48x4s _2p63x4s;
 	stack u256[1] vvrrs uusss fxgxs fygys;
@@ -195,46 +195,45 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	
 	// -2**20
 	_m2p20 = -1048576;
-	_m2p20s = _m2p20;
 	
 	// 2**20 + 2**41
 	_2p20a2p41 = 2199024304128;
 	_2p20a2p41s = _2p20a2p41;
 	
 	// (19, 19, 19, 19)
-	_19x4 = table[u256 0];
+	_19x4 = table[:u256 0];
 	_19x4s = _19x4;
 	
 	// (0, 19, 0, 19)
-	_0_19x4 = table[u256 1];
+	_0_19x4 = table[:u256 1];
 	_0_19x4s = _0_19x4;
 	
 	// (-1, 32767, -1, 32767)
-	_32767x4 = table[u256 2];
+	_32767x4 = table[:u256 2];
 	_32767x4s = _32767x4;
 	
 	// 19**(-1) % 2**30
-	_inv19_2p30x4 = table[u256 3];
+	_inv19_2p30x4 = table[:u256 3];
 	_inv19_2p30x4s = _inv19_2p30x4;
 	
 	// 2**30 - 1
-	_2p30m1x4 = table[u256 4];
+	_2p30m1x4 = table[:u256 4];
 	_2p30m1x4s = _2p30m1x4;
 	
 	// 2**33
-	_2p33x4 = table[u256 5];
+	_2p33x4 = table[:u256 5];
 	_2p33x4s = _2p33x4;
 	
 	// 2**48
-	_2p48x4 = table[u256 6];
+	_2p48x4 = table[:u256 6];
 	_2p48x4s = _2p48x4;
 	
 	// 2**63
-	_2p63x4 = table[u256 7];
+	_2p63x4 = table[:u256 7];
 	_2p63x4s = _2p63x4;
 	
 	// 2**63 - 2**33
-	_2p63m2p33x4 = table[u256 8];
+	_2p63m2p33x4 = table[:u256 8];
 	
 	i = 10;
 	// 2**60
@@ -248,8 +247,6 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	g0 = 0;
 	
 	
-	
-	// Protect here
 	while{cond = (i != 0); msf = #mov_msf(msf_s);}(cond){
 		// Compute g*((s<<128)+v) + f*((r<<128)+u)
 		// f = Bits 60 to 124, g=t[2] = Bits 128 + 60 to 128+124
@@ -837,10 +834,10 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 		
 		// STACK_FVGS and f,g, m are correct
 		
-		vvrrs[u64 0] = v;
-		uusss[u64 0] = u;
-		uusss[u64 2] = s;
-		vvrrs[u64 2] = r;
+		vvrrs[:u64 0] = v;
+		uusss[:u64 0] = u;
+		uusss[:u64 2] = s;
+		vvrrs[:u64 2] = r;
 		
 		// loop 20
 		fuv = ! _m2p20 & f;
@@ -895,30 +892,30 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 		_, _, _, _, _, f = #SAR(f, 20);
 		_, _, _, _, _, g = #SAR(g, 20);
 		
-		t[0] = uusss[u64 0];
+		t[0] = uusss[:u64 0];
 		t[0] *= u;
 		
-		t[1] = vvrrs[u64 2];
+		t[1] = vvrrs[:u64 2];
 		t[1] *= v;
 		
-		rtimesoldv = vvrrs[u64 0];
+		rtimesoldv = vvrrs[:u64 0];
 		u *= rtimesoldv;
-		stimesolds = uusss[u64 2];
+		stimesolds = uusss[:u64 2];
 		v *= stimesolds;
 		rtimesoldv *= r;
 		stimesolds *= s;
-		r *= uusss[u64 0];
-		s *= vvrrs[u64 2];
+		r *= uusss[:u64 0];
+		s *= vvrrs[:u64 2];
 		v += u;
 		u = #LEA(t[0] + t[1]);
 		r += s;
 		s = #LEA(rtimesoldv + stimesolds);
 		
 		// first_loop
-		vvrrs[u64 0] = v;
-		uusss[u64 0] = u;
-		uusss[u64 2] = s;
-		vvrrs[u64 2] = r;
+		vvrrs[:u64 0] = v;
+		uusss[:u64 0] = u;
+		uusss[:u64 2] = s;
+		vvrrs[:u64 2] = r;
 
 		fuv = ! _m2p20 & f;
 		grs = ! _m2p20 & g;
@@ -951,9 +948,9 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 		_, _, _, _, _, s = #SAR(s, 42);
 		v = #LEA(fuv + _2p20a2p41);
 		_, _, _, _, _, v = #SAR(v, 42);
-		t[1] = vvrrs[u64 2];
+		t[1] = vvrrs[:u64 2];
 		t[1] *= v;
-		stimesolds = uusss[u64 2];
+		stimesolds = uusss[:u64 2];
 		v *= stimesolds;
 		stimesolds *= s;
 		
@@ -961,28 +958,26 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 		r = #LEA(grs + _2p20);
 		r = r << 22;
 		_, _, _, _, _, r = #SAR(r, 43);
-		rax = f;
-		rax *= r;
 		u = #LEA(fuv + _2p20);
 		u = u << 22;
 		_, _, _, _, _, u = #SAR(u, 43);
 		
-		t[0] = uusss[u64 0];
+		t[0] = uusss[:u64 0];
 		t[0] *= u;
-		rtimesoldv = vvrrs[u64 0];
+		rtimesoldv = vvrrs[:u64 0];
 		u *= rtimesoldv;
 		rtimesoldv *= r;
-		s *= vvrrs[u64 2];
-		r *= uusss[u64 0];
+		s *= vvrrs[:u64 2];
+		r *= uusss[:u64 0];
 		v += u;
 		u = #LEA(t[0] + t[1]);
 		r += s;
 		s = #LEA(rtimesoldv + stimesolds);
 		
-		f = fxgxs[u64 0];
-		g = fxgxs[u64 2];
-		f0 = fygys[u64 0];
-		g0 = fygys[u64 2];
+		f = fxgxs[:u64 0];
+		g = fxgxs[:u64 2];
+		f0 = fygys[:u64 0];
+		g0 = fygys[:u64 2];
 		
 		i -= 1;
 	}
@@ -1002,28 +997,28 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	v *= t[0];
 	
 	// cneg
-	rax = stack_FVGS[u64 8*4 + 1];
+	rax = stack_FVGS[:u64 8*4 + 1];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, u);
 	a4 = rdx;
 	y[3] = rax;
 	
-	rax = stack_FVGS[u64 8*4 + 3];
+	rax = stack_FVGS[:u64 8*4 + 3];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, v);
 	cf, y[3] += rax;
 	_, a4 += rdx + cf;
 	_, _, _, _, _, a4 = #SHLD_64(a4, y[3], 48);
 	y[3] <<= 48;
 	
-	rax = stack_FVGS[u64 6*4 + 1];
-	t[0] = stack_FVGS[u64 7*4 + 1];
+	rax = stack_FVGS[:u64 6*4 + 1];
+	t[0] = stack_FVGS[:u64 7*4 + 1];
 	t[0] <<= 30;
 	rax += t[0];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, u);
 	t[2] = rdx;
 	t[1] = rax;
 	
-	rax = stack_FVGS[u64 6*4 + 3];
-	t[0] = stack_FVGS[u64 7*4 + 3];
+	rax = stack_FVGS[:u64 6*4 + 3];
+	t[0] = stack_FVGS[:u64 7*4 + 3];
 	t[0] <<= 30;
 	rax += t[0];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, v);
@@ -1037,16 +1032,16 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	cf, y[3] += t[1];
 	_, a4 += t[2] + cf;
 	
-	rax = stack_FVGS[u64 4*4 + 1];
-	t[0] = stack_FVGS[u64 5*4 + 1];
+	rax = stack_FVGS[:u64 4*4 + 1];
+	t[0] = stack_FVGS[:u64 5*4 + 1];
 	t[0] <<= 30;
 	rax += t[0];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, u);
 	t[2] = rdx;
 	t[1] = rax;
 	
-	rax = stack_FVGS[u64 4*4 + 3];
-	t[0] = stack_FVGS[u64 5*4 + 3];
+	rax = stack_FVGS[:u64 4*4 + 3];
+	t[0] = stack_FVGS[:u64 5*4 + 3];
 	t[0] <<= 30;
 	rax += t[0];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, v);
@@ -1063,16 +1058,16 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	cf, y[3] += t[2] + cf;
 	_, a4 += h + cf;
 	
-	rax = stack_FVGS[u64 2*4 + 1];
-	t[0] = stack_FVGS[u64 3*4 + 1];
+	rax = stack_FVGS[:u64 2*4 + 1];
+	t[0] = stack_FVGS[:u64 3*4 + 1];
 	t[0] <<= 30;
 	rax += t[0];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, u);
 	t[2] = rdx;
 	t[1] = rax;
 	
-	rax = stack_FVGS[u64 2*4 + 3];
-	t[0] = stack_FVGS[u64 3*4 + 3];
+	rax = stack_FVGS[:u64 2*4 + 3];
+	t[0] = stack_FVGS[:u64 3*4 + 3];
 	t[0] <<= 30;
 	rax += t[0];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, v);
@@ -1090,16 +1085,16 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	cf, y[3] += h + cf;
 	_, a4 += h + cf;
 	
-	rax = stack_FVGS[u64 0*4 + 1];
-	t[0] = stack_FVGS[u64 1*4 + 1];
+	rax = stack_FVGS[:u64 0*4 + 1];
+	t[0] = stack_FVGS[:u64 1*4 + 1];
 	t[0] <<= 30;
 	rax += t[0];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, u);
 	t[2] = rdx;
 	t[1] = rax;
 	
-	rax = stack_FVGS[u64 0*4 + 3];
-	t[0] = stack_FVGS[u64 1*4 + 3];
+	rax = stack_FVGS[:u64 0*4 + 3];
+	t[0] = stack_FVGS[:u64 1*4 + 3];
 	t[0] <<= 30;
 	rax += t[0];
 	_, _, _, _, _, rdx, rax = #IMUL(rax, v);
@@ -1143,7 +1138,6 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	cf, y[1] += rdx + cf;
 	cf, y[2] += h + cf;
 	cf, y[3] += h + cf;
-	_, a4 += h + cf;
 	
 	z = 0;
 	a4 = -19;
@@ -1179,11 +1173,6 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	cf, y[1] -= 0 - cf;
 	cf, y[2] -= 0 - cf;
 	_, y[3] -= 0 - cf;
-	
-	y0 = y[0];
-	y1 = y[1];
-	y2 = y[2];
-	y3 = y[3];
 	
 	msf = #mov_msf(msf_s);
 	

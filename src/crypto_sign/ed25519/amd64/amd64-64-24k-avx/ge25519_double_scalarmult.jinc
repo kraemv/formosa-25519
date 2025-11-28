@@ -24,7 +24,7 @@ param int S1_SWINDOWSIZE = 5;
 param int PRE1_SIZE = 8;
 param int S2_SWINDOWSIZE = 7;
 
-inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, reg u64 n0 n1 n2 n3 m0 m1 m2 m3, #msf reg u64 msf) -> stack u64[12], #msf reg u64
+inline fn ge25519_double_scalarmult_vartime(stack u64[16] p1, reg u64 n0 n1 n2 n3 m0 m1 m2 m3, #msf reg u64 msf) -> stack u64[12], #msf reg u64
 {
 	reg u8 slide_8;
 	reg u64 j k slide_64 windowsize;
@@ -36,16 +36,17 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 	stack u8[256] n_slide m_slide;
 	stack u64[4] ms;
 	stack u64[5] xaddy5s;
-	stack u64[12] q_niels;
-	stack u64[16] q_pniels t rs;
+	stack u64[12] r;
+	stack u64[16] t rs;
 	stack u64[18] d1 p3;
 	stack u64[19] p3_19;
 	stack u64[PRE1_SIZE*16] pre1;
 	reg ptr u8[256] np mp;
-	reg ptr u64[12] pre1p_12 r12;
-	reg ptr u64[16] pre1p;
-	reg ptr u64[384] pre2p;
 	reg ptr u64[4] ptr_arg;
+	reg ptr u64[12] op_12 pre1p_12 r12;
+	reg ptr u64[16] op_16 pre1p_16;
+	reg ptr u64[PRE1_SIZE*16] pre1p;
+	reg ptr u64[384] pre2p;
 	reg bool cond;
 	inline int i offs;
 	#mmx reg u64 msf_s;
@@ -59,8 +60,6 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 	m[1] = m1;
 	m[2] = m2;
 	m[3] = m3;
-	
-	pre2p = pre2;
 	
 	// Compute sliding windows
 	ms = #copy(m);
@@ -82,8 +81,8 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 	// Precompute multiples
 	// Initialize
 	for i=0 to 4{
-		v_256 = p1[u256 i];
-		pre1[u256 i] = v_256;
+		v_256 = p1[:u256 i];
+		pre1[:u256 i] = v_256;
 	}
 	
 	pre1p_12 = pre1[0:12];
@@ -96,11 +95,11 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 	pre1[12:4] = __mul4_ssr(ec2d, t2d);
 	
 	// Multiples
-	for i=0 to PRE1_SIZE-1{
-		offs = 16*(i+1);
-		
-		pre1p = pre1[16*i:16];
-		t = ge25519_pnielsadd_p1p1(d1, pre1p);
+	for i= 0 to PRE1_SIZE-1 {
+	  offs = 16*(i+1);
+	  
+		pre1p_16 = pre1[16*i:16];
+		t = ge25519_pnielsadd_p1p1(d1, pre1p_16);
 		pre1[offs+8:4]  = __mul4_sss(t[4:4], t[12:4]);
 		pre1[offs+12:4] = __mul4_sss(t[0:4], t[8:4]);
 		xaddy5s = __mul5_sss(t[4:4], t[8:4]);
@@ -114,6 +113,7 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 		xaddy = __add5_rrr(_xaddy5, ysubx5);
 		pre1[offs + 4:4] = #copy(xaddy);
 		pre1[offs + 12:4] = __mul4_sss(ec2d, pre1[offs + 12:4]);
+		
 	}
 	
 	
@@ -127,8 +127,8 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 	
 	while{cond = (j >=s 0);}(cond){
 		msf = #update_msf(cond, msf);
-		slide_8 = n_slide[(int)j];
-		slide_8 |= m_slide[(int)j];
+		slide_8 = n_slide[j];
+		slide_8 |= m_slide[j];
 		
 		slide_8 = -slide_8;
 		slide_64 = (64s)slide_8;
@@ -146,10 +146,10 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 		ks = k;
 		
 		r12 = rs[0:12];
-		t = ge25519_dbl_p1p1(r12); // Correct value here
+		t = ge25519_dbl_p1p1(r12);
 		
 		k = ks;
-		slide_8 = n_slide[(int)k];
+		slide_8 = n_slide[k];
 		slide_8 = #protect_8(slide_8, msf);
 		cond = (slide_8 >s 0);
 		if(cond){
@@ -159,12 +159,10 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 			slide_64 = (64u)slide_8;
 			_,_,_,_,_,slide_64 = #IMULri ( slide_64, 16 );
 			
-			for i = 0 to 16{
-				q_pniels[i] = pre1[(int)slide_64 + i];
-			}
-			
+			pre1p = pre1;
+			op_16 = pre1p[slide_64: 16];
 			p3 = ge25519_p1p1_to_p3(t);
-			t = ge25519_pnielsadd_p1p1(p3, q_pniels);
+			t = ge25519_pnielsadd_p1p1(p3, op_16);
 			msf = #mov_msf(msf_s);
 		}
 		else{
@@ -179,11 +177,10 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 				slide_8 = slide_8 >> 1;
 				slide_64 = (64u)slide_8;
 				_,_,_,_,_,slide_64 = #IMULri ( slide_64, 16 );
-
-				for i = 0 to 16{
-					q_pniels[i] = pre1[(int)slide_64 + i];
-				}
-				t = ge25519_pnielssub_p1p1(p3, q_pniels);
+        
+        pre1p = pre1;
+				op_16 = pre1p[slide_64: 16];
+				t = ge25519_pnielssub_p1p1(p3, op_16);
 				msf = #mov_msf(msf_s);
 			}
 			else{
@@ -192,7 +189,7 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 		}
 		
 		k = ks;
-		slide_8 = m_slide[(int)k];
+		slide_8 = m_slide[k];
 		slide_8 = #protect_8(slide_8, msf);
 		cond = (slide_8 >s 0);
 		if(cond){
@@ -203,12 +200,9 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 			_,_,_,_,_,slide_64 = #IMULri ( slide_64, 12 );
 			
 			pre2p = pre2;
-			for i = 0 to 12{
-				q_niels[i] = pre2p[(int)slide_64 + i];
-			}
-			
+			op_12 = pre2p[slide_64: 12];
 			p3_19 = ge25519_p1p1_to_p3_19(t);
-			t = ge25519_nielsadd_p1p1(p3_19, q_niels);
+			t = ge25519_nielsadd_p1p1(p3_19, op_12);
 			msf = #mov_msf(msf_s);
 		}
 		else{
@@ -223,11 +217,9 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 				_,_,_,_,_,slide_64 = #IMULri ( slide_64, 12 );
 				
 				pre2p = pre2;
-				for i = 0 to 12{
-					q_niels[i] = pre2p[(int)slide_64 + i];
-				}
+				op_12 = pre2p[slide_64: 12];
 				p3_19 = ge25519_p1p1_to_p3_19(t);
-				t = ge25519_nielssub_p1p1(p3_19, q_niels);
+				t = ge25519_nielssub_p1p1(p3_19, op_12);
 				msf = #mov_msf(msf_s);
 			}
 			else{
@@ -246,16 +238,17 @@ inline fn ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, r
 	
 	for i=0 to 3
 	{
-		v_256 = #VMOVDQA_256(rs[u256 i]);
-		r[u256 i] = #VMOVDQA_256(v_256);
+		v_256 = #VMOVDQA_256(rs[:u256 i]);
+		r[:u256 i] = #VMOVDQA_256(v_256);
 	}
 	
 	return r, msf;
 }
 
-inline fn __ge25519_double_scalarmult_vartime(reg ptr u64[12] r, reg ptr u64[16] p1, reg u64[4] n m, #msf reg u64 msf) -> reg u64[12], #msf reg u64
+inline fn __ge25519_double_scalarmult_vartime(stack u64[16] p1, reg u64[4] n m, #msf reg u64 msf) -> stack u64[12], #msf reg u64
 {
 	reg u64 n0 n1 n2 n3 m0 m1 m2 m3;
+	stack u64[12] r;
 	
 	m0 = m[0];
 	m1 = m[1];
@@ -266,7 +259,7 @@ inline fn __ge25519_double_scalarmult_vartime(reg ptr u64[12] r, reg ptr u64[16]
 	n2 = n[2];
 	n3 = n[3];
 	
-	r, msf = ge25519_double_scalarmult_vartime(r, p1, n0, n1, n2, n3, m0, m1, m2, m3, msf);
+	r, msf = ge25519_double_scalarmult_vartime(p1, n0, n1, n2, n3, m0, m1, m2, m3, msf);
 	
 	return r, msf;
 }

@@ -31,8 +31,8 @@ inline fn ge25519_nielssub_p1p1(stack u64[19] pp, reg ptr u64[12] qp) -> stack u
 	as = __sub5_srs(a, pp[0:5]);
 	bs = __add5_srs(b, pp[0:5]);
 	
-	as5 = __mul5_sss(as, qp[4:4]);
-	e = __mul5_rss(bs, qp[0:4]);
+	as5 = __mul5_sp12s_y(qp, as);
+	e = __mul5_rp12s_x(qp, bs);
 	h = #copy(e);
 	r[8:4] = __add5_srs(e, as5);
 	r[0:4] = __sub5_srs(h, as5);

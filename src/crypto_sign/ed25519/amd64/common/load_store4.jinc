@@ -1,3 +1,11 @@
+/**
+ * function __load4
+ * @param {u64} pt - A pointer to external memory
+ * @returns {u64[4]} - Contents of the memory region
+ * 
+ * This function loads 256-bit from external memory 
+ * and stores them in a four registers
+ */
 inline fn __load4(reg u64 pt) -> reg u64[4]
 {
   inline int i;
@@ -9,6 +17,14 @@ inline fn __load4(reg u64 pt) -> reg u64[4]
   return a;
 }
 
+/**
+ * function __store4
+ * @param {u64} pt - A pointer to external memory
+ * @param {u64[4]} a - The registers we want to store
+ * 
+ * This function loads 256-bit from four registers and stores
+ * them in an external memory region
+ */
 inline fn __store4(reg u64 pt, reg u64[4] a)
 {
   inline int i;
