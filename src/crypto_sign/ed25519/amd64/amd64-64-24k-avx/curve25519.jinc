@@ -1,5 +1,5 @@
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/add4.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/sub4.jinc"
+require "../common/64/add4.jinc"
+require "../common/64/sub4.jinc"
 
 require "mul4.jinc"
 require "ge.jinc"

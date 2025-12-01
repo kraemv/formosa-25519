@@ -1,5 +1,5 @@
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/add5.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/sub5.jinc"
+require "../common/64/add5.jinc"
+require "../common/64/sub5.jinc"
 require "mul5.jinc"
 
 inline fn ge25519_nielsadd2(stack u64[12] q, stack u64[19] r) -> stack u64[19]

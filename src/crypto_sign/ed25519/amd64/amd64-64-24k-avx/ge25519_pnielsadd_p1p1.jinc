@@ -1,8 +1,10 @@
 require "shared_const.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/add4.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/add5.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/sub4.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/sub5.jinc"
+
+require "../common/64/add4.jinc"
+require "../common/64/add5.jinc"
+require "../common/64/sub4.jinc"
+require "../common/64/sub5.jinc"
+
 require "mul5.jinc"
 
 inline fn ge25519_pnielsadd_p1p1(stack u64[18] pp, reg ptr u64[16] qp) -> stack u64[16]

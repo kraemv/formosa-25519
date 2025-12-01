@@ -1,7 +1,7 @@
 require "shared_const.jinc"
 
-from formosa25519 require "crypto_sign/ed25519/amd64/common/load_store4.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/decode_scalar.jinc"
+require "../common/load_store4.jinc"
+require "../common/decode_scalar.jinc"
 
 require "sha512_api.jinc"
 require "curve25519.jinc"

@@ -1,10 +1,11 @@
 require "shared_const.jinc"
 
-from formosa25519 require "crypto_sign/ed25519/amd64/common/load_ptr4.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/add4.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/sub4.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/add5.jinc"
-from formosa25519 require "crypto_sign/ed25519/amd64/common/64/sub5.jinc"
+require "../common/load_ptr4.jinc"
+require "../common/64/add4.jinc"
+require "../common/64/sub4.jinc"
+require "../common/64/add5.jinc"
+require "../common/64/sub5.jinc"
+
 require "neg.jinc"
 require "mul4.jinc"
 require "sqr4.jinc"
