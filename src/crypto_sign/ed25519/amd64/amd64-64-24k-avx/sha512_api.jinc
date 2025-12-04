@@ -21,54 +21,54 @@ u256 _0_16x2 = (4u64)[0x0f0e0d0c0b0a0908, 0x0706050403020100, 0x0f0e0d0c0b0a0908
 
 inline fn shift_bytes(reg u256[4] m_buf, reg u256 block_offs_256 inv_lane_256 lane_256 mask_256 shift_256)->reg u256[8]
 {
-	reg u256 cond_256 v_256;
-	reg u256[5] m_shuf_buf;
-	reg u256[8] m_shift;
-	inline int i k;
-	
-	m_shuf_buf[4] = #set0_256();
-	for k=3 downto -1
-	{
-		m_shuf_buf[k]	= #VPSHUFB_256(m_buf[k], shift_256);	
-		v_256 = (256u)#VEXTRACTI128(m_shuf_buf[k], 1);
-		v_256 = #VPANDN_256(mask_256, v_256);
-		m_shuf_buf[k+1] |= v_256;
-		v_256 = #VPERM2I128(m_shuf_buf[k], m_shuf_buf[k], 0x0f);
-		m_shuf_buf[k] = #BLENDV_32u8(v_256, m_shuf_buf[k], mask_256);
-	}
-	
-	v_256 = #VPERM2I128(m_shuf_buf[4], m_shuf_buf[4], 0x01);
-	m_shift[4] = #BLENDV_32u8(m_shuf_buf[4], v_256, inv_lane_256);
-	
-	for k=3 downto -1
-	{
-		v_256 = #VPERM2I128(m_shuf_buf[k], m_shuf_buf[k], 0x01);
-		m_shift[k] = #BLENDV_32u8(m_shuf_buf[k], v_256, inv_lane_256);
-		m_shift[k+1] = #BLENDV_32u8(m_shift[k+1], v_256, lane_256);
-	}
-	
-	m_shift[5] = #set0_256();
-	m_shift[6] = #set0_256();
-	m_shift[7] = #set0_256();
-	
-	v_256 = #set0_256();
-	m_shift[0] = #BLENDV_32u8(m_shift[0], v_256, lane_256);
-	for k=1 to 4
-	{
-		cond_256 = #VPCMPEQ_4u64(block_offs_256, _0_4[k]);
-		m_shift[4+k]	= #BLENDV_32u8(m_shift[4+k], m_shift[4], cond_256);
-		m_shift[3+k]	= #BLENDV_32u8(m_shift[3+k], m_shift[3], cond_256);
-		m_shift[2+k] 	= #BLENDV_32u8(m_shift[2+k], m_shift[2], cond_256);
-		m_shift[1+k] 	= #BLENDV_32u8(m_shift[1+k], m_shift[1], cond_256);
-		m_shift[k] 		= #BLENDV_32u8(m_shift[k], m_shift[0], cond_256);
-		
-		for i=0 to k
-		{
-			m_shift[i] 	= #BLENDV_32u8(m_shift[i], v_256, cond_256);
-		}
-	}
-	
-	return m_shift;
+  reg u256 cond_256 v_256;
+  reg u256[5] m_shuf_buf;
+  reg u256[8] m_shift;
+  inline int i k;
+
+  m_shuf_buf[4] = #set0_256();
+  for k=3 downto -1
+  {
+    m_shuf_buf[k]	= #VPSHUFB_256(m_buf[k], shift_256);	
+    v_256 = (256u)#VEXTRACTI128(m_shuf_buf[k], 1);
+    v_256 = #VPANDN_256(mask_256, v_256);
+    m_shuf_buf[k+1] |= v_256;
+    v_256 = #VPERM2I128(m_shuf_buf[k], m_shuf_buf[k], 0x0f);
+    m_shuf_buf[k] = #BLENDV_32u8(v_256, m_shuf_buf[k], mask_256);
+  }
+
+  v_256 = #VPERM2I128(m_shuf_buf[4], m_shuf_buf[4], 0x01);
+  m_shift[4] = #BLENDV_32u8(m_shuf_buf[4], v_256, inv_lane_256);
+
+  for k=3 downto -1
+  {
+    v_256 = #VPERM2I128(m_shuf_buf[k], m_shuf_buf[k], 0x01);
+    m_shift[k] = #BLENDV_32u8(m_shuf_buf[k], v_256, inv_lane_256);
+    m_shift[k+1] = #BLENDV_32u8(m_shift[k+1], v_256, lane_256);
+  }
+
+  m_shift[5] = #set0_256();
+  m_shift[6] = #set0_256();
+  m_shift[7] = #set0_256();
+
+  v_256 = #set0_256();
+  m_shift[0] = #BLENDV_32u8(m_shift[0], v_256, lane_256);
+  for k=1 to 4
+  {
+    cond_256 = #VPCMPEQ_4u64(block_offs_256, _0_4[k]);
+    m_shift[4+k]	= #BLENDV_32u8(m_shift[4+k], m_shift[4], cond_256);
+    m_shift[3+k]	= #BLENDV_32u8(m_shift[3+k], m_shift[3], cond_256);
+    m_shift[2+k] = #BLENDV_32u8(m_shift[2+k], m_shift[2], cond_256);
+    m_shift[1+k] = #BLENDV_32u8(m_shift[1+k], m_shift[1], cond_256);
+    m_shift[k] 	 = #BLENDV_32u8(m_shift[k], m_shift[0], cond_256);
+    
+    for i=0 to k
+    {
+      m_shift[i] 	= #BLENDV_32u8(m_shift[i], v_256, cond_256);
+    }
+  }
+
+  return m_shift;
 }
 
 inline fn shift_bytes_align(reg u256[4] m_buf, reg u256 block_offs_256)->reg u256[7]
@@ -368,11 +368,11 @@ inline fn sha512_update_32(reg ptr u64[25] pstate, reg u64[4] m, #msf reg u64 ms
 	return pstate, msf;
 }*/
 
-#[sct="{ ptr: public, val: { n: d, s:secret } } * public * secret * msf -> { ptr: public, val: { n: d, s:secret } } * msf"]
+#[sct="{ ptr: public, val: { n: secret, s:secret } } * public * secret * msf -> { ptr: public, val: { n: secret, s:secret } } * msf"]
 fn sha512_update_ext(reg ptr u64[25] pstate, reg u64 m, reg u64 inlen, #msf reg u64 msf) -> reg ptr u64[25], #msf reg u64
 {
   reg u64 iterations mod_len total_len;
-  #public #spill_to_mmx reg u64 j;
+  #spill_to_mmx reg u64 j;
   reg u64[8] H_r;
   reg u256 block_offs_256 buf_cpy_2 cnt_256 cond_256 m1 modlen_256 v_256;
   reg u256[4] m_buf dig_buf;
@@ -534,7 +534,7 @@ fn sha512_update_ext(reg ptr u64[25] pstate, reg u64 m, reg u64 inlen, #msf reg 
   return pstate, msf;
 }
 
-#[sct="{ ptr: public, val: { n: d, s:secret } } * { ptr: public, val: { n: d, s:secret } } * msf -> { ptr: public, val: { n: d, s:secret } } * msf"]
+#[sct="{ ptr: public, val: { n: secret, s:secret } } * { ptr: public, val: { n: secret, s:secret } } * msf -> { ptr: public, val: { n: secret, s:secret } } * msf"]
 fn sha512_finalize(reg ptr u64[25] pstate, reg ptr u64[8] Hreg, #msf reg u64 msf) -> reg ptr u64[8], #msf reg u64
 {
   #secret reg u64 len mod_len nblocks temp;

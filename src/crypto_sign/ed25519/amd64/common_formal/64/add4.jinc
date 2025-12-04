@@ -168,15 +168,6 @@ fn __add4_rrr(reg u64[4] f, reg u64[4] g) -> reg u64[4]
   return f;
 }
 
-inline fn __add4_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[4]
-{
-  reg u64[4] h;
-
-  h = __add4_rrs(g, fs);
-
-  return h;
-}
-
 inline fn __add4_srr(reg u64[4] f, reg u64[4] g) -> stack u64[4]
 {
   reg u64[4] h;

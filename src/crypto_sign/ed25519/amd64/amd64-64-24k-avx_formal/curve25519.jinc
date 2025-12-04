@@ -42,7 +42,7 @@ fn _curve25519_mulx_base(reg u64 k0 k1 k2 k3, #msf reg u64 msf) -> reg u64, reg 
 	ry[2] = ger[2];
 	ry[3] = ger[3];
 	
-	ZplusY = __add4_rsr(ger[8:4], ry);
+	ZplusY = __add4_rrs(ry, ger[8:4]);
 	ZminusY = __sub4_rsr(ger[8:4], ry);
 	rys = __cmov4_ssrs(ger[4:4], ZplusY, wantmonts);
 	rz = __cmov4_rsrs(ger[8:4], ZminusY, wantmonts);

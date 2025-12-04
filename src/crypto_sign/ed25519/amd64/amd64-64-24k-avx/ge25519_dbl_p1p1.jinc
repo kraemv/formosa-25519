@@ -57,7 +57,7 @@ inline fn ge25519_dbl_p1p1(reg ptr u64[12] pp) -> stack u64[16]
 	{	r[4+i] = c[i]; }
 	
 	// sub
-	r[12:4] = __sub5_srs_(d, as);
+	r[12:4] = __sub5_srs_nored(d, as);
 	
 	// neg
 	b = __neg5_rs(bs);
@@ -117,7 +117,7 @@ inline fn ge25519_dbl_p1p1_prep(reg ptr u64[12] pp) -> stack u64[16], reg ptr u6
 	{	r[4+i] = a[i]; }
 	
 	// sub
-	r[12:4] = __subi5_ris(c, 2);
+	r[12:4] = __subi5_sri(c, 2);
 	
 	// neg
 	b = __neg5_rs(bs);

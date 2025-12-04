@@ -1,15 +1,15 @@
+#[sct="public * { ptr: public, val: { n: public, s: public } } * public * msf -> { ptr: public, val: { n: public, s: transient } } * msf"]
 fn sc25519_slide(reg u64[4] s, reg ptr u8[256] r, reg u64 swindowsize, #msf reg u64 msf) -> reg ptr u8[256], #msf reg u64
 {
-	#public inline int soplen;
-	#public reg u16 c_2 inv_val neg_val new_val new_window state state_01 xor_val;
-	#public reg bool cond s0 s1 zf;
-	#public reg u64 addr b _1r k i z;
+	reg u16 c_2 inv_val neg_val new_val new_window state state_01 xor_val;
+	reg u64 addr b _1r k i z;
+	reg bool cond s0 s1 zf;
+	inline int soplen;
 	
 	swindowsize -= 1;
 	
 	soplen = 256;
 	
-	// Refactor: Use AVX2 and have bad array design
 	k = 0;
 	while {cond=(k < 64);}(cond)
 	{

@@ -1,3 +1,10 @@
+/**
+ * function __init_point_inf
+ * @returns {stack u64[16]} - Point in infinity (neutral element)
+ * 
+ * This function returns the homogeneous coordinates of the 
+ * point in infinity.
+*/
 inline fn __init_point_inf()
   ->
   stack u64[16]
@@ -7,43 +14,21 @@ inline fn __init_point_inf()
   inline int i;
 
   ?{}, z = #set0();
-
-  pt[0] = 0;
+  
+  // y,z = 1, all others 0
+  pt[0] = z;
   pt[4] = 1;
   pt[8] = 1;
-  pt[12] = 0;
+  pt[12] = z;
 
   for i=1 to 4
-  { pt[ 0 + i] = z;
-  	pt[ 4 + i] = z;
-  	pt[ 8 + i] = z;
-  	pt[12 + i] = z;
+  { 
+    pt[ 0 + i] = z;
+    pt[ 4 + i] = z;
+    pt[ 8 + i] = z;
+    pt[12 + i] = z;
   }
 
   return pt;
-}
-
-inline fn __init_point_inf_p(reg ptr u64[16] pp)
-  ->
-  reg ptr u64[16]
-{
-  reg u64 z;
-  inline int i;
-
-  ?{}, z = #set0();
-
-  pp[0] = 0;
-  pp[4] = 1;
-  pp[8] = 1;
-  pp[12] = 0;
-
-  for i=1 to 4
-  { pp[ 0 + i] = z;
-  	pp[ 4 + i] = z;
-  	pp[ 8 + i] = z;
-  	pp[12 + i] = z;
-  }
-
-  return pp;
 }
 

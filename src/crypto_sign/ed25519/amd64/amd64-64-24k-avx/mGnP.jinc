@@ -4,13 +4,13 @@ require "ge25519_unpackneg.jinc"
 require "ge25519_double_scalarmult.jinc"
 require "ge25519_pack.jinc"
 
+#[sct="{ ptr: public, val: { n: public, s: public } } * public * { ptr: public, val: { n: public, s: public } } * { ptr: public, val: { n: public, s: public } } * msf -> { ptr: public, val: { n: public, s: public } } * msf"]
 fn mGnP(reg ptr u8[33] Q, reg u64[4] m, reg ptr u64[8] np, reg ptr u8[32] P, #msf reg u64 msf) -> reg ptr u8[33], #msf reg u64
 {
-	reg u64 z;
-	stack u64 valids;
-	reg u64 diff v_64 valid;
+	reg u64 diff v_64 valid z;
 	reg u256 v_256;
 	reg u64[4] n;
+	stack u64 valids;
 	stack u64[4] m_s m_red n_s;
 	stack u64[12] r;
 	stack u64[16] ps;
@@ -28,7 +28,7 @@ fn mGnP(reg ptr u8[33] Q, reg u64[4] m, reg ptr u64[8] np, reg ptr u8[32] P, #ms
 	n_s = #copy(n);
 	msf = #mov_msf(msf_s);
 	
-	ps, valid, msf = ge25519_unpackneg_vartime(ps, P, msf);
+	ps, valid, msf = __ge25519_unpackneg_vartime(ps, P, msf);
 	
 	diff = 0;
 	for i=0 to 4

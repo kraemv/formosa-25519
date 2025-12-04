@@ -10,6 +10,7 @@ require "sc25519_add.jinc"
 require "sc25519_mul.jinc"
 require "mGnP.jinc"
 
+#[sct="transient * transient -> public"]
 export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
 {
   reg u64 r;
@@ -21,8 +22,8 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
   stack u64[8] H;
   stack u64[25] state;
   stack u256[1] sks;
-  #[sct="{ptr:public, val:secret}"] reg ptr u64[8] Hreg;
-  #[sct="{ptr:public, val:secret}"] reg ptr u64[25] pstate;
+  reg ptr u64[8] Hreg;
+  reg ptr u64[25] pstate;
   #msf reg u64 msf;
   
   pkps = pkp;
@@ -52,7 +53,8 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
   ks = __decode_scalar(h);
   h_red = #copy(ks);
   
-  pk, msf = __curve25519_mulx_base(h_red, msf);
+  #update_after_call
+  pk, msf = _curve25519_mulx_base(h_red, msf);
   
   pkp = pkps;
   pkp = #protect(pkp, msf);
@@ -67,6 +69,7 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
   return r;
 }
 
+#[sct="transient * transient -> public"]
 export fn jade_ed25519_amd64_pubkey(reg u64 skp pkp) -> reg u64
 {
 	reg u64 r;
@@ -102,7 +105,8 @@ export fn jade_ed25519_amd64_pubkey(reg u64 skp pkp) -> reg u64
   ks = __decode_scalar(h);
   h_red = #copy(ks);
   
-  pk, msf = __curve25519_mulx_base(h_red, msf);
+  #update_after_call
+  pk, msf = _curve25519_mulx_base(h_red, msf);
   
   pkp = pkps;
   pkp = #protect(pkp, msf);
@@ -112,7 +116,8 @@ export fn jade_ed25519_amd64_pubkey(reg u64 skp pkp) -> reg u64
   return r;
 }
 
-export fn jade_ed25519_amd64_sign(#transient reg u64 skp mp msg_len sigp) -> reg u64
+#[sct="transient * transient * transient * transient -> public"]
+export fn jade_ed25519_amd64_sign(reg u64 skp mp msg_len sigp) -> reg u64
 {
   reg u64 r;
   reg u64[4] s h_red R scs;
@@ -175,7 +180,8 @@ export fn jade_ed25519_amd64_sign(#transient reg u64 skp mp msg_len sigp) -> reg
   h_red = sc25519_barrett(H);
   rs = #copy(h_red);
   msf = #mov_msf(msf_s);
-  R, msf = __curve25519_mulx_base(h_red, msf);
+  #update_after_call
+  R, msf = _curve25519_mulx_base(h_red, msf);
   
   sigp = sigps;
   sigp = #protect(sigp, msf);
@@ -219,7 +225,8 @@ export fn jade_ed25519_amd64_sign(#transient reg u64 skp mp msg_len sigp) -> reg
   return r;
 }
 
-export fn jade_ed25519_amd64_verify(#transient reg u64 sigp pkp mp msg_len) -> reg u64
+#[sct="transient * transient * transient * transient -> public"]
+export fn jade_ed25519_amd64_verify(reg u64 sigp pkp mp msg_len) -> reg u64
 {
   reg u64 valid;
   reg u64 v_64 vrfy_res z;

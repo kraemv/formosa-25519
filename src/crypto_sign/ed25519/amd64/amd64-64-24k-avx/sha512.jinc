@@ -15,13 +15,13 @@ inline fn __initH_ref() -> stack u64[8]
   inline int i;
   stack u64[8] H;
   reg ptr u64[8] Hp;
-  reg u64 v;
+  reg u256 v_256;
 
   Hp = SHA512_H;
 
-  for i=0 to 8
-  { v = Hp[i];
-    H[i] = v; }
+  for i=0 to 2
+  { v_256 = #VMOVDQA_256(Hp[:u256 i]);
+    H[:u256 i] = #VMOVDQA_256(v_256); }
 
   return H;
 }
@@ -59,11 +59,28 @@ inline fn __store_H_ref(reg u64 a b c d e f g h) -> stack u64[8]
   return H;
 }
 
+inline fn __bswap(reg u64 a) -> reg u64 {
+	reg u8 a_8;
+	reg u64 b b_64;
+	inline int i;
+	
+	?{}, b = #set0();
+	
+	for i=0 to 8{
+		b = b << 8;
+		a_8 = (8u)a;
+		b_64 = (64u)a_8;
+		b |= b_64;
+		a = a >> 8;
+	}
+	
+	return b;
+}
+
 inline fn __ROTR_ref(reg u64 x, inline int c) -> reg u64
 {
   reg u64 r;
   
-  // Revisit, normal ror seems faster
   r = #RORX_64(x, c);
   return r;
 }
@@ -1332,7 +1349,7 @@ inline fn _blocks_0_ref(reg u256[4] m, stack u64[8] H, #msf reg u64 msf) -> stac
 #[sct="{ ptr: public, val: { n: d, s:secret } } * { ptr: public, val: { n: d, s:secret } } * secret * msf -> { ptr: public, val: { n: d, s:secret } } * { ptr: public, val: { n: d, s:secret } } * msf"]
 inline fn _blocks_1_ref(reg ptr u64[8] H, reg ptr u64[32] sblocks, reg u64 nblocks, #msf reg u64 msf) -> reg ptr u64[8], reg ptr u64[32], #msf reg u64
 {
-  #public #spill_to_mmx reg u64 i;
+  #spill_to_mmx reg u64 i;
   reg u256 v_256;
   reg u64[8] H_r;
   reg u256[4] m_buf;
@@ -1398,7 +1415,7 @@ inline fn _blocks_1_ref(reg ptr u64[8] H, reg ptr u64[32] sblocks, reg u64 nbloc
   return H, sblocks, msf;
 }
 
-#[sct="{ n: d, s:secret } * secret * secret * msf -> { n: d, s:secret } * secret * msf"]
+#[sct="{ n: secret, s:secret } * secret * secret * msf -> { n: secret, s:secret } * secret * msf"]
 inline fn __lastblocks_ref(stack u8[128] in, reg u64 inlen bits, #msf reg u64 msf) -> stack u64[32], reg u64, #msf reg u64
 {
   stack u64[32] sblocks;
@@ -1425,13 +1442,14 @@ inline fn __lastblocks_ref(stack u8[128] in, reg u64 inlen bits, #msf reg u64 ms
 		sblocks[:u256 k] = #VMOVDQA_256(v_256);
 	}
 
+	bits = __bswap(bits);
+	
   // check if one or two blocks are needed
   ?{"<u" = l} = #CMP(inlen, 112);
   
   nblocks = 1;
   nblocks2 = 2;
   nblocks = #CMOVcc(l, nblocks, nblocks2);
-	bits = #BSWAP_64(bits);
 	
 	v_64 = bits;
 	v_64 = #CMOVcc(!l, sblocks[15], v_64);
