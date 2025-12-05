@@ -16,7 +16,7 @@ u64[4] point26_y = {26,0,0,0};
 inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf reg u64 msf) -> stack u64[16], reg u64, #msf reg u64
 {
 	reg u8 cmp_8 par x_par;
-	reg u64 cmp_64 subt0 subt1 valid;
+	reg u64 cmp_64 subt0 subt1 valid y;
 	reg u256 v_256 valid_256;
 	reg u64[4] t chk num num_freeze den den2 den4 den6 _rx rx rx_freeze ry rt sub_x z;
 	stack u8 pars;
@@ -38,12 +38,14 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 	
 	for i=0 to 3
 	{
-		ry[i] = pp[:u64 i];
-		rs[4+i] = ry[i];
+		y = pp[:u64 i];
+		y = #protect(y, msf);
+		rs[4+i] = y;
 	}
-	ry[3] = pp[:u64 3];
-	ry[3] &= 0x7fffffffffffffff;
-	rs[7] = ry[3];
+	y = pp[:u64 3];
+	y = #protect(y, msf);
+	y &= 0x7fffffffffffffff;
+	rs[7] = y;
 	
 	msf_s = #mov_msf(msf);
 	
@@ -64,9 +66,9 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 	nums = #copy(num);
 	den = __mul4_rsr(ecd, num);
 	num = #copy(nums);
-	num = __sub4_rrs(num, rs[8:4]);
+	num = __dec4(num);
 	nums = #copy(num);
-	den = __add4_rrs(den, rs[8:4]);
+	den = __inc4(den);
 	dens = #copy(den);
 	
 	// Computation of sqrt(num/den)

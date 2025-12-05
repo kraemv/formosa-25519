@@ -10,6 +10,16 @@ require "sc25519_add.jinc"
 require "sc25519_mul.jinc"
 require "mGnP.jinc"
 
+/**
+ * function jade_ed25519_amd64_keygen
+ * @param {reg} skp - pointer to secret key result
+ * @param {reg} pkp - pointer to public key result
+ * @returns {reg} - Always return 0 to indicate success
+ * 
+ * This function computes samples a secret key sk and the
+ * corresponding public key pk.
+ * The secret key in skp is [sk, pk], the public key is [pk].
+*/
 #[sct="transient * transient -> public"]
 export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
 {
@@ -26,10 +36,14 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
   reg ptr u64[25] pstate;
   #msf reg u64 msf;
   
+  // Move pointers to avoid register allocation problems
   pkps = pkp;
+  skp = skp;
 	
+	// Sample random key
   sks = #randombytes(sks);
 	
+	// Initialize MSF to prevent cache leakage
 	msf = #init_msf();
 	
 	v_256 = #VMOVDQA_256(sks[0]);

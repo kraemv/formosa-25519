@@ -138,3 +138,39 @@ inline fn __add4_srr(reg u64[4] f, reg u64[4] g) -> stack u64[4]
 
   return hs;
 }
+
+/**
+ * function __inc4
+ * @param {reg u64[4]} f - input in 64-bit limb representation
+ * @returns {reg u64[4]} - input incremented by 1 in 64-bit limb representation
+ * 
+ * This function increments the input by 1. The input is consumed:
+ * h = f + 1
+ * h = 2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3 + 1
+*/
+inline fn __inc4(reg u64[4] f) -> reg u64[4]
+{
+  reg u64 z;    // Zero register
+  reg bool cf;  // Carry flag
+  inline int i;
+
+  // Set 0 register
+  ?{}, z = #set0();
+
+  // Add with carry flag
+  cf, f[0] += 1;
+  for i=1 to 4
+  { cf, f[i] += z + cf; }
+  
+  /*
+  cf = 0 -> No reduce, (z - cf) & 38 = 0 & 38 = 0
+  cf = 1 -> Reduce, (z - cf) & 38 = (0xf..f) & 38 = 38
+  */
+  _, z -= z - cf;
+  z &= 38;
+
+  // Reduce in const time if cf=1 (add 38)
+  cf, f[0] += z;
+
+  return f;
+}
