@@ -4,7 +4,6 @@ require "../common/64/sub4.jinc"
 require "mul4.jinc"
 require "ge.jinc"
 require "invert4.jinc"
-require "fe25519_cmov.jinc"
 require "fe25519_freeze.jinc"
 require "sc25519_from32bytes.jinc"
 

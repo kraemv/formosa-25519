@@ -16,8 +16,8 @@ require "mGnP.jinc"
  * @param {reg} pkp - pointer to public key result
  * @returns {reg} - Always return 0 to indicate success
  * 
- * This function computes samples a secret key sk and the
- * corresponding public key pk.
+ * This function samples a secret key sk and computes
+ * the corresponding public key pk.
  * The secret key in skp is [sk, pk], the public key is [pk].
 */
 #[sct="transient * transient -> public"]
@@ -27,7 +27,6 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
   reg u64[4] h_red pk;
   reg u64[8] h;
   reg u256 v_256;
-  stack u64 pkps skps;
   stack u64[4] ks;
   stack u64[8] H;
   stack u64[25] state;
@@ -37,7 +36,7 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
   #msf reg u64 msf;
   
   // Move pointers to avoid register allocation problems
-  pkps = pkp;
+  () = #spill(pkp);
   skp = skp;
 	
 	// Sample random key
@@ -46,17 +45,22 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
 	// Initialize MSF to prevent cache leakage
 	msf = #init_msf();
 	
+	// Use AVX instructions to store secret scalar in secret key pointer
 	v_256 = #VMOVDQA_256(sks[0]);
-  
   [:u256 skp] = v_256;
+  // Increase skp by 32bytes to store public key next
   skp += 8*4;
-  skps = skp;
+  () = #spill(skp);
   
+  // Compute public key scalar by hashing the public key
+  // Initialize the sha512 iterative API buffer
 	state = sha512_init(state);
-	
+	// Write sk to the buffer
 	state[:u256 0] =  #VMOVDQA_256(v_256);
+	// Set buffer length to 32
 	state[24] = 32;
   
+  // Compute the hash of the secret key
   Hreg = H;
 	pstate = state;
 	#update_after_call
@@ -64,25 +68,37 @@ export fn jade_ed25519_amd64_keygen(reg u64 skp pkp) -> reg u64
 	H = Hreg;
 	h = #copy(H);
 	
+	// Ed25519 secret scalar clamping
   ks = __decode_scalar(h);
   h_red = #copy(ks);
   
+  // Compute public key k*G
   #update_after_call
   pk, msf = _curve25519_mulx_base(h_red, msf);
   
-  pkp = pkps;
+  // Store public key in public and secret key
+  () = #unspill(pkp);
   pkp = #protect(pkp, msf);
   __store4(pkp, pk);
   
-  skp = skps;
+  () = #unspill(skp);
   skp = #protect(skp, msf);
   __store4(skp, pk);
   
-
+	// Set return status to 0 (success)
   ?{}, r = #set0();
   return r;
 }
 
+/**
+ * function jade_ed25519_amd64_pubkey
+ * @param {reg} skp - pointer to secret key result
+ * @param {reg} pkp - pointer to public key result
+ * @returns {reg} - Always return 0 to indicate success
+ * 
+ * This function computes the corresponding public key pk
+ * for the secret key sk.
+*/
 #[sct="transient * transient -> public"]
 export fn jade_ed25519_amd64_pubkey(reg u64 skp pkp) -> reg u64
 {
@@ -98,6 +114,7 @@ export fn jade_ed25519_amd64_pubkey(reg u64 skp pkp) -> reg u64
   reg ptr u64[25] pstate;
 	#msf reg u64 msf;
 	
+	// Initialize MSF to prevent cache leakage
 	msf = #init_msf();
 	
 	pkps = pkp;
