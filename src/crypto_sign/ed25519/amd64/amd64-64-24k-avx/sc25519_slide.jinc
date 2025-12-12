@@ -1,4 +1,4 @@
-#[sct="public * { ptr: public, val: { n: public, s: public } } * public * msf -> { ptr: public, val: { n: public, s: transient } } * msf"]
+#[sct="public * { ptr: public, val: { n: public, s: public } } * public * msf -> { ptr: public, val: { n: public, s: public } } * msf"]
 fn sc25519_slide(reg u64[4] s, reg ptr u8[256] r, reg u64 swindowsize, #msf reg u64 msf) -> reg ptr u8[256], #msf reg u64
 {
 	reg u16 c_2 inv_val neg_val new_val new_window state state_01;

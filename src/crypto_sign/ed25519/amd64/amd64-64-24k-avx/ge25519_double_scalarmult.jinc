@@ -24,8 +24,8 @@ param int S1_SWINDOWSIZE = 5;
 param int PRE1_SIZE = 8;
 param int S2_SWINDOWSIZE = 7;
 
-#[sct="public * public * public * msf -> public * msf"]
-inline fn __ge25519_double_scalarmult_vartime(stack u64[16] p1, reg u64[4] n m, #msf reg u64 msf) -> stack u64[12], #msf reg u64
+#[sct="public * public * public * public * msf -> public * msf"]
+inline fn __ge25519_double_scalarmult_vartime(stack u64[12] r, stack u64[16] p1, reg u64[4] n m, #msf reg u64 msf) -> stack u64[12], #msf reg u64
 {
 	reg u8 slide_8;
 	reg u64 j k slide_64 windowsize;
@@ -36,13 +36,11 @@ inline fn __ge25519_double_scalarmult_vartime(stack u64[16] p1, reg u64[4] n m, 
 	stack u8[256] n_slide m_slide;
 	stack u64[4] ms;
 	stack u64[5] xaddy5s;
-	stack u64[12] r;
 	stack u64[16] t rs;
 	stack u64[18] d1 p3;
 	stack u64[19] p3_19;
 	stack u64[PRE1_SIZE*16] pre1;
-	#[sct="{ptr:public, val:public}"] reg ptr u8[256] np mp;
-	reg ptr u64[4] ptr_arg;
+	reg ptr u8[256] np mp;
 	reg ptr u64[12] op_12 pre1p_12 r12;
 	reg ptr u64[16] op_16 pre1p_16;
 	reg ptr u64[PRE1_SIZE*16] pre1p;
@@ -80,8 +78,7 @@ inline fn __ge25519_double_scalarmult_vartime(stack u64[16] p1, reg u64[4] n m, 
 	pre1[0:12] = pre1p_12;
 	d1 = ge25519_p1p1_to_p3(t);
 	
-	ptr_arg = pre1[12:4];
-	t2d = __load_ptr4(ptr_arg);
+	t2d = __load_ptr4(pre1[12:4]);
 	pre1[12:4] = __mul4_ssr(ec2d, t2d);
 	
 	// Multiples

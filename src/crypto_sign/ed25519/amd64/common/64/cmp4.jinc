@@ -1,47 +1,60 @@
+/**
+ * function __cmp4_rr
+ * @param {reg u64[4]} a - First comparison input
+ * @param {reg u64[4]} a - Second comparison input
+ * @returns {reg u8} - 1 if a=b else 0
+ * 
+ * This functions compares the two multi-limb inputs a and b in constant time.
+ * It returns 1 if a=b and otherwise 0. The inputs are unchanged.
+*/
 inline fn __cmp4_rr(reg u64[4] a b) -> reg u8
 {
-	reg u8 res;
-	reg u16 res_16 z_16;
-	reg u64[4] c;
-	reg bool zf;
+	reg u8 res;           // Output
+	reg u16 res_16 z_16;  // Output, Constant zero
+	reg u64[4] c;         // First operand copy
+	reg bool zf;          // Zero flag
 	inline int i;
 	
+	// Copy first input to not alter it
 	c = #copy(a);
 	
+	// Set result to 1 if all a[i]=b[i]
 	res_16 = 1;
+	// Set 0 register
 	?{}, z_16 = #set0_16();
 	for i = 0 to 4
 	{
+	  // XOR b[i] and c[i] to get zf=1 on equality
 	  ?{ "==" = zf }, c[i] = #XOR_64(c[i], b[i]);
+	  // If zf=0 -> b[i] != c[i], set result to 0
 	  res_16 = #CMOVcc_16(!zf, z_16, res_16);
 	}
 	
+	// Set to desired output size
 	res = (8u)res_16;
 	
 	return res;
 }
 
-inline fn __cmp4_ss(stack u64[4] a b) -> reg u8{
-	
-	reg u64[4] ar br;
-	reg u8 res;
-	
-	ar = #copy(a);
-	br = #copy(b);
-	
-	res = __cmp4_rr(ar, br);
-	
-	return res;
-}
-
+/**
+ * function __cmp4_ps
+ * @param {reg ptr u64[4]} a - Ptr to first comparison input
+ * @param {stack u64[4]} a - Ptr to second comparison input
+ * @returns {reg u8} - 1 if a=b else 0
+ * 
+ * This functions compares the two multi-limb inputs a and b in constant time.
+ * It returns 1 if a=b and otherwise 0. The inputs are unchanged.
+*/
 inline fn __cmp4_ps(reg ptr u64[4] a, stack u64[4] b) -> reg u8{
 	
 	reg u64[4] ar br;
 	reg u8 res;
 	
+	// Copy values to registers
 	ar = #copy(a);
 	br = #copy(b);
 	
+	// Compare
 	res = __cmp4_rr(ar, br);
 	
 	return res;

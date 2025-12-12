@@ -9,7 +9,7 @@ inline fn ge25519_pack(stack u64[12] pp, #msf reg u64 msf) -> reg u256, #msf reg
 {
 	reg u8 par;
 	reg u256 res;
-	reg u64[4] r ry rz;
+	reg u64[4] rx ry rz;
 	stack u64[4] rxs rzs;
 	stack u8[32] rs;
 	inline int i;
@@ -27,14 +27,15 @@ inline fn ge25519_pack(stack u64[12] pp, #msf reg u64 msf) -> reg u256, #msf reg
 	rxs = __mul4_ssr(pp[0:4], rz);
 	ry = __mul4_rss(pp[4:4], rzs);
   
-	r = __fe25519_pack(ry);
+	ry = __fe25519_pack(ry);
 	for i=0 to 4
 	{
-		rs[:u64 i] = r[i];
+		rs[:u64 i] = ry[i];
 	}
 	
-	rxs = __freeze4_ss(rxs);
-	par = rxs[:u8 0];
+	rx = #copy(rxs);
+	rx = __freeze4_rr(rx);
+	par = (8u)rx[0];
   par = par & 1;
   par = par << 7;
   
