@@ -45,3 +45,47 @@ inline fn ge25519_pnielsadd_p1p1(stack u64[18] pp, reg ptr u64[16] qp) -> stack 
 	
 	return t;
 }
+
+inline fn ge25519_pnielsadd_p1p1_prep(reg mut ptr u64[16] rp, stack u64[18] pp, reg ptr u64[16] qp) -> reg mut ptr u64[16]
+{
+	reg u64[4] ysubx xaddy z t2d;
+	reg u64[5] xaddy5 _xaddy5 ysubx5;
+	stack u64[4] t2ds;
+	stack u64[5] xaddy5s;
+	stack u64[16] t;
+	stack ptr u64[16] rps;
+	inline int i;
+	
+	rps = rp;
+	
+	t = ge25519_pnielsadd_p1p1(pp, qp);
+	
+	t2ds = __mul4_sss(t[0:4], t[8:4]);
+	xaddy5s = __mul5_sss(t[4:4], t[8:4]);
+	ysubx5  = __mul5_rss(t[0:4], t[12:4]);
+		
+	xaddy5 = #copy(xaddy5s);
+	_xaddy5 = #copy(xaddy5);
+		
+	ysubx = __sub5_rrr(xaddy5, ysubx5);
+	rp = rps;
+	for i=0 to 4{
+		rp[i] = ysubx[i];
+	}
+	xaddy = __add5_rrr(_xaddy5, ysubx5);
+	for i=0 to 4{
+		rp[4+i] = xaddy[i];
+	}
+	
+	z = __mul4_rss(t[4:4], t[12:4]);
+	for i=0 to 4{
+  		rp[8+i] = z[i];
+  }
+  
+	t2d = __mul4_rss(ec2d, t2ds);
+	for i=0 to 4{
+		rp[12+i] = t2d[i];
+	}
+  
+  return rp;
+}

@@ -15,7 +15,7 @@ require "mul5.jinc"
  * b = (r.X + r.Y) * (q.X + q.Y) + (r.Y - r.X) * (q.Y - q.X)
  * f = 2*r.Z - 2 * d * q.T * r.T
  * g = 2*r.Z + 2 * d * q.T * r.T
- 
+ *
  * r.X = a * f
  * r.Y = b * g
  * r.Z = g * f

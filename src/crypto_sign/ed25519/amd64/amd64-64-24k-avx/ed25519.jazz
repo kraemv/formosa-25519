@@ -318,8 +318,9 @@ export fn jade_ed25519_amd64_verify(reg u64 sigp pkp mp msg_len) -> reg u64
 		#declassify s[i] = [sigp + 8*i];
 	}
 	
-	Rcheck_p = Rcheck;
-	Ap = As;
+	#declassify Rcheck_p = Rcheck;
+	#declassify s = #copy(s);
+	#declassify Ap = As;
 	#update_after_call
 	Rcheck_p, msf = mGnP(Rcheck_p, s, Hreg, Ap, msf);
 	Rcheck = Rcheck_p;
@@ -337,7 +338,8 @@ export fn jade_ed25519_amd64_verify(reg u64 sigp pkp mp msg_len) -> reg u64
 	?{"!=" = neq} = #CMP(diff, 0);
 	valid = #CMOVcc(!neq, valid, z);
 	
-	vrfy_res = valid - 1;
+	#declassify vrfy_res = valid - 1;
+	vrfy_res = #protect(vrfy_res, msf);
 	
   return vrfy_res;
 }

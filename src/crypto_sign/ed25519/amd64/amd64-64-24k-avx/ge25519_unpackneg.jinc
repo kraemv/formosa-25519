@@ -12,7 +12,7 @@ require "fe25519_pow2523.jinc"
 u64[4] point26_x = {0x5bf5acbd527f9b28,0xa4564f8c5508aa23,0x4daaa6d39e2975af,0x6fe31a937f53b071};
 u64[4] point26_y = {26,0,0,0};
 
-#[sct="public * { ptr: public, val: { n: public, s:public } } * msf -> public * public * msf"]
+#[sct="transient * { ptr: public, val: { n: public, s:transient } } * msf -> transient * public * msf"]
 inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf reg u64 msf) -> stack u64[16], reg u64, #msf reg u64
 {
 	reg u8 cmp_8 par x_par;
@@ -37,12 +37,10 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 	for i=0 to 3
 	{
 		y = pp[:u64 i];
-		y = #protect(y, msf);
 		rs[4+i] = y;
 		ry[i] = y;
 	}
 	y = pp[:u64 3];
-	y = #protect(y, msf);
 	y &= 0x7fffffffffffffff;
 	rs[7] = y;
 	ry[3] = y;
@@ -114,13 +112,7 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 		msf_s = #mov_msf(msf);
 	}
 	
-	
-	for i=0 to 4
-	{
-		#declassify x = rx[i];
-		x = #protect(x, msf);
-		rs[i] = x;
-	}
+	xs = #copy(rx);
 	
 	// 4. Now we have one of the two square roots, except if input was not a square
   
@@ -131,14 +123,11 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 	chk = __freeze4_rr(chk);
 	cmp_8 = __cmp4_rr(chk, num);
 	cmp_64 = (64u)cmp_8;
-	#declassify valids &= cmp_64;
+	valids &= cmp_64;
 	
 	// 5. Choose the desired square root according to parity:
   
-  for i=0 to 4
-	{
-		rx[i] = rs[i];
-	}
+  rx = #copy(xs);
   rx = __freeze4_rr(rx);
   x_par = (8u)rx[0];
   x_par &= 1;
@@ -183,7 +172,6 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 	for i=0 to 4
 	{
 		#declassify x = rx[i];
-		x = #protect(x, msf);
 		rs[i] = x;
 		?{}, z[i] = #set0();
 	}
@@ -192,8 +180,8 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 	par = pars;
 	valid = valids;
 	cmp_8 &= par;
-	#declassify cmp_64 = (64u)cmp_8;
-	valid = !cmp_64 & valid;
+	cmp_64 = (64u)cmp_8;
+	#declassify valid = !cmp_64 & valid;
 	valids = valid;
 	
 	valid =-valid;
@@ -201,11 +189,9 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 	valid_256 = #VPBROADCAST_32u8(valid_256);
 	v_256 = point26_x[:u256 0];
 	v_256 = #BLENDV_32u8(v_256, rs[:u256 0], valid_256);
-	v_256 = #protect_256(v_256, msf);
 	rs[:u256 0] = v_256;
 	v_256 = point26_y[:u256 0];
 	v_256 = #BLENDV_32u8(v_256, rs[:u256 1], valid_256);
-	v_256 = #protect_256(v_256, msf);
 	rs[:u256 1] = v_256;
 	
 	for i=0 to 4
@@ -221,11 +207,10 @@ inline fn __ge25519_unpackneg_vartime(stack u64[16] rs, reg ptr u8[32] pp, #msf 
 	for i=0 to 4
 	{
 		#declassify v_64 = rt[i];
-		v_64 = #protect(v_64, msf);
 		rs[12+i] = v_64;
 	}
 	
-	valid = valids;
+	#declassify valid = valids;
 	valid = #protect(valid, msf);
 	
 	return rs, valid, msf;

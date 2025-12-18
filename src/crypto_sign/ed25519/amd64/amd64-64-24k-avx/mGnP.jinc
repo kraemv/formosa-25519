@@ -4,7 +4,7 @@ require "ge25519_unpackneg.jinc"
 require "ge25519_double_scalarmult.jinc"
 require "ge25519_pack.jinc"
 
-#[sct="{ ptr: public, val: { n: public, s: public } } * public * { ptr: public, val: { n: public, s: public } } * { ptr: public, val: { n: public, s: public } } * msf -> { ptr: public, val: { n: public, s: public } } * msf"]
+#[sct="{ ptr: public, val: { n: public, s: transient } } * transient * { ptr: public, val: { n: public, s: transient } } * { ptr: public, val: { n: public, s: transient } } * msf -> { ptr: public, val: { n: public, s: transient } } * msf"]
 fn mGnP(reg ptr u8[33] Q, reg u64[4] m, reg ptr u64[8] np, reg ptr u8[32] P, #msf reg u64 msf) -> reg ptr u8[33], #msf reg u64
 {
 	reg u64 diff v_64 valid z;
@@ -28,6 +28,8 @@ fn mGnP(reg ptr u8[33] Q, reg u64[4] m, reg ptr u64[8] np, reg ptr u8[32] P, #ms
 	n_s = #copy(n);
 	msf = #mov_msf(msf_s);
 	
+	#declassify ps = ps;
+	
 	ps, valid, msf = __ge25519_unpackneg_vartime(ps, P, msf);
 	
 	diff = 0;
@@ -43,14 +45,15 @@ fn mGnP(reg ptr u8[33] Q, reg u64[4] m, reg ptr u64[8] np, reg ptr u8[32] P, #ms
 	valid = #CMOVcc(!neq, valid, z);
 	valids = valid;
 	
-	n = #copy(n_s);
-	m = #copy(m_red);
+	#declassify n = #copy(n_s);
+	#declassify m = #copy(m_red);
 	
-	r, msf = __ge25519_double_scalarmult_vartime(r, ps, n, m, msf);
+	r, msf = __ge25519_double_scalarmult_vartime(ps, n, m, msf);
   v_256, msf = ge25519_pack(r, msf);
   
   Q = Qs;
   valid = valids;
+  #declassify v_256 = v_256;
   Q[:u256 0] = #VMOVDQA_256(v_256);
   Q[32] = valid;
   
