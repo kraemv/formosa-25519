@@ -1,37 +1,52 @@
 require "ge25519_base_niels_256.jinc"
 
+/**
+ * function init_r
+ * @param {reg u64} b - Value of the scalar at this position
+ * @returns {stack u64[19]} - Point b*G in extended representation
+ * 
+ * This functions initializes the result point with the b-multiple.
+ * of the basepoint. The output is in extended coordinates.
+ * It runs in constant time and input independent access pattern.
+*/
 inline fn init_r(reg u64 b) -> stack u64[19]
 {	
-	reg u64 mask subt0 subt1 u;
-	reg u128 b_128 u_128;
+	reg u64 mask u;
 	reg u256 b_256 p_256 u_256 t_256 tt_256;
 	reg u256 tt2d txaddy tysubx;
 	reg u256 cmp_1 cmp_2 cmp_3 cmp_4 cmp_5 cmp_6 cmp_7 cmp_8;
-	reg u64[4] txaddyr tysubxr;
-	stack u64[4] txaddys txaddys2 tysubxs;
-	stack u64[19] r;
-	reg ptr u256[1536] _basep;
-	reg bool cf;
+	reg u64[4] xaddy ysubx;
+	stack u64[4] txaddys tysubxs;
+	stack u64[19] r;						// result
+	reg ptr u256[1536] _basep; // ptr to basepoint multiples
 	
-	_basep = basep;
+	_basep = basep; // Get pointer to basepoints
 	
+	/*
+  0 <= b < 8 -> mask = 8>>s7 = 0
+  b < 0 -> mask = 0xff...f0>>s7 = 0xffffff
+  */
 	mask = b;
 	mask >>s= 7;
 	
+	// u = |b|
 	u = b;
 	u += mask;
 	u ^= mask;
 	
+	// Init with point in infinity
 	tysubx = _1;
 	txaddy = _1;
 	tt2d =  #set0_256();
 	
-	u_128 = #set0_128();
-	u_256 = (256u)#VPINSR_2u64(u_128, u, 0);
+	// Broadcast u to all positions
+	u_256 = (256u)#VMOV_64(u);
 	u_256 = #VPBROADCAST_4u64(u_256);
+	// Compare input against 1..8 with AVX instructions
 	cmp_1 = #VPCMPEQ_4u64(u_256, v1234);
 	cmp_5 = #VPCMPEQ_4u64(u_256, v5678);
 	
+	// Write results for each number in separate registers
 	cmp_2 = #VPERMQ(cmp_1, 0x55);
 	cmp_6 = #VPERMQ(cmp_5, 0x55);
 	cmp_3 = #VPERMQ(cmp_1, 0xaa);
@@ -41,6 +56,7 @@ inline fn init_r(reg u64 b) -> stack u64[19]
 	cmp_1 = #VPERMQ(cmp_1, 0x00);
 	cmp_5 = #VPERMQ(cmp_5, 0x00);
 	
+	// Use vector blending to load the correct multiple in the coordinate
 	tysubx = #BLENDV_32u8(tysubx, _basep.[0], cmp_1);
 	txaddy = #BLENDV_32u8(txaddy, _basep.[32*1], cmp_1);
 	tt2d	 = #BLENDV_32u8(tt2d	, _basep.[32*2], cmp_1);
@@ -66,75 +82,52 @@ inline fn init_r(reg u64 b) -> stack u64[19]
 	txaddy = #BLENDV_32u8(txaddy, _basep.[32*22], cmp_8);
 	tt2d	 = #BLENDV_32u8(tt2d	, _basep.[32*23], cmp_8);
 	
-	b_128 = #set0_128();
-	b_256 = (256u)#VPINSR_2u64(b_128, b, 0);
+	// Write b to AVX register for blending based on the sign
+	b_256 = (256u)#VMOV_64(b);
 	b_256 = #VPBROADCAST_4u64(b_256);
 	
+	// If b < 0, then b_256 = 0xffffff, else b_256 = 0
 	b_256 = #VPSRA_8u32(b_256, 31);
 	t_256 = tysubx;
+	// Swap x and y if b<0
 	tysubx = #BLENDV_32u8(tysubx, txaddy, b_256);
 	txaddy = #BLENDV_32u8(txaddy, t_256, b_256);
-	
-	txaddys2[:u256 0] = txaddy;
 	tysubxs[:u256 0] = tysubx;
 	txaddys[:u256 0] = txaddy;
 
+	// tt2d = p-tt2d if b < 0
 	p_256 = p;
+	// No carries occur here, as each limb of all tt2d always smaller than limb of p
 	tt_256 = #VPSUB_4u64(p_256, tt2d);
 	
 	tt2d = #BLENDV_32u8(tt2d, tt_256, b_256);
 	
-	txaddyr = #copy(txaddys);
-	tysubxr = #copy(tysubxs);
+	// Load coordinates in 64-bit registers
+	xaddy = #copy(txaddys);
+	ysubx = #copy(tysubxs);
 	
-	cf, txaddyr[0] -= tysubxr[0];
-	cf, txaddyr[1] -= tysubxr[1] - cf;
-	cf, txaddyr[2] -= tysubxr[2] - cf;
-	cf, txaddyr[3] -= tysubxr[3] - cf;
+	// (x+y)-(y-x) = 2*x
+	xaddy = __sub4_rrr(xaddy, ysubx);
 
-	subt0 = 0;
-	subt1 = 38;
-	subt1 = #CMOVcc_64(!cf, subt0, subt1);
-	
-	cf, txaddyr[0] -= subt1;
-	cf, txaddyr[1] -= subt0 - cf;
-	cf, txaddyr[2] -= subt0 - cf;
-	cf, txaddyr[3] -= subt0 - cf;
-	
-	subt0 = #CMOVcc_64(cf, subt1, subt0);
-	txaddyr[0] -= subt0;
-
-	r[0] = txaddyr[0];
-	r[1] = txaddyr[1];
-	r[2] = txaddyr[2];
-	r[3] = txaddyr[3];
+	r[0] = xaddy[0];
+	r[1] = xaddy[1];
+	r[2] = xaddy[2];
+	r[3] = xaddy[3];
 	r[4] = 0;
 	
-	cf, tysubxr[0] += txaddys2[0];
-	cf, tysubxr[1] += txaddys2[1] + cf;
-	cf, tysubxr[2] += txaddys2[2] + cf;
-	cf, tysubxr[3] += txaddys2[3] + cf;
-	
-	subt0 = 0;
-	subt1 = 38;
-	subt1 = #CMOVcc_64(!cf, subt0, subt1);
-	
-	cf, tysubxr[0] += subt1;
-	cf, tysubxr[1] += subt0 + cf;
-	cf, tysubxr[2] += subt0 + cf;
-	cf, tysubxr[3] += subt0 + cf;
-	
-	subt0 = #CMOVcc_64(cf, subt1, subt0);
-	tysubxr[0] += subt0;
+	// (y-x)+(x+y) = 2*y
+	ysubx = __add4_rrs(ysubx, txaddys);
 
-	r[5] = tysubxr[0];
-	r[6] = tysubxr[1];
-	r[7] = tysubxr[2];
-	r[8] = tysubxr[3];
+	r[5] = ysubx[0];
+	r[6] = ysubx[1];
+	r[7] = ysubx[2];
+	r[8] = ysubx[3];
 	r[9] = 0;
 	
+	// Write t
 	r.[:u256 120] = tt2d;
 	
+	// Set z to 2, as x,y have factor 2
 	r[10] = 2;
   r[11] = 0;
   r[12] = 0;

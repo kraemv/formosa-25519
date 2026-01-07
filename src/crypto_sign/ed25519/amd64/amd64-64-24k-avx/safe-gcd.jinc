@@ -51,59 +51,59 @@ inline fn __precompute_FVGS(reg u64[4] a) -> stack u256[9]
 	// Precompute FVGS = f, v, g, s
 	// f = p, v = 0, g = x, s = some mask
 	// 1073741823 = 0x3fffffff
-	d1 = table[:u256 9];
+	d1 = d_val[0];
 	stack_FVGS[0] = d1;
 	t0 = a[0];
 	t0 &= 1073741823;
 	stack_FVGS[:u64 2] = t0;
 	
-	d1 = table[:u256 10];
+	d1 = d_val[1];
 	stack_FVGS[1] = d1;
 	t0 = a[0];
 	t0 >>= 30;
 	t0 &= 1073741823;
 	stack_FVGS[:u64 6] = t0;
 	
-	d1 = table[:u256 11];
+	d1 = d_val[2];
 	stack_FVGS[2] = d1;
-	_, _, _, _, _, a[0] = #SHRD_64(a[0], a[1], 60);
+	?{}, a[0] = #SHRD_64(a[0], a[1], 60);
 	a[0] &= 1073741823;
 	stack_FVGS[:u64 10] = a[0];
 	
-	d1 = table[:u256 12];
+	d1 = d_val[3];
 	stack_FVGS[3] = d1;
 	t0 = a[1];
 	t0 >>= 26;
 	t0 &= 1073741823;
 	stack_FVGS[:u64 14] = t0;
 	
-	d1 = table[:u256 13];
+	d1 = d_val[4];
 	stack_FVGS[4] = d1;
-	_, _, _, _, _, a[1] = #SHRD_64(a[1], a[2], 56);
+	?{}, a[1] = #SHRD_64(a[1], a[2], 56);
 	a[1] &= 1073741823;
 	stack_FVGS[:u64 18] = a[1];
 	
-	d1 = table[:u256 14];
+	d1 = d_val[5];
 	stack_FVGS[5] = d1;
 	t0 = a[2];
 	t0 >>= 22;
 	t0 &= 1073741823;
 	stack_FVGS[:u64 22] = t0;
 	
-	d1 = table[:u256 15];
+	d1 = d_val[6];
 	stack_FVGS[6] = d1;
-	_, _, _, _, _, a[2] = #SHRD_64(a[2], a[3], 52);
+	?{}, a[2] = #SHRD_64(a[2], a[3], 52);
 	a[2] &= 1073741823;
 	stack_FVGS[:u64 26] = a[2];
 	
-	d1 = table[:u256 16];
+	d1 = d_val[7];
 	stack_FVGS[7] = d1;
 	t0 = a[3];
 	t0 >>= 18;
 	t0 &= 1073741823;
 	stack_FVGS[:u64 30] = t0;
 	
-	d1 = table[:u256 17];
+	d1 = d_val[8];
 	stack_FVGS[8] = d1;
 	a[3] >>= 48;
 	stack_FVGS[:u64 34] = a[3];
@@ -201,39 +201,39 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 	_2p20a2p41s = _2p20a2p41;
 	
 	// (19, 19, 19, 19)
-	_19x4 = table[:u256 0];
+	_19x4 = __19x4;
 	_19x4s = _19x4;
 	
 	// (0, 19, 0, 19)
-	_0_19x4 = table[:u256 1];
+	_0_19x4 = __0_19x4;
 	_0_19x4s = _0_19x4;
 	
 	// (-1, 32767, -1, 32767)
-	_32767x4 = table[:u256 2];
+	_32767x4 = __32767x4;
 	_32767x4s = _32767x4;
 	
 	// 19**(-1) % 2**30
-	_inv19_2p30x4 = table[:u256 3];
+	_inv19_2p30x4 = __inv19_2p30x4;
 	_inv19_2p30x4s = _inv19_2p30x4;
 	
 	// 2**30 - 1
-	_2p30m1x4 = table[:u256 4];
+	_2p30m1x4 = __2p30m1x4;
 	_2p30m1x4s = _2p30m1x4;
 	
 	// 2**33
-	_2p33x4 = table[:u256 5];
+	_2p33x4 = __2p33x4;
 	_2p33x4s = _2p33x4;
 	
 	// 2**48
-	_2p48x4 = table[:u256 6];
+	_2p48x4 = __2p48x4;
 	_2p48x4s = _2p48x4;
 	
 	// 2**63
-	_2p63x4 = table[:u256 7];
+	_2p63x4 = __2p63x4;
 	_2p63x4s = _2p63x4;
 	
 	// 2**63 - 2**33
-	_2p63m2p33x4 = table[:u256 8];
+	_2p63m2p33x4 = __2p63m2p33x4;
 	
 	i = 10;
 	// 2**60
@@ -293,8 +293,6 @@ fn __crypto_pow(reg u64[4] x, #msf reg u64 msf) -> reg u64 [4], #msf reg u64
 		
 		f += f0;
 		g = #LEA(t[2] + g0);
-		
-		// Fine till here
 		
 		FVGS[0] = stack_FVGS[0];
 		// Fuv and grs are lower 20 bits of f*u*v and g*r*s Upper 41 / 62 bits are set
