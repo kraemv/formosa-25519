@@ -281,8 +281,8 @@ export fn jade_ed25519_amd64_sign(reg u64 skp mp msg_len sigp) -> reg u64
 #[sct="transient * transient * transient * transient -> public"]
 export fn jade_ed25519_amd64_verify(reg u64 sigp pkp mp msg_len) -> reg u64
 {
-  reg u64 vrfy_res valid z;   // Result, constant zero
-  reg u64[4] s;             // Signature scalar s
+  reg u64 vrfy_res valid z;  // Result, constant zero
+  reg u64[4] s n;            // Signature scalar s, H(R,A,m)
   reg u256 A_256 R_256;     // AVX2 registers with public key, commitment
   stack u64[4] R_check;     // value of R for a valid signature + valid byte
   stack u64[4] R A;         // Public key, commitment
@@ -320,9 +320,12 @@ export fn jade_ed25519_amd64_verify(reg u64 sigp pkp mp msg_len) -> reg u64
   state, msf = sha512_update_ext(state, mp, msg_len, msf);
 	
 	#update_after_call
-	#declassify H, msf = sha512_finalize(state, H, msf);
+	H, msf = sha512_finalize(state, H, msf);
   msf_s = #mov_msf(msf);
   
+  // Reduce H(R,A,m) below L
+	#declassify n = sc25519_barrett(H);
+	
   // Load the scalar s
   () = #unspill(sigp);
   sigp = #protect(sigp, msf);
@@ -337,9 +340,9 @@ export fn jade_ed25519_amd64_verify(reg u64 sigp pkp mp msg_len) -> reg u64
 	#declassify A = A;
 	
 	// Compute s*G - H(R,A,m)*A
-	// Check validity of the signature (point on curve, in range...) in byte 33
+	// Check validity of the signature (point on curve, in range...)
 	#update_after_call
-	R_check, valid, msf = mGnP(R_check, s, H, A, msf);
+	R_check, valid, msf = mGnP(R_check, s, n, A, msf);
   
   // Compare provided R against computed R
   // If neq, at least one bit differed and the signature is invalid

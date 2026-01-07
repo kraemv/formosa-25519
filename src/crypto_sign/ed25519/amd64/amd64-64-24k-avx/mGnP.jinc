@@ -6,41 +6,34 @@ require "ge25519_pack.jinc"
 
 /**
  * function mGnP
- * @param {reg ptr u8[33]} Q - Compressed output point and valid byte
+ * @param {reg ptr u64[4]} Q - Compressed output point
  * @param {reg u64[4]} m - Scalar in 64-bit limb representation
- * @param {reg ptr u64[8]} np - Scalar in 64-bit limb representation
+ * @param {reg u64[4]} n - Scalar in 64-bit limb representation
  * @param {reg ptr u8[32]} P - Compressed input point
- * @returns {reg ptr u8[33]} - Compressed m*G+n*P
+ * @returns {reg ptr u64[4]} - Compressed m*G+n*P
+ * @returns {reg u64} - Validity of the compressed point and the m scalar
  * 
  * This functions requires a scalar m that is multiplied with the basepoint G
  * and a scalar n, that is multiplied with the public key P. The result is 
  * packed and written to Q. It runs in variable time.
 */
-#[sct="{ ptr: public, val: { n: public, s: transient } } * transient * { ptr: public, val: { n: public, s: transient } } * { ptr: public, val: { n: public, s: transient } } * msf -> { ptr: public, val: { n: public, s: transient } } * transient * msf"]
-fn mGnP(reg ptr u64[4] Q, reg u64[4] m, reg ptr u64[8] np, reg ptr u8[32] P, #msf reg u64 msf) -> reg ptr u64[4], reg u64, #msf reg u64
+fn mGnP(reg ptr u64[4] Q, reg u64[4] m, reg u64[4] n, reg ptr u8[32] P, #msf reg u64 msf) -> reg ptr u64[4], reg u64, #msf reg u64
 {
-	reg u64 valid z;					// Signature valid, constant zero
-	reg u64[4] n;						// Scalar n
-	stack u64[4] m_s m_red n_s; // Spilled scalars
-	stack u64[12] r;					// Result point
-	stack u64[16] ps;				// Unpacked point
-	reg u256 v_256;					// AVX2 register for store/load
-	#mmx reg ptr u64[4] Qs;	// Spilled Q result pointer
+	reg u64 valid z;							// Signature valid, constant zero
+	stack u64[4] m_s m_red n_s; 	// Spilled scalars
+	stack u64[12] r;							// Result point
+	stack u64[16] ps;						// Unpacked point
+	reg u256 v_256;							// AVX2 register for store/load
+	#mmx reg ptr u64[4] Qs;			// Spilled Q result pointer
 	reg bool neq;
-	#mmx reg u64 msf_s;
 	
-	msf_s = #mov_msf(msf);
 	Qs = Q;
 	m_s = #copy(m);
+	n_s = #copy(n);
 	
 	// Reduce m below L
 	m = sc25519_from32bytes(m);
 	m_red = #copy(m);
-	
-	// Reduce n below L
-	n = sc25519_barrett_p(np);
-	n_s = #copy(n);
-	msf = #mov_msf(msf_s);
 	
 	// Unpack the input public key to extended coordinates
 	#declassify ps = ps;
