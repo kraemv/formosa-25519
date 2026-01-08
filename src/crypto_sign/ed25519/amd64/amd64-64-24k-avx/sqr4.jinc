@@ -1,19 +1,26 @@
 require "reduce4.jinc"
 
-// TODO: Change to inline
-inline fn _sqr4_rr(reg u64 f0 f1 f2 f3) -> reg u64, reg u64, reg u64, reg u64
+/**
+ * function __sqr4_rr
+ * @param {reg u64[4]} f - Input in 64-bit limb representation
+ * @returns {reg u64[4]} - Square of input modulo p
+ * 
+ * This functions squares the number f modulo the prime p.
+ * h = f *f
+ * h = (2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3) *
+ *     (2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3)
+*/
+inline fn __sqr4_rr(reg u64[4] f)-> reg u64[4]
 {
-  reg bool cf of;
+  reg u64 z _38 fx;
+  reg u64[4] h r;
   reg u64[8] t;
-  reg u64[4] f h r;
-  reg u64 z _38 fx h0 h1 h2 h3;
+  reg bool cf of;
+  
+  // Setup
   of, cf, _, _, _, z = #set0();
   
-  f[0] = f0;
-  f[1] = f1;
-  f[2] = f2;
-  f[3] = f3;
-  // 0
+  // Multiply limb 0 with all other limbs
   fx = f[0];
 
   (t[1], h[0]) = #MULX ( fx,   fx       ); // f0*f0
@@ -25,7 +32,7 @@ inline fn _sqr4_rr(reg u64 f0 f1 f2 f3) -> reg u64, reg u64, reg u64, reg u64
   (r[0], t[3]) = #MULX ( fx,   f[3]     ); // f0*f3
      cf, h[3]  = #ADCX ( h[3], t[3], cf );
 
-  // 1
+  // Multiply limb 1 with all remaining other limbs
   fx = f[1];
 
   (t[4], t[3]) = #MULX ( fx,   f[2]     ); // f1*f2
@@ -38,7 +45,7 @@ inline fn _sqr4_rr(reg u64 f0 f1 f2 f3) -> reg u64, reg u64, reg u64, reg u64
 
   (t[3], t[2]) = #MULX ( fx,   fx       ); // f1*f1
 
-  // 2
+  // Multiply limb 2 with all remaining other limbs
   fx = f[2];
 
   (r[2], t[5]) = #MULX ( fx,   f[3]     ); // f2*f3
@@ -51,12 +58,13 @@ inline fn _sqr4_rr(reg u64 f0 f1 f2 f3) -> reg u64, reg u64, reg u64, reg u64
 
   (t[5], t[4]) = #MULX ( fx,   fx       ); // f2*f2
 
-  // 3
+  
+  // Multiply limb 4 with all remaining other limbs
   fx = f[3];
 
   (r[3], t[6]) = #MULX ( fx,   fx       ); // f3*f3
 
-  //
+  // Double all odd limbs to take account for fi*fj + fj*fi for i != j
   cf, h[1] = #ADCX ( h[1], h[1], cf );
   of, h[1] = #ADOX ( h[1], t[1], of );
 
@@ -75,46 +83,37 @@ inline fn _sqr4_rr(reg u64 f0 f1 f2 f3) -> reg u64, reg u64, reg u64, reg u64
   cf, r[2] = #ADCX ( r[2], r[2], cf );
   of, r[2] = #ADOX ( r[2], t[6], of );
 
-  cf, r[3] = #ADCX ( r[3], z,    cf ); // cf = 0
-  of, r[3] = #ADOX ( r[3], z,    of ); // of = 0 ?? TODO: VERIFYME
-
+  cf, r[3] = #ADCX ( r[3], z,    cf );
+  of, r[3] = #ADOX ( r[3], z,    of );
+	
+	// Reduce the result modulo p
   _38 = 38;
   h = __reduce4(h, r, _38, z, cf, of);
   
-  h0 = h[0];
-  h1 = h[1];
-  h2 = h[2];
-  h3 = h[3];
-  
-  return h0, h1, h2, h3;
+  return h;
 }
 
-inline fn __sqr4_rr(reg u64[4] f)-> reg u64[4]
-{
-	reg u64[4] res;
-	reg u64 argf0, argf1, argf2, argf3;
-	reg u64 resf0, resf1, resf2, resf3;
-	argf0 = f[0];
-	argf1 = f[1];
-	argf2 = f[2];
-	argf3 = f[3];
-	resf0, resf1, resf2, resf3 = _sqr4_rr(argf0, argf1, argf2, argf3);
-	res[0] = resf0;
-	res[1] = resf1;
-	res[2] = resf2;
-	res[3] = resf3;
-	return res;
-}
-
+/**
+ * function __sqr5_rr
+ * @param {reg u64[4]} f - Input in 64-bit limb representation
+ * @returns {reg u64[5]} - Square of input modulo p
+ * 
+ * This functions squares the number f modulo p*2^8.
+ * h = f *f
+ * h = (2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3) *
+ *     (2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3) mod p*2^8
+*/
 inline fn __sqr5_rr(reg u64[4] g) -> reg u64[5]
 {
-  reg bool cf of;
+  reg u64 z _38 rdx;
   reg u64[5] o;
   reg u64[8] t h;
-  reg u64 z _38 rdx;
+  reg bool cf of;
+  
+  // Setup
   of, cf, _, _, _, z = #set0();
   
-  // 0
+  // Multiply limb 0 with other limbs
   rdx = g[0];
 
   (h[2], h[1]) = #MULX ( rdx,  g[1]     ); // f0*f1
@@ -125,7 +124,7 @@ inline fn __sqr5_rr(reg u64[4] g) -> reg u64[5]
      cf, h[3]  = #ADCX ( h[3], t[3], cf );
 
 
-  // 1
+  // Multiply limb 1 with remaining other limbs
   rdx = g[1];
 
   (t[4], t[3]) = #MULX ( rdx,  g[2]     ); // f1*f2
@@ -136,7 +135,7 @@ inline fn __sqr5_rr(reg u64[4] g) -> reg u64[5]
   (h[5], t[4]) = #MULX ( rdx,   g[3]     ); // f1*f3
      of, h[4]  = #ADOX ( h[4], t[4], of );
 
-  // 2
+  // Multiply limb 2 with remaining other limbs
   rdx = g[2];
 
   (h[6], t[5]) = #MULX ( rdx,   g[3]     ); // f2*f3
@@ -144,36 +143,38 @@ inline fn __sqr5_rr(reg u64[4] g) -> reg u64[5]
    cf, h[5]    = #ADCX ( h[5], t[5], cf );
    of, h[5]    = #ADOX ( h[5], z,    of );
 
-   cf, h[6]    = #ADCX ( h[6], z,    cf ); // cf = 0
-   of, h[6]    = #ADOX ( h[6], z,    of ); // of = 0 ?? TODO: VERIFYME
-
-	h[7] = 0;
-	_, _, _, _, _, h[7] = #SHLD(h[7], h[6], 1);
-	_, _, _, _, _, h[6] = #SHLD(h[6], h[5], 1);
-	_, _, _, _, _, h[5] = #SHLD(h[5], h[4], 1);
-	_, _, _, _, _, h[4] = #SHLD(h[4], h[3], 1);
-	_, _, _, _, _, h[3] = #SHLD(h[3], h[2], 1);
-	_, _, _, _, _, h[2] = #SHLD(h[2], h[1], 1);
-	_, _, _, _, _, h[1] = #SHL(h[1], 1);
+   cf, h[6]    = #ADCX ( h[6], z,    cf );
+   of, h[6]    = #ADOX ( h[6], z,    of );
 	
-  // 0
+	// Double all limbs to take account for fi*fj + fj*fi for i != j
+	// So far no limbs have been squared
+	h[7] = 0;
+	?{}, h[7] = #SHLD(h[7], h[6], 1);
+	?{}, h[6] = #SHLD(h[6], h[5], 1);
+	?{}, h[5] = #SHLD(h[5], h[4], 1);
+	?{}, h[4] = #SHLD(h[4], h[3], 1);
+	?{}, h[3] = #SHLD(h[3], h[2], 1);
+	?{}, h[2] = #SHLD(h[2], h[1], 1);
+	?{}, h[1] = #SHL(h[1], 1);
+	
+  // Square limb 0
   rdx = g[0];
   (t[1], h[0]) = #MULX ( rdx,   rdx     ); // f0*f0
   cf, h[1] += t[1];
   
-  // 1
+  // Square limb 1
   rdx = g[1];
   (t[3], t[2]) = #MULX ( rdx,   rdx     ); // f1*f1
   cf, h[2] += t[2] + cf;
   cf, h[3] += t[3] + cf;
   
-  // 2
+  // Square limb 2
   rdx = g[2];
   (t[5], t[4]) = #MULX ( rdx,   rdx     ); // f2*f2
   cf, h[4] += t[4] + cf;
   cf, h[5] += t[5] + cf;
   
-  // 3
+  // Square limb 3
   rdx = g[3];
   (t[7], t[6]) = #MULX ( rdx,   rdx     ); // f3*f3
   cf, h[6] += t[6] + cf;
@@ -192,7 +193,6 @@ inline fn __sqr5_rr(reg u64[4] g) -> reg u64[5]
   cf, h[7]     = #ADCX ( h[7], t[7], cf );
   cf, o[4]     = #ADCX ( o[4],    z, cf );
   
-  // Final add
   cf, o[0] = h[0] + h[4];
   cf, o[1] = h[1] + h[5] + cf;
   cf, o[2] = h[2] + h[6] + cf;
@@ -202,160 +202,23 @@ inline fn __sqr5_rr(reg u64[4] g) -> reg u64[5]
   return o;
 }
 
-inline fn __sqr5_rp(reg ptr u64[4] g) -> reg u64[5]
+/**
+ * function __sqr5_rs
+ * @param {stack u64[4]} f - ptr to input in 64-bit limb representation
+ * @returns {reg u64[5]} - Square of input modulo p
+ * 
+ * This functions squares the number f modulo p*2^8.
+ * h = f *f
+ * h = (2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3) *
+ *     (2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3) mod p*2^8
+*/
+inline fn __sqr5_rs(stack u64[4] fs) -> reg u64[5]
 {
-  reg bool cf of;
-  reg u64[5] o;
-  reg u64[8] t h;
-  reg u64 z _38 rdx;
-  of, cf, _, _, _, z = #set0();
-  
-  // 0
-  rdx = g[0];
-
-  (h[2], h[1]) = #MULX ( rdx,  g[1]     ); // f0*f1
-  (h[3], t[2]) = #MULX ( rdx,  g[2]     ); // f0*f2
-		  cf, h[2] = #ADCX ( h[2], t[2], cf	);
-	
-  (h[4], t[3]) = #MULX ( rdx,  g[3]     ); // f0*f3
-     cf, h[3]  = #ADCX ( h[3], t[3], cf );
-
-
-  // 1
-  rdx = g[1];
-
-  (t[4], t[3]) = #MULX ( rdx,  g[2]     ); // f1*f2
-
-  of, h[3]     = #ADOX ( h[3], t[3], of );
-  cf, h[4]     = #ADCX ( h[4], t[4], cf );
-  
-  (h[5], t[4]) = #MULX ( rdx,   g[3]     ); // f1*f3
-     of, h[4]  = #ADOX ( h[4], t[4], of );
-
-  // 2
-  rdx = g[2];
-
-  (h[6], t[5]) = #MULX ( rdx,   g[3]     ); // f2*f3
-
-   cf, h[5]    = #ADCX ( h[5], t[5], cf );
-   of, h[5]    = #ADOX ( h[5], z,    of );
-
-   cf, h[6]    = #ADCX ( h[6], z,    cf ); // cf = 0
-   of, h[6]    = #ADOX ( h[6], z,    of ); // of = 0 ?? TODO: VERIFYME
-
-	h[7] = 0;
-	_, _, _, _, _, h[7] = #SHLD(h[7], h[6], 1);
-	_, _, _, _, _, h[6] = #SHLD(h[6], h[5], 1);
-	_, _, _, _, _, h[5] = #SHLD(h[5], h[4], 1);
-	_, _, _, _, _, h[4] = #SHLD(h[4], h[3], 1);
-	_, _, _, _, _, h[3] = #SHLD(h[3], h[2], 1);
-	_, _, _, _, _, h[2] = #SHLD(h[2], h[1], 1);
-	_, _, _, _, _, h[1] = #SHL(h[1], 1);
-	
-  // 0
-  rdx = g[0];
-  (t[1], h[0]) = #MULX ( rdx,   rdx     ); // f0*f0
-  cf, h[1] += t[1];
-  
-  // 1
-  rdx = g[1];
-  (t[3], t[2]) = #MULX ( rdx,   rdx     ); // f1*f1
-  cf, h[2] += t[2] + cf;
-  cf, h[3] += t[3] + cf;
-  
-  // 2
-  rdx = g[2];
-  (t[5], t[4]) = #MULX ( rdx,   rdx     ); // f2*f2
-  cf, h[4] += t[4] + cf;
-  cf, h[5] += t[5] + cf;
-  
-  // 3
-  rdx = g[3];
-  (t[7], t[6]) = #MULX ( rdx,   rdx     ); // f3*f3
-  cf, h[6] += t[6] + cf;
-   _, h[7] += t[7] + cf;
-  
-  // Reduce
-  _38 = 38;
-  (t[5], h[4]) = #MULX ( _38,   h[4]    );
-  (t[6], h[5]) = #MULX ( _38,   h[5]    );
-  cf, h[5] 		 += t[5];
-  
-  (t[7], h[6]) = #MULX ( _38,  h[6]     );
-  cf, h[6]     = #ADCX ( h[6], t[6], cf );
-  
-  (o[4], h[7]) = #MULX ( _38,  h[7]     );
-  cf, h[7]     = #ADCX ( h[7], t[7], cf );
-  cf, o[4]     = #ADCX ( o[4],    z, cf );
-  
-  // Final add
-  cf, o[0] = h[0] + h[4];
-  cf, o[1] = h[1] + h[5] + cf;
-  cf, o[2] = h[2] + h[6] + cf;
-  cf, o[3] = h[3] + h[7] + cf;
-   _, o[4] = o[4] + 0 + cf;
-  
-  return o;
-}
-
-inline fn __it_sqr4_x2(reg u64[4] f, reg u32 i, #msf reg u64 msf) -> reg u64[4], #msf reg u64
-{
-  reg bool zf;
-  reg u64[4] h;
-  stack u32 _i;
-  reg bool cond;
-  #mmx reg u64 msf_s;
-  
-  msf_s = #mov_msf(msf);
-  
-  while{cond = (i != 0); msf = #mov_msf(msf_s);}(cond)
-  { 
-  	msf = #update_msf(cond, msf);
-  	msf_s = #mov_msf(msf);
-  	
-  	_i = i;
-
-    h = __sqr4_rr(f);
-    f = __sqr4_rr(h);
-		
-    i = _i;
-    _,_,_,zf,i = #DEC_32(i);
-  }
-  msf = #mov_msf(msf_s);
-	msf = #update_msf(!cond, msf);
-	
-  return f, msf;
-}
-
-inline fn __sqr4_ss(stack u64[4] fs) -> stack u64[4]
-{
-  stack u64[4] hs;
-  reg u64[4] f h;
+  reg u64[4] f;
+  reg u64[5] h;
 
   f = #copy(fs);
-  h = __sqr4_rr(f);
-  hs = #copy(h);
-
-  return hs;
-}
-
-inline fn __sqr4_sr(reg u64[4] f) -> stack u64[4]
-{
-  stack u64[4] hs;
-  reg u64[4] h;
-
-  h = __sqr4_rr(f);
-  hs = #copy(h);
-
-  return hs;
-}
-
-inline fn __sqr4_rs(stack u64[4] fs) -> reg u64[4]
-{
-  reg u64[4] f h;
-
-  f = #copy(fs);
-  h = __sqr4_rr(f);
+  h = __sqr5_rr(f);
 
   return h;
 }

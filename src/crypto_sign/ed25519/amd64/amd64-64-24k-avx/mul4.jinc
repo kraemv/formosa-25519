@@ -156,9 +156,9 @@ inline fn __mul4_c3
 */
 inline fn __mul4_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[4]
 {
-  reg bool cf of;
-  reg u64[4] h r;
   reg u64 _38 f z;
+  reg u64[4] h r;
+  reg bool cf of;
   
   // Setup
   of, cf, _, _, _, z = #set0();

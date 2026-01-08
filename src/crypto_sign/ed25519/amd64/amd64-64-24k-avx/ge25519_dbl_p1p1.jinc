@@ -22,17 +22,17 @@ require "sqr4.jinc"
  * g= -y^2 - x^2
  * h= -x^2 + y^2 - 2*z^2
 */
-inline fn ge25519_dbl_p1p1(reg ptr u64[12] pp) -> stack u64[16]
+inline fn ge25519_dbl_p1p1(stack u64[12] pp) -> stack u64[16]
 {
-	reg u64[5] a b c d e;
 	reg u64[4] d4 e4;
+	reg u64[5] a b c d e;
 	stack u64[5] as bs cs;
 	stack u64[16] r;				// Result
 	reg bool cf;						// Carry flag
 	inline int i;
 	
 	// a = z^2
-	a = __sqr5_rp(pp[8:4]);
+	a = __sqr5_rs(pp[8:4]);
 	
 	// a = 2*z^2
 	cf, a[0] += a[0];
@@ -41,11 +41,11 @@ inline fn ge25519_dbl_p1p1(reg ptr u64[12] pp) -> stack u64[16]
 	as = #copy(a);
 	
 	// b = y^2
-	b = __sqr5_rp(pp[4:4]);
+	b = __sqr5_rs(pp[4:4]);
 	bs = #copy(b);
 	
 	// c = x^2
-	c = __sqr5_rp(pp[0:4]);
+	c = __sqr5_rs(pp[0:4]);
 	cs = #copy(c);
 	
 	// c = -x^2
@@ -111,23 +111,22 @@ inline fn ge25519_dbl_p1p1(reg ptr u64[12] pp) -> stack u64[16]
  * ysubx= x-y
  * xaddy= x+y
 */
-inline fn ge25519_dbl_p1p1_prep(reg ptr u64[12] pp) -> stack u64[16], reg ptr u64[12]
+inline fn ge25519_dbl_p1p1_prep(stack u64[12] pp) -> stack u64[16], stack u64[12]
 {
 	reg u64[4] d4 e4 x _y y;
-	reg u64[5] a b c e;
-	stack u64[5] as bs;
+	reg u64[5] _a a b c e;
+	stack u64[5] bs;
 	stack u64[16] r;
-	reg ptr u64[4] p_ptr;
 	reg bool cf;
 	inline int i;
 	
 	// b = y^2
-	b = __sqr5_rp(pp[4:4]);
+	b = __sqr5_rs(pp[4:4]);
 	bs = #copy(b);
 	
 	// a = x^2
-	a = __sqr5_rp(pp[0:4]);
-	as = #copy(a);
+	a = __sqr5_rs(pp[0:4]);
+	_a = #copy(a);
 	
 	// a = -x^2
 	a = __neg5_rr(a);
@@ -159,7 +158,7 @@ inline fn ge25519_dbl_p1p1_prep(reg ptr u64[12] pp) -> stack u64[16], reg ptr u6
 	b = __neg5_rs(bs);
 	
 	// g = -y^2 - x^2
-	d4 = __sub5_rrs(b, as);
+	d4 = __sub5_rrr(b, _a);
 	r[8:4] = #copy(d4);
 	
 	// Prepare pre[0]
@@ -173,8 +172,7 @@ inline fn ge25519_dbl_p1p1_prep(reg ptr u64[12] pp) -> stack u64[16], reg ptr u6
 	pp[4:4] = __add4_srr(_y, x);
 	
 	// e = (x+y)^2
-	p_ptr = pp[4:4];
-	e = __sqr5_rp(p_ptr);
+	e = __sqr5_rs(pp[4:4]);
 	
 	// e = (x+y)^2 - x^2 - y^2 = 2*x*y
 	e4 = __add54_rrs(e, r[8:4]);

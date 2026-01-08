@@ -108,6 +108,7 @@ inline fn __ge25519_double_scalarmult_vartime(stack u64[16] p1, reg u64[4] n m, 
 	pre1[12:4] = __mul4_ssr(ec2d, t2d);
 	
 	// Compute the PRE1_SIZE multiples
+	msf = #mov_msf(msf_s);
 	j = 0;
 	while {cond = (j < 16*(PRE1_SIZE-1));}(cond) {
 		msf = #update_msf(cond, msf);

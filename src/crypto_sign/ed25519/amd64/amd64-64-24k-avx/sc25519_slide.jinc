@@ -12,11 +12,10 @@ fn sc25519_slide(reg u64[4] s, reg ptr u8[256] r, reg u64 swindowsize, #msf reg 
 	s_st = #copy(s);
 	
 	state = 2;
-	new_window = 0;
-	addr = 0;
-	b = swindowsize;
-	b += 1;
-	i = 0;
+	?{}, new_window = #set0_16();
+	?{}, addr = #set0();
+	b = #LEA(swindowsize + 1);
+	?{}, i = #set0();
 	_1r = 1;
 	?{}, z = #set0();
 	for j=1 to 5
@@ -61,7 +60,7 @@ fn sc25519_slide(reg u64[4] s, reg ptr u8[256] r, reg u64 swindowsize, #msf reg 
 			addr = #CMOVcc(!zf, i, addr);
 			
 			curr = curr >> 1;
-			i += 1;
+			i = #LEA(i + 1);
 		}
 		msf = #update_msf(!cond, msf);
 	}

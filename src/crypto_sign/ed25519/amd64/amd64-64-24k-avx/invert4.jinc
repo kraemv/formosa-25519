@@ -15,13 +15,9 @@ inline fn __invert4(reg u64[4] f, #msf reg u64 msf) -> reg u64[4], #msf reg u64
 
   // Reduce below p
   f = __fe25519_pack(f);
-  // Assure msb=0
-  f[3] &= mask63;
   // Invert number
   #update_after_call
   h, msf = __crypto_pow(f, msf);
-  // Assure msb=0
-  h[3] &= mask63;
 
   return h, msf;
 }

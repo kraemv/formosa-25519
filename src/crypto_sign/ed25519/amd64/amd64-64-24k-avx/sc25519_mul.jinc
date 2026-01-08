@@ -1,5 +1,6 @@
 require "sc25519_barrett.jinc"
 
+// Multiply limb 0
 inline fn __mul4sc_c0
 ( reg u64    f0,
   reg u64[4] g,
@@ -30,6 +31,7 @@ inline fn __mul4sc_c0
   return h, r, cf, of;
 }
 
+// Multiply limb 1
 inline fn __mul4sc_c1
 ( reg u64[4] h,
   reg u64[4] r,
@@ -66,6 +68,7 @@ inline fn __mul4sc_c1
   return h, r, cf, of;
 }
 
+// Multiply limb 2
 inline fn __mul4sc_c2
 ( reg u64[4] h,
   reg u64[4] r,
@@ -102,6 +105,7 @@ inline fn __mul4sc_c2
   return h, r, cf, of;
 }
 
+// Multiply limb 3
 inline fn __mul4sc_c3
 ( reg u64[4] h,
   reg u64[4] r,
@@ -138,16 +142,30 @@ inline fn __mul4sc_c3
   return h, r, cf, of;
 }
 
+/**
+ * function sc25519_mul_rsr
+ * @param {stack u64[4]} fs - ptr to first factor in 64-bit limb representation
+ * @param {reg u64[4]} g - second factor in 64-bit limb representation
+ * @returns {reg u64[4]} - Product of f and g in 64-bit limb representation
+ * 
+ * This function multiplies the two numbers in f and g modulo L. Inputs are not consumed.
+ * The representation is:
+ * h = f * g
+ * h = (2**0*f0 + 2**64*f1 + 2**128*f2 + 2**192*f3) *
+ *     (2**0*g0 + 2**64*g1 + 2**128*g2 + 2**192*g3) mod p
+*/
 inline fn sc25519_mul_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[4]
 {
-  reg bool cf of;
+  reg u64 f z;
   reg u64[4] h r;
   stack u64[8] res;
-  reg u64 f z;
+  reg bool cf of;
   inline int i;
-
+	
+	// Setup
   of, cf, _, _, _, z = #set0();
-
+	
+	// (r 2^256 + h) = fs*g
   f = fs[0];
   h, r, cf, of = __mul4sc_c0(      f, g, z, cf, of);
 
@@ -166,6 +184,7 @@ inline fn sc25519_mul_rsr(stack u64[4] fs, reg u64[4] g) -> reg u64[4]
 		res[4+i] = r[i];
 	}
 	
+	// Reduce modulo L
   h = sc25519_barrett(res);
 
   return h;

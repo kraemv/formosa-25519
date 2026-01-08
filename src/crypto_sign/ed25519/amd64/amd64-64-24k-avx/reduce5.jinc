@@ -50,6 +50,63 @@ inline fn __reduce5
 }
 
 /**
+ * function __reduce5to4_signed_rr
+ * @param {reg u64[5]} as - 5-limb of size 64 number
+ * @returns {reg u64[5]} - as % p in 4-limb representation
+ * 
+ * This function reduces the 5-limb number a % p. Inputs are not consumed.
+ * Bit 62 of a[4] is the sign of the number, so that we subtract the reduced
+ * value instead.
+ * The representation is:
+ * c = a % p
+ * c = ( 2**0*a0 +  2**64*a1 + 2**128*a2 + 2**192*a3 + 2**256*a4[0..62] - 2**318*a[63] ) mod p
+*/
+inline fn __reduce5to4_signed_rr(reg u64[5] a) -> reg u64[4]
+{
+  reg u64 h rax rdx;
+  reg u64[4] c;
+  reg bool cf;
+  
+  // Shift bit 255 in high order limb and multipy by 2
+  ?{}, a[4] = #SHLD_64(a[4], a[3], 1);
+  a[3] &= mask63;
+  
+  // Multiply by 19 as 2^256=38
+  // h=-1 if a[4] < 0, else 0
+  h = a[4];
+  rax = 19;
+  _, _, _, _, _, rdx, rax = #IMUL(rax, a[4]);
+  h = h >>s 63;
+  a[4] = 0;
+  
+  // Add result and subtract if necessary
+  cf, a[0] += rax;
+  cf, a[1] += rdx + cf;
+  cf, a[2] += h + cf;
+  cf, a[3] += h + cf;
+  _, a[4] += h + cf;
+  
+  // Shift bit 255 in high order limb and multipy by 2
+  ?{}, a[4] = #SHLD_64(a[4], a[3], 1);
+  a[3] &= mask63;
+  
+  // Multiply by 19 as 2^256=38
+  // h=-1 if a[4] < 0, else 0
+  h = a[4];
+  rax = 19;
+  _, _, _, _, _, rdx, rax = #IMUL(rax, a[4]);
+  h = h >>s 63;
+  
+  // Add result and subtract if necessary
+  cf, c[0] = a[0] + rax;
+  cf, c[1] = a[1] + rdx + cf;
+  cf, c[2] = a[2] + h + cf;
+  cf, c[3] = a[3] + h + cf;
+  
+  return c;
+}
+
+/**
  * function __reduce5to4_rs
  * @param {stack u64[5]} as - 5-limb of size 64 number
  * @returns {reg u64[5]} - as % p in 4-limb representation
